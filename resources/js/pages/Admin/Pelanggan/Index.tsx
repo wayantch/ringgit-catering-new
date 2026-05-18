@@ -1,0 +1,444 @@
+import { Link, router } from '@inertiajs/react';
+import {
+    Plus,
+    Search,
+    Users,
+    TrendingUp,
+    AlertCircle,
+    DollarSign,
+    Gift,
+    ShieldCheck,
+} from 'lucide-react';
+import React, { useState } from 'react';
+import TierBadge from '@/Components/Admin/Pelanggan/TierBadge';
+import PaginationControls from '@/Components/PaginationControls';
+import AdminLayout from '@/Layouts/AdminLayout';
+
+interface Pelanggan {
+    id: number;
+    name: string;
+    email: string;
+    phone: string | null;
+    email_verified_at: string | null;
+    orders_count: number;
+    orders_sum_total_amount: number | null;
+    tier: 'bronze' | 'silver' | 'gold' | 'platinum';
+    is_eligible: boolean;
+    has_redeemed: boolean;
+    created_at: string;
+}
+
+interface Stats {
+    total_pelanggan: number;
+    aktif_bulan_ini: number;
+    belum_login: number;
+    total_revenue: number;
+}
+
+interface Props {
+    pelanggan: {
+        data: Pelanggan[];
+        current_page: number;
+        last_page: number;
+        total: number;
+    };
+    filters: {
+        search?: string;
+        status?: string;
+    };
+    stats: Stats;
+    loyaltyStats: {
+        program_active: boolean;
+        program_description: string | null;
+        min_orders: number;
+        period_end: string | null;
+        total_eligible: number;
+        total_redeemed: number;
+        total_discount_given: number;
+    };
+}
+
+export default function Index({
+    pelanggan,
+    filters,
+    stats,
+    loyaltyStats,
+}: Props) {
+    const [searchInput, setSearchInput] = useState(filters.search || '');
+
+    const handleSearch = (value: string) => {
+        setSearchInput(value);
+        router.get(
+            '/admin/pelanggan',
+            { search: value, status: filters.status },
+            { preserveState: true },
+        );
+    };
+
+    const handleStatusFilter = (status: string) => {
+        router.get(
+            '/admin/pelanggan',
+            { search: searchInput, status },
+            { preserveState: true },
+        );
+    };
+
+    const formatCurrency = (amount: number | null) => {
+        if (!amount) {
+return 'Rp 0';
+}
+
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+        }).format(amount);
+    };
+
+    const formatDate = (date: string) => {
+        return new Date(date).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
+    return (
+        <AdminLayout>
+            <div className="space-y-6 p-4">
+                {/* Header */}
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
+                            Manajemen Pelanggan
+                        </p>
+                        <h1 className="mt-2 text-3xl font-bold text-slate-900 lg:text-4xl">
+                            Pelanggan
+                        </h1>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                            Kelola data pelanggan dan pantau aktivitas mereka.
+                        </p>
+                    </div>
+                    <Link
+                        href="/admin/pelanggan/create"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary-600"
+                    >
+                        <Plus className="h-4 w-4" /> Tambah Pelanggan
+                    </Link>
+                </div>
+
+                {loyaltyStats.program_active && (
+                    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                    <Gift className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
+                                        Program Loyalti Aktif
+                                    </p>
+                                    <h2 className="mt-1 text-lg font-semibold text-slate-900">
+                                        {loyaltyStats.program_description ||
+                                            'Program Loyalti Ringgit Catering'}
+                                    </h2>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Berlaku sampai{' '}
+                                        {loyaltyStats.period_end ||
+                                            'tidak dibatasi'}{' '}
+                                        · Minimum {loyaltyStats.min_orders}{' '}
+                                        pesanan.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                {[
+                                    {
+                                        label: 'Eligible',
+                                        value: loyaltyStats.total_eligible,
+                                        color: 'bg-primary/10 text-primary',
+                                    },
+                                    {
+                                        label: 'Redeem',
+                                        value: loyaltyStats.total_redeemed,
+                                        color: 'bg-emerald-50 text-emerald-600',
+                                    },
+                                    {
+                                        label: 'Diskon',
+                                        value: formatCurrency(
+                                            loyaltyStats.total_discount_given,
+                                        ),
+                                        color: 'bg-slate-100 text-slate-600',
+                                        amount: true,
+                                    },
+                                ].map((item) => (
+                                    <div
+                                        key={item.label}
+                                        className={`rounded-2xl px-4 py-3 ${item.color}`}
+                                    >
+                                        <p className="text-[10px] font-semibold tracking-[0.2em] uppercase opacity-70">
+                                            {item.label}
+                                        </p>
+                                        <p className="mt-1 text-sm font-bold">
+                                            {item.amount
+                                                ? item.value
+                                                : item.value}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Stats Row */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {[
+                        {
+                            label: 'Total Pelanggan',
+                            value: stats.total_pelanggan,
+                            icon: Users,
+                            color: 'bg-blue-50 text-blue-600',
+                        },
+                        {
+                            label: 'Aktif Bulan Ini',
+                            value: stats.aktif_bulan_ini,
+                            icon: TrendingUp,
+                            color: 'bg-emerald-50 text-emerald-600',
+                        },
+                        {
+                            label: 'Belum Login',
+                            value: stats.belum_login,
+                            icon: AlertCircle,
+                            color: 'bg-amber-50 text-amber-600',
+                        },
+                        {
+                            label: 'Total Revenue',
+                            value: formatCurrency(stats.total_revenue),
+                            icon: DollarSign,
+                            color: 'bg-primary/10 text-primary',
+                            isAmount: true,
+                        },
+                    ].map((stat, idx) => {
+                        const Icon = stat.icon;
+
+                        return (
+                            <div
+                                key={idx}
+                                className="flex gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+                            >
+                                <div
+                                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}
+                                >
+                                    <Icon className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
+                                        {stat.label}
+                                    </p>
+                                    <p className="mt-1 text-xl font-bold text-slate-900">
+                                        {stat.isAmount
+                                            ? stat.value
+                                            : stat.value}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* Filter Bar */}
+                <div className="flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="flex-1">
+                        <label className="mb-2 block text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                            Cari Pelanggan
+                        </label>
+                        <div className="relative">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Cari nama atau email..."
+                                value={searchInput}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-4 pl-10 text-sm text-slate-900 transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                        {['semua', 'aktif', 'belum_login'].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => handleStatusFilter(status)}
+                                className={`rounded-xl px-4 py-3 text-sm font-medium transition ${
+                                    (filters.status || 'semua') === status
+                                        ? 'bg-primary text-white'
+                                        : 'border border-slate-200 bg-white text-slate-700 hover:border-primary/20'
+                                }`}
+                            >
+                                {status === 'semua'
+                                    ? 'Semua'
+                                    : status === 'aktif'
+                                      ? 'Aktif'
+                                      : 'Belum Login'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+                            <thead>
+                                <tr className="bg-slate-50/50">
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Pelanggan
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Pesanan
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Total Belanja
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Bergabung
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Loyalti
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-semibold tracking-wide text-slate-600 uppercase">
+                                        Aksi
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {pelanggan.data.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-8 text-center text-slate-500">
+                                            Tidak ada pelanggan ditemukan
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    pelanggan.data.map((p) => (
+                                        <tr
+                                            key={p.id}
+                                            className="transition hover:bg-slate-50"
+                                        >
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                                        {p.name
+                                                            .split(' ')
+                                                            .map((n) => n[0])
+                                                            .join('')
+                                                            .toUpperCase()
+                                                            .slice(0, 2)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-900">
+                                                            {p.name}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {p.email}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 font-medium">
+                                                {p.orders_count} pesanan
+                                            </td>
+                                            <td className="px-6 py-4 font-medium">
+                                                {formatCurrency(
+                                                    p.orders_sum_total_amount,
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-600">
+                                                {formatDate(p.created_at)}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-2">
+                                                    <TierBadge
+                                                        tier={p.tier}
+                                                        orderCount={
+                                                            p.orders_count
+                                                        }
+                                                    />
+
+                                                    {loyaltyStats.program_active && (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
+                                                                <div
+                                                                    className="h-full rounded-full bg-primary transition-all"
+                                                                    style={{
+                                                                        width: `${Math.min(100, (p.orders_count / loyaltyStats.min_orders) * 100)}%`,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                {p.orders_count}
+                                                                /
+                                                                {
+                                                                    loyaltyStats.min_orders
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {p.has_redeemed && (
+                                                        <span className="inline-flex self-start items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700 ring-1 ring-emerald-200">
+                                                            <ShieldCheck className="h-3 w-3" />
+                                                            Sudah redeem
+                                                        </span>
+                                                    )}
+                                                    {p.is_eligible &&
+                                                        !p.has_redeemed && (
+                                                            <span className="inline-flex self-start items-center rounded-full bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
+                                                                ★ Eligible
+                                                                diskon
+                                                            </span>
+                                                        )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Link
+                                                        href={`/admin/pelanggan/${p.id}`}
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                                                    >
+                                                        Detail
+                                                    </Link>
+                                                    {/* Invite action removed per request */}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Pagination */}
+                <PaginationControls
+                    currentPage={pelanggan.current_page}
+                    lastPage={pelanggan.last_page}
+                    total={pelanggan.total}
+                    itemLabel="pelanggan"
+                    onPageChange={(page) =>
+                        router.get(
+                            '/admin/pelanggan',
+                            {
+                                search: searchInput,
+                                status: filters.status,
+                                page,
+                            },
+                            { preserveState: true },
+                        )
+                    }
+                />
+            </div>
+        </AdminLayout>
+    );
+}

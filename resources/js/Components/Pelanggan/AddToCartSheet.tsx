@@ -1,0 +1,1249 @@
+import { router } from '@inertiajs/react';
+import { Check, Minus, Plus, ShoppingCart, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { KONDISI_OPTIONS } from '@/constants/kondisiProduk';
+import type { CategoryType, KondisiValue } from '@/constants/kondisiProduk';
+import { alertError, alertSukses } from '@/lib/alert';
+import keranjang from '@/routes/user/keranjang';
+import TierPicker from './TierPicker';
+
+interface MenuTier {
+    id: string;
+    kode: string;
+    is_half: boolean;
+    berat_min: number;
+    berat_max: number | null;
+    harga_mentah: number;
+    harga_matang: number;
+    cashback: number;
+}
+
+interface MenuVariant {
+    id: string;
+    label: string;
+    harga: number;
+}
+
+interface MenuItem {
+    id: string;
+    name: string;
+    image: string | null;
+    description: string | null;
+    menu_type: 'timbang_hidup' | 'eceran';
+    sub_type:
+        | 'paket_pass'
+        | 'paket_nasi_box'
+        | 'babi_adat'
+        | 'saksang'
+        | 'panggang'
+        | 'sop_tulang'
+        | null;
+    min_price: number | null;
+    is_bundle?: boolean;
+    bundle_desc?: string | null;
+    free_ongkir_km?: number | null;
+    tiers: MenuTier[];
+    variants: MenuVariant[];
+    category?: {
+        type: CategoryType | null;
+    } | null;
+}
+
+interface AddToCartSheetProps {
+    isOpen: boolean;
+    item: MenuItem | null;
+    onClose: () => void;
+    initialVariantId?: string | null;
+    initialQuantity?: number | null;
+}
+
+type TimbangAdatFlow = 'batak' | 'nias' | 'tanpa_adat' | '';
+type BatakPart =
+    | 'batak_lengkap'
+    | 'batak_kepala'
+    | 'batak_aliang'
+    | 'batak_somba'
+    | 'batak_soit'
+    | 'batak_ekor'
+    | 'batak_jeroan';
+type NiasPart = 'nias_barat' | 'nias_kota' | 'nias_sekitar';
+
+const BATAK_PARTS: Array<{ value: BatakPart; label: string }> = [
+    { value: 'batak_lengkap', label: 'Lengkap' },
+    { value: 'batak_kepala', label: 'Kepala' },
+    { value: 'batak_aliang', label: 'Aliang' },
+    { value: 'batak_somba', label: 'Somba' },
+    { value: 'batak_soit', label: 'Soit' },
+    { value: 'batak_ekor', label: 'Ekor' },
+    { value: 'batak_jeroan', label: 'Jeroan' },
+];
+
+const NIAS_PARTS: Array<{ value: NiasPart; label: string }> = [
+    { value: 'nias_barat', label: 'Nias Barat' },
+    { value: 'nias_kota', label: 'Nias Kota' },
+    { value: 'nias_sekitar', label: 'Nias Sekitar' },
+];
+
+const SACRIFICE_PERCENTS = [25, 50, 75, 100] as const;
+
+function formatCurrency(value: number | null): string {
+    if (value === null) {
+        return 'Harga menyusul';
+    }
+
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function formatKg(value: number): string {
+    return `${new Intl.NumberFormat('id-ID', {
+        maximumFractionDigits: 1,
+    }).format(value)} kg`;
+}
+
+function formatTierRange(tier: MenuTier): string {
+    if (tier.berat_max === null) {
+        return `${formatKg(tier.berat_min)} ke atas`;
+    }
+
+    return `${formatKg(tier.berat_min)} - ${formatKg(tier.berat_max)}`;
+}
+
+function formatTierPrice(value: number | null): string {
+    if (value === null) {
+        return 'Harga menyusul';
+    }
+
+    return `${formatCurrency(value)} / kg`;
+}
+
+function formatOptionLabel(value: string): string {
+    return value
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function isSmallTimbangRange(
+    item: MenuItem | null,
+    tierId: string | null,
+): boolean {
+    if (!item || item.menu_type !== 'timbang_hidup' || !tierId) {
+        return false;
+    }
+
+    const tier = item.tiers.find((entry) => entry.id === tierId);
+
+    if (!tier || tier.berat_max === null) {
+        return false;
+    }
+
+    return Number(tier.berat_min) <= 13 && Number(tier.berat_max) <= 13;
+}
+
+function getTierQuantityBounds(
+    tier: MenuTier | null,
+): { min: number; max: number | null } | null {
+    if (!tier) {
+        return null;
+    }
+
+    const min = Number(Math.max(0.5, Number(tier.berat_min)).toFixed(2));
+    const max =
+        tier.berat_max === null ? null : Number(tier.berat_max.toFixed(2));
+
+    return { min, max };
+}
+
+function clampQuantityToBounds(
+    value: number,
+    bounds: { min: number; max: number | null },
+): number {
+    const clampedMinimum = Math.max(bounds.min, value);
+
+    if (bounds.max === null) {
+        return Number(clampedMinimum.toFixed(2));
+    }
+
+    return Number(Math.min(bounds.max, clampedMinimum).toFixed(2));
+}
+
+function buildSummaryLines(params: {
+    item: MenuItem;
+    tier: MenuTier | null;
+    quantity: number;
+    estimatedTotal: number | null;
+    flow: TimbangAdatFlow;
+    batakParts: BatakPart[];
+    niasParts: NiasPart[];
+    saksangPercent: number;
+    panggangPercent: number;
+    remainderText: string;
+    notes: string;
+}): string {
+    const {
+        item,
+        tier,
+        quantity,
+        estimatedTotal,
+        flow,
+        batakParts,
+        niasParts,
+        saksangPercent,
+        panggangPercent,
+        remainderText,
+        notes,
+    } = params;
+
+    const lines: string[] = [];
+
+    if (item.menu_type === 'timbang_hidup' && tier) {
+        lines.push(`Range berat: ${formatTierRange(tier)}`);
+        lines.push(`Jumlah dipilih: ${formatKg(quantity)}`);
+        lines.push(`Estimasi harga: ${formatCurrency(estimatedTotal)}`);
+    }
+
+    if (flow === 'batak') {
+        lines.push('Adat utama: Batak');
+        lines.push(
+            batakParts.length > 0
+                ? `Batak detail: ${batakParts.join(', ')}`
+                : 'Batak detail: belum dipilih',
+        );
+        lines.push(
+            `Sisa daging: Saksang ${saksangPercent}%, Panggang ${panggangPercent}%${remainderText ? `, ${remainderText}` : ''}`,
+        );
+    } else if (flow === 'nias') {
+        lines.push('Adat utama: Nias');
+        lines.push(
+            niasParts.length > 0
+                ? `Nias detail: ${niasParts.join(', ')}`
+                : 'Nias detail: belum dipilih',
+        );
+        lines.push(
+            `Sisa daging: Rebusan Nias${remainderText ? `, ${remainderText}` : ''}`,
+        );
+    } else if (flow === 'tanpa_adat') {
+        lines.push('Adat utama: Tanpa adat');
+        lines.push(
+            `Sisa daging: ${remainderText || 'Tidak ada pembagian khusus'}`,
+        );
+    }
+
+    if (notes.trim() !== '') {
+        lines.push(`Catatan: ${notes.trim()}`);
+    }
+
+    return lines.join('\n');
+}
+
+function OptionChips({
+    label,
+    helperText,
+    options,
+    value,
+    onChange,
+}: {
+    label: string;
+    helperText?: string;
+    options: Array<{ value: string; label: string }>;
+    value: string | null;
+    onChange: (value: string) => void;
+}) {
+    return (
+        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+            <div className="mb-3">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                    {label}
+                </p>
+                {helperText && (
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                        {helperText}
+                    </p>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {options.map((option) => {
+                    const active = value === option.value;
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => onChange(option.value)}
+                            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-150 ${
+                                active
+                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
+                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                            }`}
+                        >
+                            {option.label}
+                        </button>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
+function MultiSelectChips({
+    label,
+    helperText,
+    options,
+    value,
+    onToggle,
+    disableOthersWhenComplete,
+}: {
+    label: string;
+    helperText?: string;
+    options: Array<{ value: string; label: string }>;
+    value: string[];
+    onToggle: (option: string) => void;
+    disableOthersWhenComplete?: boolean;
+}) {
+    const isComplete = value.includes('batak_lengkap');
+
+    return (
+        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+            <div className="mb-3">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                    {label}
+                </p>
+                {helperText && (
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                        {helperText}
+                    </p>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {options.map((option) => {
+                    const active = value.includes(option.value);
+                    const disabled =
+                        disableOthersWhenComplete &&
+                        ((option.value !== 'batak_lengkap' && isComplete) ||
+                            (option.value === 'batak_lengkap' &&
+                                value.length > 0 &&
+                                !isComplete));
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => onToggle(option.value)}
+                            className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                active
+                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
+                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                            }`}
+                        >
+                            {option.label}
+                        </button>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
+function WeightAdjuster({
+    value,
+    minValue,
+    maxValue,
+    onChange,
+}: {
+    value: number;
+    minValue: number;
+    maxValue: number | null;
+    onChange: (value: number) => void;
+}) {
+    return (
+        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                        Berat pesanan
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-text">
+                        Atur bobot untuk pesanan timbang hidup
+                    </p>
+                </div>
+
+                <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={() =>
+                            onChange(
+                                Number(
+                                    Math.max(minValue, value - 0.5).toFixed(2),
+                                ),
+                            )
+                        }
+                        disabled={value <= minValue}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
+                    >
+                        <Minus className="size-4" />
+                    </button>
+                    <span className="min-w-16 px-2 text-center text-sm font-semibold text-text">
+                        {formatKg(value)}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            onChange(
+                                clampQuantityToBounds(value + 0.5, {
+                                    min: minValue,
+                                    max: maxValue,
+                                }),
+                            )
+                        }
+                        disabled={maxValue !== null && value >= maxValue}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
+                    >
+                        <Plus className="size-4" />
+                    </button>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+export default function AddToCartSheet({
+    isOpen,
+    item,
+    onClose,
+    initialVariantId = null,
+    initialQuantity = null,
+}: AddToCartSheetProps) {
+    const [quantity, setQuantity] = useState<number>(1);
+    const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
+    const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+        null,
+    );
+    const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>('');
+    const [adatType, setAdatType] = useState<string>('');
+    const [adatFlow, setAdatFlow] = useState<TimbangAdatFlow>('');
+    const [selectedBatakParts, setSelectedBatakParts] = useState<BatakPart[]>(
+        [],
+    );
+    const [selectedNiasParts, setSelectedNiasParts] = useState<NiasPart[]>([]);
+    const [saksangPercent, setSaksangPercent] = useState<number>(25);
+    const [panggangPercent, setPanggangPercent] = useState<number>(75);
+    const [remainderText, setRemainderText] = useState<string>('');
+    const [legacyNotes, setLegacyNotes] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!isOpen || !item) {
+            return;
+        }
+
+        // default quantity: 0.5 for timbang_hidup, 1 for eceran
+        const defaultQty = item.menu_type === 'timbang_hidup' ? 0.5 : 1;
+
+        setQuantity(
+            initialQuantity !== null && initialQuantity !== undefined
+                ? initialQuantity
+                : defaultQty,
+        );
+        setSelectedTierId(null);
+        setSelectedVariantId(
+            initialVariantId !== null && initialVariantId !== undefined
+                ? initialVariantId
+                : (item.variants[0]?.id ?? null),
+        );
+        setKondisiProduk('');
+        setAdatType('');
+        setAdatFlow('');
+        setSelectedBatakParts([]);
+        setSelectedNiasParts([]);
+        setSaksangPercent(25);
+        setPanggangPercent(75);
+        setRemainderText('');
+        setLegacyNotes('');
+    }, [isOpen, item]);
+
+    const kategori = (item?.category?.type as CategoryType) ?? 'olahan';
+    const isSmallRangeFlow = isSmallTimbangRange(item, selectedTierId);
+    const selectedTier = useMemo(() => {
+        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTierId) {
+            return null;
+        }
+
+        return item.tiers.find((tier) => tier.id === selectedTierId) ?? null;
+    }, [item, selectedTierId]);
+
+    const selectedTierQuantityBounds = useMemo(
+        () => getTierQuantityBounds(selectedTier),
+        [selectedTier],
+    );
+
+    const selectedVariant = useMemo(() => {
+        if (!item || item.menu_type !== 'eceran') {
+            return null;
+        }
+
+        return (
+            item.variants.find((variant) => variant.id === selectedVariantId) ??
+            item.variants[0] ??
+            null
+        );
+    }, [item, selectedVariantId]);
+
+    const kondisiOptions = KONDISI_OPTIONS.olahan;
+
+    useEffect(() => {
+        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
+            return;
+        }
+
+        if (selectedTierQuantityBounds) {
+            setQuantity(selectedTierQuantityBounds.min);
+        }
+
+        setAdatFlow('');
+        setAdatType('');
+        setSelectedBatakParts([]);
+        setSelectedNiasParts([]);
+        setRemainderText('');
+    }, [item, isSmallRangeFlow, selectedTier, selectedTierQuantityBounds]);
+
+    useEffect(() => {
+        if (item?.menu_type !== 'timbang_hidup' || !selectedTier) {
+            return;
+        }
+    }, [item, selectedTier]);
+
+    const handleBatakToggle = (value: BatakPart): void => {
+        setSelectedBatakParts((current) => {
+            if (value === 'batak_lengkap') {
+                return current.includes(value) ? [] : ['batak_lengkap'];
+            }
+
+            if (current.includes('batak_lengkap')) {
+                return [value];
+            }
+
+            if (current.includes(value)) {
+                return current.filter((entry) => entry !== value);
+            }
+
+            return [...current, value];
+        });
+    };
+
+    const handleNiasToggle = (value: NiasPart): void => {
+        setSelectedNiasParts((current) => {
+            if (current.includes(value)) {
+                return current.filter((entry) => entry !== value);
+            }
+
+            return [...current, value];
+        });
+    };
+
+    const handleSaksangChange = (percent: number): void => {
+        setSaksangPercent((prevSaksang) => {
+            setPanggangPercent((prevPanggang) => {
+                // only auto-update panggang when it was previously the complement
+                if (prevPanggang === 100 - prevSaksang) {
+                    return 100 - percent;
+                }
+
+                return prevPanggang;
+            });
+
+            return percent;
+        });
+    };
+
+    const summaryNotes = useMemo(() => {
+        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
+            return legacyNotes.trim();
+        }
+
+        const estimatedTotal = Number(
+            (selectedTier.harga_mentah * quantity).toFixed(2),
+        );
+
+        if (adatFlow !== '') {
+            return buildSummaryLines({
+                item,
+                tier: selectedTier,
+                quantity,
+                estimatedTotal,
+                flow: adatFlow,
+                batakParts: selectedBatakParts,
+                niasParts: selectedNiasParts,
+                saksangPercent,
+                panggangPercent,
+                remainderText: remainderText.trim(),
+                notes: legacyNotes,
+            });
+        }
+
+        return legacyNotes.trim();
+    }, [
+        adatFlow,
+        item,
+        isSmallRangeFlow,
+        legacyNotes,
+        panggangPercent,
+        remainderText,
+        saksangPercent,
+        selectedBatakParts,
+        selectedNiasParts,
+        selectedTier,
+        quantity,
+    ]);
+
+    const estimatedTierTotal =
+        item?.menu_type === 'timbang_hidup' && selectedTier
+            ? Number((selectedTier.harga_mentah * quantity).toFixed(2))
+            : null;
+
+    const submit = async (): Promise<void> => {
+        if (!item || isSubmitting) {
+            return;
+        }
+
+        if (item.menu_type === 'timbang_hidup' && !selectedTier) {
+            return;
+        }
+
+        if (item.menu_type === 'timbang_hidup' && adatFlow !== '') {
+            if (adatFlow === 'batak' && selectedBatakParts.length === 0) {
+                return;
+            }
+
+            if (adatFlow === 'nias' && selectedNiasParts.length === 0) {
+                return;
+            }
+        } else if (item.menu_type === 'timbang_hidup' && kondisiProduk === '') {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        const payload = {
+            menu_item_id: item.id,
+            kondisi_produk:
+                item.menu_type === 'timbang_hidup'
+                    ? kondisiProduk
+                    : kondisiProduk || 'satuan',
+            adat_type:
+                item.menu_type === 'timbang_hidup' && adatFlow !== ''
+                    ? adatFlow || null
+                    : adatType || null,
+            quantity,
+            notes: summaryNotes === '' ? null : summaryNotes,
+        };
+
+        router.post(keranjang.store(), payload, {
+            preserveScroll: true,
+            onSuccess: () => {
+                alertSukses(
+                    `${item.name} ditambahkan ke keranjang!`,
+                    'Berhasil',
+                );
+                onClose();
+            },
+            onError: (errors) => {
+                alertError('Gagal menambahkan ke keranjang', 'Error');
+                console.error('Add to cart validation failed', errors);
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+        });
+    };
+
+    if (!isOpen || !item) {
+        return null;
+    }
+
+    const selectedSummaryLabel =
+        item.menu_type === 'timbang_hidup' && !selectedTier
+            ? 'Pilih range dulu'
+            : item.menu_type === 'timbang_hidup' && isSmallRangeFlow
+              ? adatFlow === 'batak'
+                  ? 'Batak'
+                  : adatFlow === 'nias'
+                    ? 'Nias'
+                    : adatFlow === 'tanpa_adat'
+                      ? 'Tanpa adat'
+                      : 'Pilih opsi'
+              : item.menu_type === 'timbang_hidup'
+                ? kondisiProduk === 'mateng'
+                    ? 'Mateng'
+                    : kondisiProduk === 'mentah'
+                      ? 'Mentah'
+                      : 'Pilih kondisi'
+                : 'Pilih kondisi';
+
+    return (
+        <div className="fixed inset-0 z-60">
+            <button
+                type="button"
+                aria-label="Tutup"
+                className="absolute inset-0 bg-black/40"
+                onClick={onClose}
+            />
+
+            <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-2xl rounded-t-[28px] border border-black/5 bg-[#f7f5ef] shadow-[0_-20px_60px_rgba(15,23,42,0.18)]">
+                <div className="flex items-start justify-between gap-4 border-b border-black/5 px-4 py-4 sm:px-6">
+                    <div className="min-w-0">
+                        <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
+                            Tambah ke keranjang
+                        </p>
+                        <h3 className="mt-1 truncate text-lg font-semibold text-text sm:text-xl">
+                            {item.name}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {item.description ||
+                                'Lengkapi detail pesanan sebelum melanjutkan.'}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-black/5 bg-white text-slate-500 transition hover:text-text"
+                    >
+                        <X className="size-4" />
+                    </button>
+                </div>
+
+                <div className="max-h-[calc(100vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
+                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
+                            <div>
+                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                    Ringkasan menu
+                                </p>
+                                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                        {item.menu_type === 'timbang_hidup'
+                                            ? 'Timbang hidup'
+                                            : (item.sub_type?.replace(
+                                                  '_',
+                                                  ' ',
+                                              ) ?? 'Eceran')}
+                                    </span>
+                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                        {item.menu_type === 'timbang_hidup'
+                                            ? `${item.tiers.length} tier`
+                                            : `${item.variants.length} varian`}
+                                    </span>
+                                    {item.menu_type === 'timbang_hidup' &&
+                                        isSmallRangeFlow && (
+                                            <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+                                                Flow {selectedSummaryLabel}
+                                            </span>
+                                        )}
+                                </div>
+                                <p className="mt-3 text-sm leading-6 text-slate-500">
+                                    {item.menu_type === 'timbang_hidup'
+                                        ? isSmallRangeFlow
+                                            ? 'Pilih adat, detail daging, lalu simpan catatan pembagian.'
+                                            : 'Pilih kondisi produk untuk melanjutkan ke keranjang.'
+                                        : item.sub_type === 'babi_adat'
+                                          ? 'Pilih varian dan kondisi produk sebelum menyimpan pesanan.'
+                                          : 'Pilih varian sebelum menyimpan pesanan.'}
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                    {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier
+                                        ? 'Estimasi harga'
+                                        : 'Harga mulai'}
+                                </p>
+                                <p className="mt-1 text-lg font-semibold text-primary">
+                                    {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier
+                                        ? formatCurrency(estimatedTierTotal)
+                                        : formatCurrency(item.min_price)}
+                                </p>
+                                {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier && (
+                                        <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
+                                            <p>
+                                                Tier aktif: {selectedTier.kode}
+                                            </p>
+                                            <p>
+                                                Range admin:{' '}
+                                                {formatTierRange(selectedTier)}
+                                            </p>
+                                            <p>
+                                                Harga per kg:{' '}
+                                                {formatTierPrice(
+                                                    selectedTier.harga_mentah,
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+                                {item.menu_type === 'eceran' &&
+                                    selectedVariant && (
+                                        <p className="mt-2 text-xs leading-5 text-slate-500">
+                                            Varian aktif:{' '}
+                                            {selectedVariant.label}
+                                        </p>
+                                    )}
+                            </div>
+                        </div>
+                    </section>
+
+                    {item.menu_type === 'timbang_hidup' &&
+                        item.tiers.length > 0 && (
+                            <TierPicker
+                                label="Pilih range berat"
+                                helperText="Pilih range yang sudah diinput admin sebelum mengatur berat pesanan."
+                                options={item.tiers.map((tier) => ({
+                                    id: tier.id,
+                                    title: formatTierRange(tier),
+                                    description: `Kode ${tier.kode}`,
+                                    price: formatTierPrice(tier.harga_mentah),
+                                    meta:
+                                        tier.berat_max !== null
+                                            ? `${formatKg(tier.berat_min)}-${formatKg(tier.berat_max)}`
+                                            : `${formatKg(tier.berat_min)}+`,
+                                }))}
+                                value={selectedTierId}
+                                onChange={setSelectedTierId}
+                            />
+                        )}
+
+                    {item.menu_type === 'timbang_hidup' &&
+                        !selectedTier &&
+                        item.tiers.length === 0 && (
+                            <section className="rounded-[28px] border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-sm">
+                                Tier berat belum tersedia dari admin.
+                            </section>
+                        )}
+
+                    {item.menu_type === 'timbang_hidup' && selectedTier && (
+                        <div className="space-y-3">
+                            <WeightAdjuster
+                                value={quantity}
+                                minValue={
+                                    selectedTierQuantityBounds?.min ?? 0.5
+                                }
+                                maxValue={
+                                    selectedTierQuantityBounds?.max ?? null
+                                }
+                                onChange={setQuantity}
+                            />
+                            <section className="rounded-[28px] border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
+                                Range kg dari admin untuk tier ini:{' '}
+                                {formatTierRange(selectedTier)}
+                                <span className="mt-1 block text-xs text-slate-500">
+                                    Total estimasi saat ini:{' '}
+                                    {formatCurrency(estimatedTierTotal)}
+                                </span>
+                            </section>
+                        </div>
+                    )}
+
+                    {item.menu_type === 'timbang_hidup' && !selectedTier && (
+                        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                            <p className="text-sm font-medium text-text">
+                                Pilih range terlebih dahulu untuk membuka
+                                pengaturan kondisi.
+                            </p>
+                        </section>
+                    )}
+
+                    {item.menu_type === 'timbang_hidup' && selectedTier ? (
+                        <>
+                            <OptionChips
+                                label="Pilih kondisi"
+                                helperText="Pilih kondisi daging untuk pesanan timbang hidup."
+                                options={kondisiOptions.map((opt) => ({
+                                    value: opt.value,
+                                    label: `${opt.emoji} ${opt.label}`,
+                                }))}
+                                value={kondisiProduk || null}
+                                onChange={(value) => {
+                                    setKondisiProduk(value as KondisiValue);
+                                }}
+                            />
+
+                            <OptionChips
+                                label="Pilih adat"
+                                helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."
+                                options={[
+                                    { value: 'batak', label: 'Batak' },
+                                    { value: 'nias', label: 'Nias' },
+                                    {
+                                        value: 'tanpa_adat',
+                                        label: 'Lainnya',
+                                    },
+                                ]}
+                                value={adatFlow}
+                                onChange={(value) => {
+                                    setAdatFlow(value as TimbangAdatFlow);
+                                    setAdatType(value);
+                                    setSelectedBatakParts([]);
+                                    setSelectedNiasParts([]);
+                                    setRemainderText('');
+
+                                    if (value === 'batak') {
+                                        setSaksangPercent(25);
+                                        setPanggangPercent(75);
+                                    }
+                                }}
+                            />
+
+                            {adatFlow === 'batak' && (
+                                <MultiSelectChips
+                                    label="Detail Batak"
+                                    helperText="Pilih satu atau beberapa. Jika Lengkap dipilih, opsi lain akan dinonaktifkan."
+                                    options={BATAK_PARTS}
+                                    value={selectedBatakParts}
+                                    onToggle={(value) =>
+                                        handleBatakToggle(value as BatakPart)
+                                    }
+                                    disableOthersWhenComplete
+                                />
+                            )}
+
+                            {adatFlow === 'nias' && (
+                                <MultiSelectChips
+                                    label="Detail Nias"
+                                    helperText="Bisa pilih lebih dari satu wilayah adat."
+                                    options={NIAS_PARTS}
+                                    value={selectedNiasParts}
+                                    onToggle={(value) =>
+                                        handleNiasToggle(value as NiasPart)
+                                    }
+                                />
+                            )}
+
+                            {adatFlow && (
+                                <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                                    <div className="mb-3">
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Sisa daging
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium text-text">
+                                            Atur pembagian sisa daging setelah
+                                            adat dipilih
+                                        </p>
+                                    </div>
+
+                                    {adatFlow === 'batak' && (
+                                        <div className="space-y-4">
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                        Saksang %
+                                                    </label>
+                                                    <select
+                                                        value={saksangPercent}
+                                                        onChange={(event) =>
+                                                            handleSaksangChange(
+                                                                Number(
+                                                                    event.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                    >
+                                                        {SACRIFICE_PERCENTS.map(
+                                                            (percent) => (
+                                                                <option
+                                                                    key={
+                                                                        percent
+                                                                    }
+                                                                    value={
+                                                                        percent
+                                                                    }
+                                                                >
+                                                                    {percent}%
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
+                                                Otomatis: sisa panggang
+                                                mengikuti saksang. Kalau ingin
+                                                pembagian lain seperti 25%
+                                                saksang, 50% panggang, dan
+                                                sisanya babi kecap, ubah persen
+                                                secara manual lalu tulis sisanya
+                                                di catatan.
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                    Sisa lainnya
+                                                </label>
+                                                <input
+                                                    value={remainderText}
+                                                    onChange={(event) =>
+                                                        setRemainderText(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                    placeholder="Contoh: babi kecap"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {adatFlow === 'nias' && (
+                                        <div className="space-y-3">
+                                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                                Rebusan Nias
+                                            </div>
+                                            <div>
+                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                    Catatan tambahan
+                                                </label>
+                                                <input
+                                                    value={remainderText}
+                                                    onChange={(event) =>
+                                                        setRemainderText(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                    placeholder="Contoh: rebusan nias untuk keluarga"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {adatFlow === 'tanpa_adat' && (
+                                        <div className="space-y-3">
+                                            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                                Tanpa adat, sisa daging
+                                                mengikuti catatan pesanan.
+                                            </div>
+                                            <div>
+                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                    Catatan sisa daging
+                                                </label>
+                                                <input
+                                                    value={remainderText}
+                                                    onChange={(event) =>
+                                                        setRemainderText(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                    placeholder="Contoh: semua dibagi rata"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+                        </>
+                    ) : null}
+
+                    {/* Eceran subtype info cards */}
+                    {item.menu_type === 'eceran' &&
+                        item.sub_type === 'paket_pass' && (
+                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                                <div className="mb-2">
+                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                        Isi Paket
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-600">
+                                        {item.bundle_desc}
+                                    </p>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between gap-4 rounded-2xl bg-[#fbfaf6] p-3 text-sm">
+                                    <div>
+                                        <p className="text-xs text-slate-500">
+                                            Harga
+                                        </p>
+                                        <p className="font-semibold text-primary">
+                                            {formatCurrency(
+                                                item.variants[0]?.harga ??
+                                                    item.min_price,
+                                            )}
+                                        </p>
+                                    </div>
+                                    {item.free_ongkir_km ? (
+                                        <div className="text-sm text-slate-500">
+                                            🚚 Free ongkir {item.free_ongkir_km}
+                                            km
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </section>
+                        )}
+
+                    {item.menu_type === 'eceran' &&
+                        item.sub_type === 'babi_adat' && (
+                            <section className="rounded-[28px] border border-black/5 bg-secondary p-4 shadow-sm">
+                                <div className="mb-2">
+                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-700 uppercase">
+                                        {item.name}
+                                    </p>
+                                    <p className="mt-2 text-sm text-slate-700">
+                                        {item.description}
+                                    </p>
+                                    <p className="mt-3 font-semibold text-primary">
+                                        {formatCurrency(
+                                            item.variants[0]?.harga ??
+                                                item.min_price,
+                                        )}
+                                    </p>
+                                </div>
+                                <p className="text-xs text-slate-700">
+                                    Harga sudah all-in (termasuk jeroan). Berat
+                                    estimasi hanya informasi.
+                                </p>
+                            </section>
+                        )}
+
+                    {item.menu_type === 'eceran' &&
+                        item.sub_type === 'babi_adat' && (
+                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                                <div className="mb-3">
+                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                        Kondisi produk
+                                    </p>
+                                    <p className="mt-1 text-sm font-medium text-text">
+                                        Pilih jenis penjualan untuk menu eceran
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    {kondisiOptions.map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => {
+                                                setKondisiProduk(
+                                                    opt.value as KondisiValue,
+                                                );
+                                                setAdatType('');
+                                            }}
+                                            className={`flex items-center justify-center gap-2 rounded-2xl border-2 py-3 text-sm font-semibold transition-all duration-150 ${
+                                                kondisiProduk === opt.value
+                                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
+                                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                                            }`}
+                                        >
+                                            <span>{opt.emoji}</span>
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                        <label
+                            htmlFor="notes"
+                            className="mb-2 block text-sm font-semibold text-text"
+                        >
+                            Catatan tambahan
+                        </label>
+                        <textarea
+                            id="notes"
+                            name="notes"
+                            value={legacyNotes}
+                            onChange={(event) =>
+                                setLegacyNotes(event.target.value)
+                            }
+                            rows={3}
+                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-4 py-3 text-sm transition outline-none focus:border-primary/30"
+                            placeholder="Contoh: potong kecil, kemasan terpisah"
+                        />
+                    </section>
+
+                    {item.menu_type === 'eceran' && (
+                        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                        Qty
+                                    </p>
+                                    <p className="mt-1 text-sm font-medium text-text">
+                                        Atur jumlah pesanan
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setQuantity((prev) =>
+                                                Math.max(1, prev - 1),
+                                            )
+                                        }
+                                        disabled={quantity <= 1}
+                                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
+                                    >
+                                        <Minus className="size-4" />
+                                    </button>
+                                    <span className="min-w-16 px-2 text-center text-sm font-semibold text-text">
+                                        {quantity}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setQuantity((prev) => prev + 1)
+                                        }
+                                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
+                                    >
+                                        <Plus className="size-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-[#fbfaf6] px-3 py-2 text-xs text-slate-500">
+                                <Check className="h-4 w-4 text-emerald-600" />
+                                Jumlah dapat disesuaikan sebelum menyimpan
+                                pesanan.
+                            </div>
+                        </section>
+                    )}
+
+                    <div className="sticky bottom-0 -mx-4 border-t border-black/5 bg-[#f7f5ef] px-4 py-4 sm:-mx-6 sm:px-6">
+                        <button
+                            type="button"
+                            onClick={submit}
+                            disabled={
+                                isSubmitting ||
+                                (item.menu_type === 'timbang_hidup' &&
+                                    !selectedTier) ||
+                                (item.menu_type === 'timbang_hidup' &&
+                                isSmallRangeFlow
+                                    ? adatFlow === '' ||
+                                      (adatFlow === 'batak' &&
+                                          selectedBatakParts.length === 0) ||
+                                      (adatFlow === 'nias' &&
+                                          selectedNiasParts.length === 0)
+                                    : item.menu_type === 'timbang_hidup'
+                                      ? kondisiProduk === ''
+                                      : false)
+                            }
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                        >
+                            <ShoppingCart className="h-4 w-4" />
+                            {isSubmitting
+                                ? 'Menyimpan...'
+                                : 'Tambah ke keranjang'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
