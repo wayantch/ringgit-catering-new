@@ -167,7 +167,7 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
                 )}
             </div>
 
-            <div className="space-y-4 p-5">
+            <div className="space-y-2 p-5">
                 <div>
                     <h3 className="line-clamp-2 text-base leading-6 font-semibold text-text">
                         {item.name}
@@ -179,17 +179,14 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#fbfaf6] px-2.5 py-1 font-medium">
-                        <ChefHat className="h-3.5 w-3.5 text-slate-400" />
-                        {optionCount} opsi
-                    </span>
+                <div className="text-[11px] text-slate-500">
                     {item.bundle_desc && (
-                        <span className="inline-flex items-center rounded-full bg-[#fbfaf6] px-2.5 py-1 font-medium">
+                        <span className="line-clamp-1 rounded-lg bg-slate-100 px-2.5 py-1 font-medium">
                             {item.bundle_desc}
                         </span>
                     )}
                 </div>
+                <hr className='my-4 border-slate-200'/>
 
                 <div className="flex items-end justify-between gap-3">
                     <div>

@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuItem extends Model
 {
-    use SoftDeletes;
     use HasHashid;
+    use SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -24,6 +24,8 @@ class MenuItem extends Model
         'image',
         'menu_type',
         'sub_type',
+        'babi_mentah_price',
+        'babi_matang_price',
         'is_bundle',
         'bundle_desc',
         'free_ongkir_km',
@@ -37,6 +39,8 @@ class MenuItem extends Model
         'is_available' => 'boolean',
         'ongkir_subsidi' => 'array',
         'free_ongkir_km' => 'integer',
+        'babi_mentah_price' => 'decimal:2',
+        'babi_matang_price' => 'decimal:2',
     ];
 
     protected $appends = [
@@ -83,6 +87,16 @@ class MenuItem extends Model
         }
 
         if ($this->menu_type === 'eceran') {
+            if ($this->sub_type === 'babi_adat') {
+                $mentah = $this->babi_mentah_price !== null ? (float) $this->babi_mentah_price : null;
+                $matang = $this->babi_matang_price !== null ? (float) $this->babi_matang_price : null;
+
+                if ($mentah !== null || $matang !== null) {
+                    $values = array_filter([$mentah, $matang], static fn ($v) => $v !== null);
+
+                    return count($values) ? min($values) : null;
+                }
+            }
             $prices = $this->relationLoaded('variants')
                 ? $this->getRelation('variants')
                 : $this->variants()->get();

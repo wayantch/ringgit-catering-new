@@ -1,9 +1,5 @@
-import EmptyState from '@/Components/Produksi/EmptyState';
-import PesananCard from '@/Components/Produksi/PesananCard';
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link } from '@inertiajs/react';
-import pesanan from '@/routes/produksi/pesanan';
 import {
     ArrowRight,
     CheckCircle2,
@@ -12,6 +8,10 @@ import {
     ClipboardList,
     Clock,
 } from 'lucide-react';
+import EmptyState from '@/Components/Produksi/EmptyState';
+import PesananCard from '@/Components/Produksi/PesananCard';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
+import pesanan from '@/routes/produksi/pesanan';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

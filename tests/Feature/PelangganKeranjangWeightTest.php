@@ -34,6 +34,32 @@ it('stores timbang hidup cart quantities as decimals', function (): void {
     expect($cart->adat_type)->toBe('batak');
 });
 
+it('accepts mentah condition for timbang hidup cart items', function (): void {
+    $user = User::factory()->create([
+        'role' => 'user',
+    ]);
+
+    $menuItem = MenuItem::query()
+        ->where('menu_type', 'timbang_hidup')
+        ->with('category')
+        ->firstOrFail();
+
+    $response = $this->actingAs($user)->post(route('user.keranjang.store'), [
+        'menu_item_id' => $menuItem->hashid,
+        'kondisi_produk' => 'mentah',
+        'quantity' => 0.5,
+        'notes' => 'Mentah test',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success', 'Item ditambahkan ke keranjang');
+
+    $cart = Cart::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($cart->kondisi_produk)->toBe('mentah');
+    expect((float) $cart->quantity)->toBe(0.5);
+});
+
 it('still renders the keranjang page when a cart menu item has been soft deleted', function (): void {
     $user = User::factory()->create([
         'role' => 'user',

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\HasHashid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Traits\HasHashid;
 
 class Cart extends Model
 {
@@ -15,6 +15,7 @@ class Cart extends Model
         'menu_item_id',
         'kondisi_produk',
         'adat_type',
+        'portion',
         'quantity',
         'notes',
     ];

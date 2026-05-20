@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
+import React, { useState } from 'react';
 import Select from '@/Components/UI/Select';
 
 interface Filters {
@@ -31,12 +31,25 @@ export default function PesananFilterBar({
         e.preventDefault();
         const params = new URLSearchParams();
 
-        if (form.data.search) params.append('search', form.data.search);
-        if (form.data.status) params.append('status', form.data.status);
-        if (form.data.source) params.append('source', form.data.source);
-        if (form.data.date_from)
-            params.append('date_from', form.data.date_from);
-        if (form.data.date_to) params.append('date_to', form.data.date_to);
+        if (form.data.search) {
+params.append('search', form.data.search);
+}
+
+        if (form.data.status) {
+params.append('status', form.data.status);
+}
+
+        if (form.data.source) {
+params.append('source', form.data.source);
+}
+
+        if (form.data.date_from) {
+params.append('date_from', form.data.date_from);
+}
+
+        if (form.data.date_to) {
+params.append('date_to', form.data.date_to);
+}
 
         router.get(`/admin/pesanan?${params.toString()}`);
     };

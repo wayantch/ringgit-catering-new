@@ -4,8 +4,8 @@ import { ChevronRight, Search, Sparkles, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AddToCartSheet from '@/Components/Pelanggan/AddToCartSheet';
-import MenuItemCard from '@/Components/Pelanggan/MenuItemCard';
 import EceranListItem from '@/Components/Pelanggan/EceranListItem';
+import MenuItemCard from '@/Components/Pelanggan/MenuItemCard';
 import MenuSearchBar from '@/Components/Pelanggan/MenuSearchBar';
 import MenuSection from '@/Components/Pelanggan/MenuSection';
 import PelangganLayout from '@/Layouts/PelangganLayout';
@@ -146,6 +146,7 @@ function collapseTimbangItems(items: MenuItem[]): MenuItem[] {
 
         // merge tiers (avoid duplicate ids)
         const seen = new Set(existing.tiers.map((t) => t.id));
+
         for (const t of item.tiers) {
             if (!seen.has(t.id)) {
                 existing.tiers.push(t);

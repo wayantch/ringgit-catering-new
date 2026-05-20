@@ -1,18 +1,4 @@
-import React, { useState } from 'react';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
-import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
-import PesananSourceBadge from '@/Components/Admin/PesananSourceBadge';
-import OrderTimeline from '@/Components/Admin/OrderTimeline';
-import OrderItemsTable from '@/Components/Admin/OrderItemsTable';
-import CashbackCard from '@/Components/Admin/Pesanan/CashbackCard';
-import {
-    alertError,
-    alertSukses,
-    konfirmasi,
-    konfirmasiStatus,
-    promptTeks,
-} from '@/lib/alert';
 import {
     ArrowLeft,
     User,
@@ -32,6 +18,20 @@ import {
     UserCheck,
     Image,
 } from 'lucide-react';
+import React, { useState } from 'react';
+import OrderItemsTable from '@/Components/Admin/OrderItemsTable';
+import OrderTimeline from '@/Components/Admin/OrderTimeline';
+import CashbackCard from '@/Components/Admin/Pesanan/CashbackCard';
+import PesananSourceBadge from '@/Components/Admin/PesananSourceBadge';
+import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
+import AdminLayout from '@/Layouts/AdminLayout';
+import {
+    alertError,
+    alertSukses,
+    konfirmasi,
+    konfirmasiStatus,
+    promptTeks,
+} from '@/lib/alert';
 
 interface Order {
     id: number;
@@ -256,7 +256,10 @@ export default function Show({ order }: Props) {
                 .querySelector('meta[name="csrf-token"]')
                 ?.getAttribute('content');
             const params = new URLSearchParams({ status: 'dibatalkan' });
-            if (reason) params.append('reason', reason);
+
+            if (reason) {
+params.append('reason', reason);
+}
 
             fetch(`/admin/pesanan/${order.id}/update-status`, {
                 method: 'POST',

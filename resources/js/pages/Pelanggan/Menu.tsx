@@ -205,13 +205,20 @@ function Index({ timbang_hidup, eceran }: Props) {
             const found = section.items.find(
                 (item) => item.id === selectedItemId,
             );
-            if (found) return found;
+
+            if (found) {
+return found;
+}
         }
+
         return null;
     }, [allSections, selectedItemId]);
 
     useEffect(() => {
-        if (filteredSections.length === 0) return;
+        if (filteredSections.length === 0) {
+return;
+}
+
         if (
             !filteredSections.some((section) => section.id === activeSectionId)
         ) {

@@ -18,18 +18,26 @@ interface Props {
 }
 
 function resolveImageSrc(image: string | null): string | null {
-    if (!image) return null;
+    if (!image) {
+return null;
+}
+
     if (
         image.startsWith('http://') ||
         image.startsWith('https://') ||
         image.startsWith('/')
-    )
-        return image;
+    ) {
+return image;
+}
+
     return `/storage/${image}`;
 }
 
 function formatCurrency(value: number | null): string {
-    if (value === null) return 'Harga menyusul';
+    if (value === null) {
+return 'Harga menyusul';
+}
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',

@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
     KONDISI_OPTIONS,
     ADAT_OPTIONS,
-    requiresAdat,
-    type KondisiValue,
-    type CategoryType,
+    requiresAdat
+    
+    
 } from '@/constants/kondisiProduk';
+import type {KondisiValue, CategoryType} from '@/constants/kondisiProduk';
 
 interface Props {
     item: any; // menu item shape
@@ -26,7 +27,10 @@ export default function ItemPickerSheet({
     const [notes, setNotes] = useState('');
 
     useEffect(() => {
-        if (!isOpen || !item) return;
+        if (!isOpen || !item) {
+return;
+}
+
         setKondisiProduk('');
         setAdatType('');
         setQuantity(1);
@@ -40,7 +44,10 @@ export default function ItemPickerSheet({
     const canAdd = kondisiProduk !== '' && (!showAdatPicker || adatType !== '');
 
     function handleAdd() {
-        if (!canAdd) return;
+        if (!canAdd) {
+return;
+}
+
         const payload = {
             menu_item_id: item.id,
             kondisi_produk: kondisiProduk,
@@ -52,7 +59,9 @@ export default function ItemPickerSheet({
         onClose?.();
     }
 
-    if (!isOpen || !item) return null;
+    if (!isOpen || !item) {
+return null;
+}
 
     return (
         <div className="fixed inset-0 z-60">

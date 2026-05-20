@@ -2,10 +2,11 @@ import { ChevronDown, Search, X } from 'lucide-react';
 import {
     useMemo,
     useEffect,
-    useRef,
-    type ReactNode,
-    type ElementType,
+    useRef
+    
+    
 } from 'react';
+import type {ReactNode, ElementType} from 'react';
 import { useSelect } from '@/hooks/useSelect';
 import { cn } from '@/lib/cn';
 
@@ -60,6 +61,7 @@ function flattenOptions(options: SelectOptions): SelectOptionBase[] {
         if ('group' in opt) {
             return opt.items;
         }
+
         return opt;
     });
 }
@@ -126,8 +128,12 @@ export default function Select({
     // Flatten and filter
     const flatOptions = useMemo(() => {
         return flattenOptions(options).filter((opt) => {
-            if (opt.disabled) return true;
+            if (opt.disabled) {
+return true;
+}
+
             const searchTerm = searchQuery.toLowerCase();
+
             return (
                 opt.label.toLowerCase().includes(searchTerm) ||
                 opt.description?.toLowerCase().includes(searchTerm)

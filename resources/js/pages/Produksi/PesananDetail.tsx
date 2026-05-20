@@ -1,11 +1,11 @@
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
+import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Clock, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
 import KondisiBadge from '@/Components/Produksi/KondisiBadge';
-import StatusBadge from '@/Components/Produksi/StatusBadge';
 import KonfirmasiModal from '@/Components/Produksi/KonfirmasiModal';
-import type { PageProps } from '@inertiajs/core';
+import StatusBadge from '@/Components/Produksi/StatusBadge';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +51,10 @@ const fmtDate = (v: string): string =>
     });
 
 const fmtTime = (v: string | null): string => {
-    if (!v) return '-';
+    if (!v) {
+return '-';
+}
+
     return new Date(`2000-01-01T${v}`).toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit',

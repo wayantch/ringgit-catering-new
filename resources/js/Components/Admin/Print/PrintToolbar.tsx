@@ -1,7 +1,7 @@
-import React from 'react';
-import { Printer, Copy } from 'lucide-react';
-import { alertSukses, alertError } from '@/lib/alert';
 import { router } from '@inertiajs/react';
+import { Printer, Copy } from 'lucide-react';
+import React from 'react';
+import { alertSukses, alertError } from '@/lib/alert';
 
 export default function PrintToolbar({
     filters,
@@ -22,8 +22,13 @@ export default function PrintToolbar({
 
     const copy = async () => {
         const el = document.getElementById('print-area');
-        if (!el) return;
+
+        if (!el) {
+return;
+}
+
         const html = el.innerText;
+
         try {
             await navigator.clipboard.writeText(html);
             alertSukses('Teks rekap disalin ke clipboard');

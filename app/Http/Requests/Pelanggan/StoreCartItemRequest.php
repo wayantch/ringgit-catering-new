@@ -19,9 +19,14 @@ class StoreCartItemRequest extends FormRequest
     {
         $menuItem = MenuItem::findByHashidOrNull((string) $this->input('menu_item_id'));
 
-        $validKondisi = $menuItem?->menu_type === 'timbang_hidup'
-            ? KondisiProduk::TIMBANG_HIDUP
-            : KondisiProduk::ECERAN;
+        if ($menuItem?->menu_type === 'timbang_hidup') {
+            $validKondisi = KondisiProduk::TIMBANG_HIDUP;
+        } elseif ($menuItem?->menu_type === 'eceran' && $menuItem->sub_type === 'babi_adat') {
+            // Eceran babi adat sold as mentah/mateng — accept olahan values too
+            $validKondisi = array_merge(KondisiProduk::ECERAN, KondisiProduk::OLAHAN);
+        } else {
+            $validKondisi = KondisiProduk::ECERAN;
+        }
 
         return [
             'menu_item_id' => ['required', 'string', new ValidHashid(MenuItem::class)],
@@ -31,6 +36,11 @@ class StoreCartItemRequest extends FormRequest
                 'nullable',
                 'string',
                 Rule::in(KondisiProduk::ADAT_OPTIONS),
+            ],
+            'portion' => [
+                'nullable',
+                'string',
+                Rule::in(['utuh', 'setengah']),
             ],
             'quantity' => ['required', 'numeric', 'min:0.5'],
             'notes' => ['nullable', 'string', 'max:500'],

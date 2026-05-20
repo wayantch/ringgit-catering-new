@@ -2,13 +2,12 @@ import type { PageProps } from '@inertiajs/core';
 import { Head } from '@inertiajs/react';
 import { ShoppingCart } from 'lucide-react';
 import type { ReactNode } from 'react';
-import CartEmpty from '../../Components/Pelanggan/CartEmpty';
-import CartItemCard, {
-    type CartItem,
-} from '../../Components/Pelanggan/CartItemCard';
-import OrderSummaryCard from '../../Components/Pelanggan/OrderSummaryCard';
-import PelangganLayout from '@/Layouts/PelangganLayout';
 import SectionDivider from '@/Components/Pelanggan/SectionDivider';
+import PelangganLayout from '@/Layouts/PelangganLayout';
+import CartEmpty from '../../Components/Pelanggan/CartEmpty';
+import CartItemCard from '../../Components/Pelanggan/CartItemCard';
+import type {CartItem} from '../../Components/Pelanggan/CartItemCard';
+import OrderSummaryCard from '../../Components/Pelanggan/OrderSummaryCard';
 
 interface Summary {
     subtotal: number | string | null;

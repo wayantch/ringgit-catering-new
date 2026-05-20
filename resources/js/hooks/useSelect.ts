@@ -43,10 +43,13 @@ export function useSelect(options: UseSelectOptions = {}) {
 
     // Handle click outside
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen) {
+return;
+}
 
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
+
             if (
                 !triggerRef.current?.contains(target) &&
                 !dropdownRef.current?.contains(target)
@@ -56,13 +59,16 @@ export function useSelect(options: UseSelectOptions = {}) {
         };
 
         document.addEventListener('mousedown', handleClickOutside);
+
         return () =>
             document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
 
     // Handle keyboard navigation
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen) {
+return;
+}
 
         const handleKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
@@ -82,12 +88,15 @@ export function useSelect(options: UseSelectOptions = {}) {
         };
 
         document.addEventListener('keydown', handleKeyDown);
+
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
     // Check if dropdown needs to flip (near bottom of viewport)
     useEffect(() => {
-        if (!isOpen || !triggerRef.current || !dropdownRef.current) return;
+        if (!isOpen || !triggerRef.current || !dropdownRef.current) {
+return;
+}
 
         const trigger = triggerRef.current.getBoundingClientRect();
         const dropdownHeight = 300; // approximate height

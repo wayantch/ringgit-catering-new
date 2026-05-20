@@ -28,21 +28,27 @@ export default function CashbackCard({
     total_cashback,
     payment_method,
 }: Props) {
-    if (!has_cashback) return null;
+    if (!has_cashback) {
+return null;
+}
 
     const statusChip = () => {
-        if (payment_method === 'full')
-            return (
+        if (payment_method === 'full') {
+return (
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                     ✓ Cashback Diberikan
                 </span>
             );
-        if (payment_method === 'dp')
-            return (
+}
+
+        if (payment_method === 'dp') {
+return (
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
                     — Tidak Berlaku (DP)
                 </span>
             );
+}
+
         return (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
                 ⏳ Menunggu Metode Pembayaran

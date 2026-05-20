@@ -1,10 +1,10 @@
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
-import PaginationControls from '@/Components/PaginationControls';
-import Select from '@/Components/UI/Select';
+import type { PageProps } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/react';
 import { History } from 'lucide-react';
 import { useState } from 'react';
-import type { PageProps } from '@inertiajs/core';
+import PaginationControls from '@/Components/PaginationControls';
+import Select from '@/Components/UI/Select';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 interface RiwayatItem {
     id: number;
@@ -20,7 +20,10 @@ interface RiwayatItem {
 }
 
 const fmt = (n: number | null): string => {
-    if (n === null) return '-';
+    if (n === null) {
+return '-';
+}
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',

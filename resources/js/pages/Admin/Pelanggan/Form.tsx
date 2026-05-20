@@ -1,7 +1,8 @@
-import React, { FormEvent } from 'react';
 import { useForm, Link } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Mail, User, Phone } from 'lucide-react';
+import type { FormEvent } from 'react';
+import React from 'react';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { alertSukses, alertError } from '@/lib/alert';
 
 interface Props {

@@ -2,10 +2,11 @@
 
 namespace App\Services\Pelanggan;
 
+use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentVerification;
-use App\Models\MenuItemPriceTier;
 use App\Models\User;
 use App\Services\LoyaltyService;
 use Carbon\Carbon;
@@ -38,7 +39,7 @@ class PesananService
         $bookingDate = Carbon::parse($data['booking_date'])->startOfDay();
 
         foreach ($cartItems as $item) {
-            $categoryType = $item->menuItem->category->type ?? null;
+            $categoryType = $this->resolveMenuCategoryType($item->menuItem);
 
             if (in_array($categoryType, ['olahan', 'eceran'], true) && $bookingDate->lt($minimumBookingDate)) {
                 throw new \Exception('Pesanan minimal H+1 dari tanggal pemesanan.');
@@ -105,18 +106,24 @@ class PesananService
 
                 $subtotal = $unitPrice === null ? null : $unitPrice * $quantity;
 
+                $itemNotes = $cartItem->notes;
+                if (! empty($cartItem->portion)) {
+                    $label = $cartItem->portion === 'utuh' ? 'Utuh / Satu ekor' : 'Setengah ekor';
+                    $itemNotes = trim(($label) . ($itemNotes ? ' - ' . $itemNotes : ''));
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'menu_item_id' => $cartItem->menu_item_id,
                     'menu_name' => $menuItem->name,
-                    'menu_category_type' => $menuItem->category->type ?? null,
+                    'menu_category_type' => $this->resolveMenuCategoryType($menuItem),
                     'menu_unit' => $menuItem->unit ?? null,
                     'kondisi_produk' => $cartItem->kondisi_produk,
                     'adat_type' => $cartItem->adat_type,
                     'quantity' => $cartItem->quantity,
                     'unit_price' => $unitPrice,
                     'subtotal' => $subtotal,
-                    'notes' => $cartItem->notes,
+                    'notes' => $itemNotes,
                 ]);
             }
 
@@ -165,8 +172,8 @@ class PesananService
 
         return $query
             ->withCount('items')
-            ->latest('booking_date')
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate($perPage)
             ->through(function ($order): array {
                 return [
@@ -211,12 +218,22 @@ class PesananService
                 static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
                 0.0,
             ),
+            'total_after_cashback' => max(
+                0,
+                (float) $order->total_amount - array_reduce(
+                    $cashbackBreakdown,
+                    static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
+                    0.0,
+                ),
+            ),
             'items' => $order->items->map(function ($item) {
                 return [
                     'id' => $item->hashid,
                     'order_id' => $item->order?->hashid,
                     'menu_item_id' => $item->menuItem?->hashid,
                     'menu_item' => $item->menuItem->name,
+                    'menu_category_type' => $item->menuItem?->menu_type,
+                    'menu_sub_type' => $item->menuItem?->sub_type,
                     'kondisi_produk' => $item->kondisi_produk,
                     'adat_type' => $item->adat_type,
                     'quantity' => $item->quantity,
@@ -275,11 +292,24 @@ class PesananService
         return $breakdown;
     }
 
+    private function resolveMenuCategoryType(MenuItem $menuItem): string
+    {
+        $categoryType = $menuItem->category_type ?? $menuItem->menu_type;
+
+        if (in_array($categoryType, ['timbang_hidup', 'olahan', 'eceran'], true)) {
+            return $categoryType;
+        }
+
+        throw new \Exception('Kategori menu tidak valid.');
+    }
+
     /**
      * Upload payment verification
      */
     public function uploadPaymentVerification(Order $order, UploadedFile $file, string $paymentType): PaymentVerification
     {
+        $order->loadMissing(['items.menuItem.tiers']);
+
         // Check if payment verification already exists
         $existingPv = $order->paymentVerifications()
             ->where('payment_type', $paymentType)
@@ -287,6 +317,7 @@ class PesananService
             ->first();
 
         $path = $file->store('payment-proofs', 'public');
+        $amount = $this->resolvePaymentVerificationAmount($order, $paymentType);
 
         if ($existingPv) {
             // Delete old image if exists
@@ -300,6 +331,7 @@ class PesananService
                     'status' => 'pending',
                     'verified_at' => null,
                     'verified_by' => null,
+                    'amount' => $amount,
                 ]);
 
                 return $existingPv->refresh();
@@ -309,7 +341,7 @@ class PesananService
                 $pv = PaymentVerification::create([
                     'order_id' => $order->id,
                     'payment_type' => $paymentType,
-                    'amount' => $paymentType === 'dp' ? $order->dp_amount : $order->remaining_amount,
+                    'amount' => $amount,
                     'proof_image' => $path,
                     'status' => 'pending',
                 ]);
@@ -322,11 +354,26 @@ class PesananService
         $pv = PaymentVerification::create([
             'order_id' => $order->id,
             'payment_type' => $paymentType,
-            'amount' => $paymentType === 'dp' ? $order->dp_amount : $order->remaining_amount,
+            'amount' => $amount,
             'proof_image' => $path,
             'status' => 'pending',
         ]);
 
         return $pv;
+    }
+
+    private function resolvePaymentVerificationAmount(Order $order, string $paymentType): float
+    {
+        if ($paymentType === 'dp') {
+            return (float) $order->dp_amount;
+        }
+
+        $cashbackTotal = array_reduce(
+            $this->buildCashbackBreakdown($order),
+            static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
+            0.0,
+        );
+
+        return max(0.0, (float) $order->total_amount - $cashbackTotal);
     }
 }

@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pelanggan\StoreCartItemRequest;
 use App\Models\Cart;
-use App\Models\MenuItemPriceTier;
 use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
 use App\Services\Pelanggan\KeranjangService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +22,7 @@ class KeranjangController extends Controller
         $summary = $service->getCartSummary($user);
 
         return Inertia::render('Pelanggan/Keranjang', [
-            'cartItems' => $cartItems->map(fn($item) => $this->mapCartItem($item)),
+            'cartItems' => $cartItems->map(fn ($item) => $this->mapCartItem($item)),
             'summary' => $summary,
         ]);
     }
@@ -45,6 +44,7 @@ class KeranjangController extends Controller
         $validated = $request->validate([
             'quantity' => 'required|numeric|min:0.5',
             'adat_type' => 'nullable|string',
+            'portion' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
@@ -128,6 +128,7 @@ class KeranjangController extends Controller
             'adat_parts' => $summaryNotes['adat_parts'],
             'adat_notes' => $summaryNotes['adat_notes'],
             'notes' => $summaryNotes['notes'],
+            'portion' => $item->portion,
         ];
 
         if ($menuItem?->menu_type === 'timbang_hidup') {

@@ -1,7 +1,7 @@
-import MenuForm from '@/Components/Admin/Menu/MenuForm';
-import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import MenuForm from '@/Components/Admin/Menu/MenuForm';
+import AdminLayout from '@/Layouts/AdminLayout';
 import { alertSukses, alertError } from '@/lib/alert';
 import menu from '@/routes/admin/menu';
 

@@ -1,7 +1,9 @@
 import { UtensilsCrossed } from 'lucide-react';
-import CustomerSection, { type CustomerSummary } from './CustomerSection';
+import CustomerSection from './CustomerSection';
+import type {CustomerSummary} from './CustomerSection';
 import DeliverySection from './DeliverySection';
-import OrderItemRow, { type OrderItemRowData } from './OrderItemRow';
+import OrderItemRow from './OrderItemRow';
+import type {OrderItemRowData} from './OrderItemRow';
 import PaymentSection from './PaymentSection';
 
 interface Calculation {

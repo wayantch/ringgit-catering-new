@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import {
     Package,
     Leaf,
@@ -5,7 +6,6 @@ import {
     ArrowRight,
     ChevronRight,
 } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import FadeUp from '../Common/FadeUp';
 
 const MENU_ITEMS = [
@@ -102,16 +102,18 @@ export default function MenuSection({
                         ) => {
                             // Handle both formats
                             let FinalIcon = Icon || Package;
+
                             if (
                                 category_type === 'timbang_hidup' ||
                                 cat === 'Timbang hidup'
-                            )
-                                FinalIcon = Leaf;
-                            else if (
+                            ) {
+FinalIcon = Leaf;
+} else if (
                                 category_type === 'olahan' ||
                                 cat === 'Olahan'
-                            )
-                                FinalIcon = UtensilsCrossed;
+                            ) {
+FinalIcon = UtensilsCrossed;
+}
 
                             const finalBadge =
                                 badge ||

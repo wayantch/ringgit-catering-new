@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import {
     UtensilsCrossed,
@@ -7,6 +6,7 @@ import {
     ArrowRight,
     ChevronRight,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface NavbarProps {
     scrolled: boolean;
@@ -32,6 +32,7 @@ export default function Navbar({ scrolled }: NavbarProps) {
     const handleScroll = (sectionName: string) => {
         const sectionId = SECTION_MAP[sectionName];
         const element = document.getElementById(sectionId);
+
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
             setActiveNav(sectionName);
@@ -48,6 +49,7 @@ export default function Navbar({ scrolled }: NavbarProps) {
                     const navLink = Object.entries(SECTION_MAP).find(
                         ([, id]) => id === sectionId,
                     );
+
                     if (navLink) {
                         setActiveNav(navLink[0]);
                     }
@@ -62,6 +64,7 @@ export default function Navbar({ scrolled }: NavbarProps) {
         // Observe all sections
         Object.values(SECTION_MAP).forEach((sectionId) => {
             const element = document.getElementById(sectionId);
+
             if (element) {
                 observer.observe(element);
             }

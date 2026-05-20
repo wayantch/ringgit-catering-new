@@ -10,6 +10,7 @@ interface Props extends PageProps {
         name: string;
         email: string;
         phone?: string | null;
+        address?: string | null;
     };
     stats: {
         total_orders: number;
@@ -28,13 +29,14 @@ function Index({ user, stats }: Props) {
     return (
         <>
             <Head title="Profil" />
-            <div className=" text-text">
+            <div className="text-text">
                 <div className="">
                     <ProfilHeader user={user} stats={stats} />
                     <div className="mx-auto w-full space-y-4 sm:px-8 sm:py-6 md:max-w-7xl">
                         <ProfilMenuList
                             currentName={user.name}
                             currentPhone={user.phone ?? ''}
+                            currentAddress={user.address ?? ''}
                         />
                     </div>
                 </div>

@@ -39,7 +39,7 @@ function UploadForm({ order }: Props) {
         payment_type: '' | 'dp' | 'pelunasan';
         proof_image: File | null;
     }>({
-        payment_type: '',
+        payment_type: 'pelunasan',
         proof_image: null,
     });
 
@@ -72,6 +72,10 @@ function UploadForm({ order }: Props) {
 
     const cashbackBreakdown = order.cashback_breakdown ?? [];
     const totalCashback = order.total_cashback ?? 0;
+    const fullPaymentAmount = Math.max(
+        Number(order.total_amount) - totalCashback,
+        0,
+    );
     const cashbackEligible =
         order.cashback_eligible ?? cashbackBreakdown.length > 0;
 
@@ -169,14 +173,28 @@ function UploadForm({ order }: Props) {
                                     <div className="border-t border-black/5 pt-2">
                                         <div className="flex items-center justify-between gap-3">
                                             <span className="font-semibold text-primary">
-                                                Total (Pembayaran Penuh)
+                                                Total setelah cashback
                                             </span>
                                             <span className="text-xl font-bold text-primary">
                                                 {formatCurrency(
-                                                    order.total_amount,
+                                                    fullPaymentAmount,
                                                 )}
                                             </span>
                                         </div>
+
+                                        {cashbackEligible &&
+                                            totalCashback > 0 && (
+                                                <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+                                                    <span>
+                                                        Total sebelum cashback
+                                                    </span>
+                                                    <span className="line-through">
+                                                        {formatCurrency(
+                                                            order.total_amount,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            )}
 
                                         {cashbackEligible &&
                                             cashbackBreakdown.length > 0 && (
@@ -268,33 +286,6 @@ function UploadForm({ order }: Props) {
                                         type="button"
                                         disabled={isCancelled}
                                         onClick={() =>
-                                            form.setData('payment_type', 'dp')
-                                        }
-                                        aria-pressed={
-                                            form.data.payment_type === 'dp'
-                                        }
-                                        className={`rounded-2xl border px-4 py-4 text-left transition-all duration-150 ${
-                                            form.data.payment_type === 'dp'
-                                                ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
-                                                : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
-                                        }`}
-                                    >
-                                        <p
-                                            className={`text-sm font-semibold ${form.data.payment_type === 'dp' ? 'text-white' : 'text-text'}`}
-                                        >
-                                            DP (Uang Muka)
-                                        </p>
-                                        <p
-                                            className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'dp' ? 'text-white/80' : 'text-slate-500'}`}
-                                        >
-                                            Upload bukti untuk pembayaran DP.
-                                        </p>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        disabled={isCancelled}
-                                        onClick={() =>
                                             form.setData(
                                                 'payment_type',
                                                 'pelunasan',
@@ -320,6 +311,32 @@ function UploadForm({ order }: Props) {
                                             className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'pelunasan' ? 'text-white/80' : 'text-slate-500'}`}
                                         >
                                             Upload bukti untuk pelunasan penuh.
+                                        </p>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={isCancelled}
+                                        onClick={() =>
+                                            form.setData('payment_type', 'dp')
+                                        }
+                                        aria-pressed={
+                                            form.data.payment_type === 'dp'
+                                        }
+                                        className={`rounded-2xl border px-4 py-4 text-left transition-all duration-150 ${
+                                            form.data.payment_type === 'dp'
+                                                ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
+                                                : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
+                                        }`}
+                                    >
+                                        <p
+                                            className={`text-sm font-semibold ${form.data.payment_type === 'dp' ? 'text-white' : 'text-text'}`}
+                                        >
+                                            DP (Uang Muka)
+                                        </p>
+                                        <p
+                                            className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'dp' ? 'text-white/80' : 'text-slate-500'}`}
+                                        >
+                                            Upload bukti untuk pembayaran DP.
                                         </p>
                                     </button>
                                 </div>

@@ -5,22 +5,24 @@ namespace App\Enums;
 class KondisiProduk
 {
     // Per tipe kategori
-    public const TIMBANG_HIDUP = ['adat', 'saksang', 'panggang', 'sop'];
+    public const TIMBANG_HIDUP = ['mentah', 'mateng'];
+
     public const OLAHAN = ['mentah', 'mateng'];
+
     public const ECERAN = ['satuan', 'adat'];
 
     // Label display
     public const LABELS = [
-        'batak' => 'Batak',
-        'nias' => 'Nias',
-        'tanpa_adat' => 'Tanpa Adat',
-        'adat' => 'Adat',
-        'saksang' => 'Saksang',
-        'panggang' => 'Panggang',
-        'sop' => 'Sop',
         'mentah' => 'Mentah',
         'mateng' => 'Mateng',
         'satuan' => 'Satuan',
+        'adat' => 'Adat',
+        'batak' => 'Batak',
+        'nias' => 'Nias',
+        'tanpa_adat' => 'Tanpa Adat',
+        'saksang' => 'Saksang',
+        'panggang' => 'Panggang',
+        'sop' => 'Sop',
     ];
 
     // ADAT options (values only) for backend validation

@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
-import { SidebarProvider } from '@/contexts/SidebarContext';
+import { usePage } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import Sidebar from '@/Components/Sidebar';
 import Topbar from '@/Components/Topbar';
-import { usePage } from '@inertiajs/react';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 
 interface AdminLayoutProps {
     children: ReactNode;

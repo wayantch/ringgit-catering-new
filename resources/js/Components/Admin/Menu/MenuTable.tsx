@@ -4,7 +4,13 @@ import menu from '@/routes/admin/menu';
 import AvailabilityToggle from './AvailabilityToggle';
 
 type MenuType = 'timbang_hidup' | 'eceran';
-type SubType = 'saksang' | 'panggang' | 'sop_tulang' | 'paket_pass';
+type SubType =
+    | 'saksang'
+    | 'panggang'
+    | 'sop_tulang'
+    | 'paket_pass'
+    | 'paket_nasi_box'
+    | 'babi_adat';
 
 interface MenuItem {
     id: string;
@@ -15,6 +21,8 @@ interface MenuItem {
     menu_type: MenuType;
     sub_type: SubType | null;
     min_price: string | number | null;
+    babi_mentah_price?: string | number | null;
+    babi_matang_price?: string | number | null;
     is_available: boolean;
     variants?: Array<{ harga: string | number | null }>;
 }
@@ -29,6 +37,8 @@ const SUB_TYPE_LABEL: Record<SubType, string> = {
     panggang: 'Panggang',
     sop_tulang: 'Sop Tulang',
     paket_pass: 'Paket Pass',
+    paket_nasi_box: 'Paket Nasi Box',
+    babi_adat: 'Babi Adat',
 };
 
 function formatCurrency(value: string | number): string {
@@ -46,7 +56,37 @@ function HargaDisplay({ item }: { item: MenuItem }) {
             : 'Harga Belum Diatur';
     }
 
-    if (item.sub_type === 'paket_pass') {
+    if (item.menu_type === 'eceran' && item.sub_type) {
+        if (item.sub_type === 'babi_adat') {
+            const mentah = item.babi_mentah_price;
+            const matang = item.babi_matang_price;
+
+            if (
+                (mentah === null || mentah === undefined) &&
+                (matang === null || matang === undefined)
+            ) {
+                return 'Harga Belum Diatur';
+            }
+
+            if (
+                mentah !== null &&
+                mentah !== undefined &&
+                (matang === null || matang === undefined)
+            ) {
+                return `Mentah: Rp ${formatCurrency(mentah)}`;
+            }
+
+            if (
+                matang !== null &&
+                matang !== undefined &&
+                (mentah === null || mentah === undefined)
+            ) {
+                return `Matang: Rp ${formatCurrency(matang)}`;
+            }
+
+            return `Mentah: Rp ${formatCurrency(mentah)} • Matang: Rp ${formatCurrency(matang)}`;
+        }
+
         const price = item.variants?.[0]?.harga;
 
         return price !== null && price !== undefined

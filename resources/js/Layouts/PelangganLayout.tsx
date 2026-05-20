@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import BottomNavbar from '@/Components/Pelanggan/BottomNavbar';
 
 interface PelangganLayoutProps {

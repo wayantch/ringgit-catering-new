@@ -1,7 +1,7 @@
-import React from 'react';
 import { Link } from '@inertiajs/react';
-import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
+import React from 'react';
 import PesananSourceBadge from '@/Components/Admin/PesananSourceBadge';
+import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
 
 interface OrderSummary {
     id: string;
@@ -63,7 +63,7 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                 Total
                             </th>
                             <th className="p-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
-                                Pembayaran
+                                Jenis
                             </th>
                             <th className="p-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
                                 Status
@@ -93,18 +93,10 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                         <div className="font-mono font-semibold text-primary">
                                             {o.order_number}
                                         </div>
-                                        <div className="mt-2">
-                                            <PesananSourceBadge
-                                                source={o.source}
-                                            />
-                                        </div>
                                     </td>
                                     <td className="p-4 align-top">
                                         <div className="font-semibold">
                                             {o.customer_name}
-                                        </div>
-                                        <div className="text-xs text-slate-400">
-                                            {o.customer_email ?? '-'}
                                         </div>
                                     </td>
                                     <td className="p-4 align-top">
@@ -120,13 +112,6 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                     <td className="p-4 align-top">
                                         <div>
                                             {formatDateShort(o.booking_date)}
-                                        </div>
-                                        <div className="mt-1 text-xs">
-                                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
-                                                {o.order_type === 'takeaway'
-                                                    ? 'Pickup'
-                                                    : 'Delivery'}
-                                            </span>
                                         </div>
                                     </td>
                                     <td className="p-4 align-top">
@@ -159,21 +144,12 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                         )}
                                     </td>
                                     <td className="p-4 align-top">
-                                        <div className="text-sm">
-                                            <div>
-                                                DP:{' '}
-                                                <span className="font-semibold">
-                                                    {o.payment_status?.dp ??
-                                                        '—'}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                Pelunasan:{' '}
-                                                <span className="font-semibold">
-                                                    {o.payment_status
-                                                        ?.pelunasan ?? '—'}
-                                                </span>
-                                            </div>
+                                        <div className="mt-1 text-xs">
+                                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                                                {o.order_type === 'takeaway'
+                                                    ? 'Pickup'
+                                                    : 'Delivery'}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="p-4 align-top">

@@ -37,7 +37,11 @@ const STEPS: TimelineStep[] = [
 
 function formatDate(value: string): string {
     const d = new Date(value);
-    if (isNaN(d.getTime())) return '-';
+
+    if (isNaN(d.getTime())) {
+return '-';
+}
+
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',

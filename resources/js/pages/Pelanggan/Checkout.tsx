@@ -1,5 +1,3 @@
-import PelangganLayout from '@/Layouts/PelangganLayout';
-import pesanan from '@/routes/user/pesanan';
 import type { PageProps } from '@inertiajs/core';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import {
@@ -14,14 +12,11 @@ import {
     Sparkles,
     Truck,
 } from 'lucide-react';
-import {
-    useRef,
-    useEffect,
-    useState,
-    type FormEvent,
-    type ReactNode,
-} from 'react';
+import { useEffect, useRef } from 'react';
+import type { FormEvent, ReactNode } from 'react';
+import PelangganLayout from '@/Layouts/PelangganLayout';
 import { konfirmasi, alertError } from '@/lib/alert';
+import pesanan from '@/routes/user/pesanan';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,7 +55,7 @@ interface LoyaltyInfo {
 }
 
 interface Props extends PageProps {
-    user: { phone?: string | null };
+    user: { phone?: string | null; address?: string | null };
     cartItems: CartItemPayload[];
     summary: SummaryPayload;
     loyalty: LoyaltyInfo;
@@ -109,7 +104,10 @@ function FieldLabel({
 }
 
 function FieldError({ message }: { message?: string }) {
-    if (!message) return null;
+    if (!message) {
+        return null;
+    }
+
     return <p className="mt-1.5 text-xs text-red-500">{message}</p>;
 }
 
@@ -178,7 +176,7 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
         order_type: 'takeaway' as 'takeaway' | 'delivery',
         booking_date: toDateInput(new Date()),
         booking_time: '',
-        delivery_address: '',
+        delivery_address: user.address ?? '',
         notes: '',
         phone: user.phone ?? '',
         use_loyalty_discount: false,
@@ -196,20 +194,20 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
     const tomorrowDate = toDateInput(tomorrow);
     const hasOlahanRestriction = cartItems.some((item) => {
         const categoryType = item.menu_item?.category_type;
+
         return categoryType === 'olahan' || categoryType === 'eceran';
     });
     const dateMin = hasOlahanRestriction ? tomorrowDate : todayDate;
 
-    const [showOlahanWarning, setShowOlahanWarning] =
-        useState(hasOlahanRestriction);
+    const showOlahanWarning = hasOlahanRestriction;
 
     useEffect(() => {
         if (form.data.booking_date < dateMin) {
             form.setData('booking_date', dateMin);
         }
-        setShowOlahanWarning(hasOlahanRestriction);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dateMin, hasOlahanRestriction]);
+    }, [dateMin]);
 
     const submit = (e: FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
@@ -223,11 +221,13 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
         if (!form.data.booking_time) {
             form.setError('booking_time', 'Jam booking wajib diisi.');
+
             return;
         }
 
         if (!form.data.phone.trim()) {
             form.setError('phone', 'Nomor HP wajib diisi.');
+
             return;
         }
 
@@ -236,6 +236,7 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                 'delivery_address',
                 'Alamat wajib diisi untuk delivery.',
             );
+
             return;
         }
 
@@ -244,6 +245,7 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                 'booking_date',
                 'Tanggal tidak boleh kurang dari hari ini.',
             );
+
             return;
         }
 
@@ -252,30 +254,16 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                 'booking_date',
                 `Untuk item olahan, booking minimal H+1 (${dateMin}).`,
             );
+
             return;
         }
 
         isSubmittingRef.current = true;
 
-        // Show confirmation before submitting
-        void (async () => {
-            const result = await konfirmasi(
-                'Buat Pesanan?',
-                `Pastikan semua detail sudah benar sebelum melanjutkan.`,
-                {
-                    konfirmasiLabel: 'Ya, Buat Pesanan',
-                    batalLabel: 'Batal',
-                },
-            );
-
-            if (!result.isConfirmed) {
-                isSubmittingRef.current = false;
-                return;
-            }
-
+        const submitOrder = () => {
             form.post(pesanan.store().url, {
                 preserveScroll: true,
-                onError: (errors) => {
+                onError: () => {
                     alertError('Gagal membuat pesanan', 'Error');
                     // Validation errors are automatically available in form.errors
                 },
@@ -283,6 +271,31 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                     isSubmittingRef.current = false;
                 },
             });
+        };
+
+        // Show confirmation before submitting.
+        // If the modal promise fails for any external reason, continue with submit.
+        void (async () => {
+            try {
+                const result = await konfirmasi(
+                    'Buat Pesanan?',
+                    `Pastikan semua detail sudah benar sebelum melanjutkan.`,
+                    {
+                        konfirmasiLabel: 'Ya, Buat Pesanan',
+                        batalLabel: 'Batal',
+                    },
+                );
+
+                if (!result.isConfirmed) {
+                    isSubmittingRef.current = false;
+
+                    return;
+                }
+            } catch {
+                // Continue to submit to avoid blocking checkout when modal promise is interrupted.
+            }
+
+            submitOrder();
         })();
     };
 
@@ -371,6 +384,7 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                                         const Icon = opt.icon;
                                         const active =
                                             form.data.order_type === opt.value;
+
                                         return (
                                             <button
                                                 key={opt.value}
@@ -450,8 +464,8 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                                             required
                                         >
                                             {isDelivery
-                                                ? 'Jam Kirim'
-                                                : 'Jam Ambil'}
+                                                ? 'Jam Kirim dari outlet'
+                                                : 'Jam Ambil di outlet'}
                                         </FieldLabel>
                                         <div className="relative">
                                             <Clock className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />

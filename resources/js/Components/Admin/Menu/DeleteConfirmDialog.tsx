@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { router } from '@inertiajs/react';
-import menu from '@/routes/admin/menu';
+import { useEffect } from 'react';
 import { konfirmasiHapus, alertSukses, alertError } from '@/lib/alert';
+import menu from '@/routes/admin/menu';
 
 interface DeleteConfirmDialogProps {
     open: boolean;
@@ -17,7 +17,9 @@ export default function DeleteConfirmDialog({
     onClose,
 }: DeleteConfirmDialogProps) {
     useEffect(() => {
-        if (!open || menuId === null) return;
+        if (!open || menuId === null) {
+return;
+}
 
         let mounted = true;
 
@@ -27,7 +29,11 @@ export default function DeleteConfirmDialog({
                     menuName,
                     'Menu ini akan dihapus dan tidak tampil di pelanggan.',
                 );
-                if (!mounted) return;
+
+                if (!mounted) {
+return;
+}
+
                 if (result.isConfirmed) {
                     router.delete(menu.destroy(menuId), {
                         preserveScroll: true,

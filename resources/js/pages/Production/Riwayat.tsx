@@ -1,8 +1,8 @@
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
+import type { PageProps } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import { CheckCircle2, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { PageProps } from '@inertiajs/core';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 interface HistoryOrder {
     id: number;

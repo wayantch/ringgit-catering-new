@@ -325,6 +325,12 @@ export default function MenuForm({
     const [packagePrice, setPackagePrice] = useState(
         toStringValue(item?.variants?.[0]?.harga ?? ''),
     );
+    const [babiMentahPrice, setBabiMentahPrice] = useState(
+        toStringValue(item?.babi_mentah_price ?? ''),
+    );
+    const [babiMatangPrice, setBabiMatangPrice] = useState(
+        toStringValue(item?.babi_matang_price ?? ''),
+    );
     const [subsidyEnabled, setSubsidyEnabled] = useState(
         Boolean(item?.ongkir_subsidi?.length),
     );
@@ -346,12 +352,12 @@ export default function MenuForm({
 
     const isCreate = mode === 'create';
     const activeMenuType = menuType || item?.menu_type || '';
+    const isCreateEceran = isCreate && activeMenuType === 'eceran';
     const isFixedPricePackage =
         activeMenuType === 'eceran' &&
         FIXED_PRICE_SUB_TYPES.includes(
             subType as (typeof FIXED_PRICE_SUB_TYPES)[number],
         );
-
     useEffect(() => {
         return () => {
             if (imagePreviewUrlRef.current) {
@@ -465,8 +471,9 @@ export default function MenuForm({
         }
 
         const formData = new FormData();
+        const resolvedName = name;
 
-        appendValue(formData, 'name', name);
+        appendValue(formData, 'name', resolvedName);
         appendValue(formData, 'menu_type', activeMenuType);
         appendValue(
             formData,
@@ -475,7 +482,11 @@ export default function MenuForm({
         );
         appendValue(formData, 'description', description);
         appendValue(formData, 'is_available', isAvailable ? '1' : '0');
-        appendValue(formData, 'sort_order', sortOrder || '0');
+        appendValue(
+            formData,
+            'sort_order',
+            isCreateEceran ? '0' : sortOrder || '0',
+        );
         appendValue(formData, 'is_bundle', isFixedPricePackage ? '1' : '0');
         appendValue(
             formData,
@@ -543,8 +554,17 @@ export default function MenuForm({
                 });
             }
         } else if (isFixedPricePackage) {
-            appendValue(formData, 'variants[0][label]', name || 'Pass 1');
-            appendValue(formData, 'variants[0][harga]', packagePrice);
+            if (subType === 'babi_adat') {
+                appendValue(formData, 'babi_mentah_price', babiMentahPrice);
+                appendValue(formData, 'babi_matang_price', babiMatangPrice);
+            } else {
+                appendValue(
+                    formData,
+                    'variants[0][label]',
+                    resolvedName || 'Pass 1',
+                );
+                appendValue(formData, 'variants[0][harga]', packagePrice);
+            }
         } else {
             variants.forEach((variant, index) => {
                 appendValue(
@@ -615,7 +635,11 @@ export default function MenuForm({
                             id="name"
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            placeholder="Contoh: Saksang Special"
+                            placeholder={
+                                menuType === 'eceran'
+                                    ? 'Contoh: Nasi Box Babi Panggang'
+                                    : 'Contoh: Saksang Special'
+                            }
                             error={errors.name}
                         />
                         <FieldError message={errors.name} />
@@ -626,21 +650,25 @@ export default function MenuForm({
                         dan sub-tipe yang sesuai untuk mengatur alur harga.
                     </div>
 
-                    <div>
-                        <FieldLabel htmlFor="sort_order">Sort Order</FieldLabel>
-                        <Input
-                            id="sort_order"
-                            type="number"
-                            min="0"
-                            value={sortOrder}
-                            onChange={(event) =>
-                                setSortOrder(event.target.value)
-                            }
-                            placeholder="0"
-                            error={errors.sort_order}
-                        />
-                        <FieldError message={errors.sort_order} />
-                    </div>
+                    {!isCreateEceran && (
+                        <div>
+                            <FieldLabel htmlFor="sort_order">
+                                Sort Order
+                            </FieldLabel>
+                            <Input
+                                id="sort_order"
+                                type="number"
+                                min="0"
+                                value={sortOrder}
+                                onChange={(event) =>
+                                    setSortOrder(event.target.value)
+                                }
+                                placeholder="0"
+                                error={errors.sort_order}
+                            />
+                            <FieldError message={errors.sort_order} />
+                        </div>
+                    )}
 
                     <div className="md:col-span-2">
                         <FieldLabel htmlFor="description">Deskripsi</FieldLabel>
@@ -651,7 +679,11 @@ export default function MenuForm({
                             onChange={(event) =>
                                 setDescription(event.target.value)
                             }
-                            placeholder="Tambahkan deskripsi singkat menu ini."
+                            placeholder={
+                                menuType === 'eceran'
+                                    ? 'Contoh: Menu eceran dengan harga per porsi'
+                                    : 'Tambahkan deskripsi singkat menu ini.'
+                            }
                             error={errors.description}
                         />
                         <FieldError message={errors.description} />
@@ -1010,23 +1042,85 @@ export default function MenuForm({
                         </div>
 
                         <div>
-                            <FieldLabel htmlFor="package_price" required>
-                                Harga Paket
-                            </FieldLabel>
-                            <Input
-                                id="package_price"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={packagePrice}
-                                onChange={(event) =>
-                                    setPackagePrice(event.target.value)
-                                }
-                                placeholder="250000"
-                            />
-                            <Hint>
-                                Harga ini akan disimpan sebagai varian tunggal.
-                            </Hint>
+                            {subType === 'babi_adat' ? (
+                                <>
+                                    <FieldLabel
+                                        htmlFor="babi_mentah_price"
+                                        required
+                                    >
+                                        Harga Mentah
+                                    </FieldLabel>
+                                    <Input
+                                        id="babi_mentah_price"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={babiMentahPrice}
+                                        onChange={(event) =>
+                                            setBabiMentahPrice(
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder="250000"
+                                    />
+                                    <FieldError
+                                        message={errors.babi_mentah_price}
+                                    />
+
+                                    <div className="mt-4">
+                                        <FieldLabel
+                                            htmlFor="babi_matang_price"
+                                            required
+                                        >
+                                            Harga Matang
+                                        </FieldLabel>
+                                        <Input
+                                            id="babi_matang_price"
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={babiMatangPrice}
+                                            onChange={(event) =>
+                                                setBabiMatangPrice(
+                                                    event.target.value,
+                                                )
+                                            }
+                                            placeholder="300000"
+                                        />
+                                        <FieldError
+                                            message={errors.babi_matang_price}
+                                        />
+                                    </div>
+                                    <Hint>
+                                        Harga mentah dan matang disimpan khusus
+                                        untuk Babi Adat.
+                                    </Hint>
+                                </>
+                            ) : (
+                                <>
+                                    <FieldLabel
+                                        htmlFor="package_price"
+                                        required
+                                    >
+                                        Harga Paket
+                                    </FieldLabel>
+                                    <Input
+                                        id="package_price"
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        value={packagePrice}
+                                        onChange={(event) =>
+                                            setPackagePrice(event.target.value)
+                                        }
+                                        placeholder="250000"
+                                    />
+                                    <Hint>
+                                        Harga ini akan disimpan sebagai varian
+                                        tunggal.
+                                    </Hint>
+                                </>
+                            )}
                         </div>
                     </div>
 

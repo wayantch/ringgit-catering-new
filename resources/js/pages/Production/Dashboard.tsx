@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
 import { ShoppingCart, Calendar, UtensilsCrossed, Users } from 'lucide-react';
-import Sidebar from '@/Components/Sidebar';
-import Topbar from '@/Components/Topbar';
-import StatCard from '@/Components/StatCard';
 import OrderTable from '@/Components/OrderTable';
+import Sidebar from '@/Components/Sidebar';
+import StatCard from '@/Components/StatCard';
+import Topbar from '@/Components/Topbar';
 
 export default function Dashboard() {
     // Sample data for stats

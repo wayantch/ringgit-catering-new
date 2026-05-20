@@ -6,13 +6,20 @@ function useInView() {
     useEffect(() => {
         const o = new IntersectionObserver(
             ([e]) => {
-                if (e.isIntersecting) setVis(true);
+                if (e.isIntersecting) {
+setVis(true);
+}
             },
             { threshold: 0.1 },
         );
-        if (ref.current) o.observe(ref.current);
+
+        if (ref.current) {
+o.observe(ref.current);
+}
+
         return () => o.disconnect();
     }, []);
+
     return [ref, vis];
 }
 
@@ -28,6 +35,7 @@ export default function FadeUp({
     className = '',
 }: FadeUpProps) {
     const [ref, vis] = useInView();
+
     return (
         <div
             ref={ref}

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState, FormEvent } from 'react';
 import { useForm, Link } from '@inertiajs/react';
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useRef, useState, FormEvent } from 'react';
 import otpRoutes from '@/routes/otp';
 import user from '@/routes/user';
 
@@ -24,6 +24,7 @@ export default function OtpVerify({ email }: Props) {
     useEffect(() => {
         if (countdown <= 0) {
             setCanResend(true);
+
             return;
         }
 
@@ -37,12 +38,15 @@ export default function OtpVerify({ email }: Props) {
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
+
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     const handleOtpChange = (index: number, value: string) => {
         // Only allow single digit
-        if (!/^\d?$/.test(value)) return;
+        if (!/^\d?$/.test(value)) {
+return;
+}
 
         const newOtp = [...otp];
         newOtp[index] = value;

@@ -5,10 +5,22 @@ use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentVerification;
+use App\Models\User;
 use App\Services\LoyaltyService;
 use App\Services\Pelanggan\PesananService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class);
+uses(TestCase::class);
+
+beforeEach(function (): void {
+    config()->set('database.default', 'mysql');
+    config()->set('database.connections.mysql.database', 'ringgit-catering-db');
+    config()->set('database.connections.mysql.host', '127.0.0.1');
+    config()->set('database.connections.mysql.port', '3306');
+});
 
 it('builds cashback summary for timbang hidup customer orders', function (): void {
     $this->instance(LoyaltyService::class, Mockery::mock(LoyaltyService::class));
@@ -93,4 +105,89 @@ it('builds cashback summary for timbang hidup customer orders', function (): voi
             'kode' => 'B',
             'cashback' => 75000.0,
         ]);
+});
+
+it('uses cashback-adjusted total for full payment proof uploads', function (): void {
+    Storage::fake('public');
+    $this->instance(LoyaltyService::class, Mockery::mock(LoyaltyService::class));
+
+    $customer = User::factory()->create([
+        'role' => 'pembeli',
+    ]);
+
+    $category = MenuCategory::create([
+        'name' => 'Timbang Hidup',
+        'type' => 'timbang_hidup',
+        'slug' => 'timbang-hidup',
+        'description' => null,
+        'sort_order' => 1,
+        'is_active' => true,
+    ]);
+
+    $menuItem = MenuItem::create([
+        'category_id' => $category->id,
+        'name' => 'Babi Cashback',
+        'description' => null,
+        'image' => null,
+        'base_price' => null,
+        'unit' => 'kg',
+        'menu_type' => 'timbang_hidup',
+        'is_available' => true,
+        'sort_order' => 1,
+    ]);
+
+    MenuItemPriceTier::create([
+        'menu_item_id' => $menuItem->id,
+        'kode' => 'B',
+        'is_half' => false,
+        'berat_min' => 25,
+        'berat_max' => 49,
+        'harga_mentah' => 88000,
+        'harga_matang' => 108000,
+        'cashback' => 75000,
+        'sort_order' => 1,
+    ]);
+
+    $order = Order::create([
+        'user_id' => $customer->id,
+        'order_number' => 'ORD-20260519-00001',
+        'source' => 'pembeli',
+        'customer_name' => 'Pelanggan Test',
+        'customer_phone' => '08123456789',
+        'customer_email' => 'pelanggan@example.com',
+        'order_type' => 'takeaway',
+        'booking_date' => now()->toDateString(),
+        'booking_time' => '10:00',
+        'order_status' => 'baru',
+        'subtotal' => 3240000,
+        'total_amount' => 3240000,
+        'dp_amount' => 810000,
+        'remaining_amount' => 2430000,
+    ]);
+
+    OrderItem::create([
+        'order_id' => $order->id,
+        'menu_item_id' => $menuItem->id,
+        'menu_name' => 'Babi Cashback',
+        'menu_category_type' => 'timbang_hidup',
+        'menu_unit' => 'kg',
+        'kondisi_produk' => 'mateng',
+        'adat_type' => 'batak',
+        'quantity' => 30,
+        'unit_price' => 108000,
+        'subtotal' => 3240000,
+        'notes' => null,
+    ]);
+
+    $service = app(PesananService::class);
+    $paymentVerification = $service->uploadPaymentVerification(
+        $order,
+        UploadedFile::fake()->image('proof.jpg'),
+        'pelunasan',
+    );
+
+    expect($paymentVerification)->toBeInstanceOf(PaymentVerification::class)
+        ->and((float) $paymentVerification->amount)->toBe(3165000.0);
+
+    $this->assertTrue(Storage::disk('public')->exists($paymentVerification->proof_image));
 });

@@ -1,7 +1,7 @@
-import { logout } from '@/routes';
 import { router, usePage } from '@inertiajs/react';
 import { LogOut, ShieldCheck, UserCircle2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { logout } from '@/routes';
 
 type AuthUser = {
     name?: string;
@@ -22,6 +22,7 @@ export default function ProduksiProfileMenu() {
 
     const initials = useMemo(() => {
         const name = user?.name?.trim();
+
         if (!name) {
             return 'PR';
         }

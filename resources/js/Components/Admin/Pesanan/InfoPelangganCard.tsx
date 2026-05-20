@@ -1,5 +1,5 @@
-import React from 'react';
 import { User, Phone, Mail } from 'lucide-react';
+import React from 'react';
 
 interface Props {
     user: { id: string; name: string; email?: string } | null;

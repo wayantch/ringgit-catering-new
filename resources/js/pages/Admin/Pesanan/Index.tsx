@@ -1,11 +1,11 @@
-import React from 'react';
 import { Link, router } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
-import PesananFilterBar from '@/Components/Admin/PesananFilterBar';
-import PesananTable from '@/Components/Admin/Pesanan/PesananTable';
-import PaginationControls from '@/Components/PaginationControls';
-import { PageProps } from '@inertiajs/react';
+import type { PageProps } from '@inertiajs/react';
 import { Plus, Printer } from 'lucide-react';
+import React, { useEffect } from 'react';
+import PesananTable from '@/Components/Admin/Pesanan/PesananTable';
+import PesananFilterBar from '@/Components/Admin/PesananFilterBar';
+import PaginationControls from '@/Components/PaginationControls';
+import AdminLayout from '@/Layouts/AdminLayout';
 
 interface Order {
     id: number;
@@ -36,11 +36,33 @@ interface Props extends PageProps {
 }
 
 export default function Index({ orders, filters }: Props) {
+    useEffect(() => {
+        const refreshOrders = (): void => {
+            router.reload({
+                only: ['orders'],
+                preserveScroll: true,
+            });
+        };
+
+        refreshOrders();
+
+        window.addEventListener('pageshow', refreshOrders);
+        window.addEventListener('focus', refreshOrders);
+
+        return () => {
+            window.removeEventListener('pageshow', refreshOrders);
+            window.removeEventListener('focus', refreshOrders);
+        };
+    }, []);
+
     const handlePageChange = (newPage: number) => {
         const queryParams = new URLSearchParams(
             Object.entries(filters).reduce(
                 (acc, [k, v]) => {
-                    if (v) acc[k] = String(v);
+                    if (v) {
+                        acc[k] = String(v);
+                    }
+
                     return acc;
                 },
                 {} as Record<string, string>,

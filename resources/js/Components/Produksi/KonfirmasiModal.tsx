@@ -21,7 +21,9 @@ export default function KonfirmasiModal({
     isDanger = false,
 }: KonfirmasiModalProps) {
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen) {
+return;
+}
 
         let mounted = true;
 
@@ -34,7 +36,9 @@ export default function KonfirmasiModal({
                     isDanger: isDanger,
                 });
 
-                if (!mounted) return;
+                if (!mounted) {
+return;
+}
 
                 if (result.isConfirmed) {
                     try {

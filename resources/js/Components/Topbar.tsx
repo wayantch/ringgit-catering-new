@@ -1,3 +1,4 @@
+import { Link, router } from '@inertiajs/react';
 import {
     Bell,
     Settings,
@@ -7,10 +8,9 @@ import {
     User,
     ChevronDown,
 } from 'lucide-react';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, router } from '@inertiajs/react';
+import { useSidebar } from '@/contexts/SidebarContext';
 import admin from '@/routes/admin';
 import produksi from '@/routes/produksi';
 
@@ -38,6 +38,7 @@ function ProfileDropdown({ user }) {
             }
         };
         document.addEventListener('mousedown', handler);
+
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
@@ -46,6 +47,7 @@ function ProfileDropdown({ user }) {
         const el = document.createElement('div');
         document.body.appendChild(el);
         portalRef.current = el;
+
         return () => {
             if (portalRef.current) {
                 document.body.removeChild(portalRef.current);
@@ -56,9 +58,15 @@ function ProfileDropdown({ user }) {
 
     // Position dropdown when opened or on resize/scroll
     useEffect(() => {
-        if (!open) return;
+        if (!open) {
+return;
+}
+
         const update = () => {
-            if (!ref.current) return;
+            if (!ref.current) {
+return;
+}
+
             const rect = ref.current.getBoundingClientRect();
             const dropdownWidth = 208; // w-52 = 13rem = 208px
             const left = rect.right - dropdownWidth + window.scrollX;
@@ -74,6 +82,7 @@ function ProfileDropdown({ user }) {
         update();
         window.addEventListener('resize', update);
         window.addEventListener('scroll', update, true);
+
         return () => {
             window.removeEventListener('resize', update);
             window.removeEventListener('scroll', update, true);

@@ -1,5 +1,5 @@
-import React from 'react';
 import { Clock, Calendar, MapPin } from 'lucide-react';
+import React from 'react';
 
 interface Props {
     order: any;
@@ -16,15 +16,22 @@ const fmt = (n: number | null) =>
 
 export default function InfoPesananCard({ order }: Props) {
     const displayTime = (type: string, time: string | null) => {
-        if (!time) return '—';
+        if (!time) {
+return '—';
+}
+
         const t = time.substring(0, 5);
+
         return type === 'takeaway'
             ? `Ambil di outlet pukul ${t}`
             : `Kirim dari outlet jam ${t}`;
     };
 
     const formatDate = (d: string | null) => {
-        if (!d) return '—';
+        if (!d) {
+return '—';
+}
+
         return new Date(d).toLocaleDateString('id-ID', {
             weekday: 'long',
             day: '2-digit',

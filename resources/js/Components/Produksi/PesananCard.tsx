@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
-import StatusBadge from './StatusBadge';
 import pesanan from '@/routes/produksi/pesanan';
+import StatusBadge from './StatusBadge';
 
 interface PesananCardProps {
     id: number;
@@ -26,7 +26,10 @@ const fmtDate = (v: string): string =>
     });
 
 const fmtTime = (v: string | null): string => {
-    if (!v) return '-';
+    if (!v) {
+return '-';
+}
+
     return new Date(`2000-01-01T${v}`).toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit',

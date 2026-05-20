@@ -16,16 +16,19 @@ import { update as profilUpdate } from '@/routes/user/profil';
 interface ProfilMenuListProps {
     currentName: string;
     currentPhone: string;
+    currentAddress: string;
 }
 
 export default function ProfilMenuList({
     currentName,
     currentPhone,
+    currentAddress,
 }: ProfilMenuListProps) {
     const [openEdit, setOpenEdit] = useState(false);
     const form = useForm({
         name: currentName,
         phone: currentPhone,
+        address: currentAddress,
     });
 
     const saveProfile = (event: FormEvent<HTMLFormElement>): void => {
@@ -64,7 +67,7 @@ export default function ProfilMenuList({
                                 Edit profil
                             </p>
                             <p className="text-xs text-slate-500">
-                                Nama, nomor HP
+                                Nama, nomor HP, alamat
                             </p>
                         </div>
                     </div>
@@ -133,7 +136,7 @@ export default function ProfilMenuList({
                         />
                         <form
                             onSubmit={saveProfile}
-                            className="absolute right-0 bottom-0 left-0 max-w-2xl mx-auto space-y-4 rounded-t-[28px] border border-black/5 bg-[#f7f5ef] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)]"
+                            className="absolute right-0 bottom-0 left-0 mx-auto max-w-2xl space-y-4 rounded-t-[28px] border border-black/5 bg-[#f7f5ef] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)]"
                         >
                             <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-black/10" />
                             <h3 className="text-base font-semibold text-text">
@@ -171,6 +174,26 @@ export default function ProfilMenuList({
                                         )
                                     }
                                     className="w-full rounded-2xl border border-black/5 bg-white px-4 py-3 transition outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/15"
+                                />
+                            </label>
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-slate-600">
+                                    Alamat{' '}
+                                    <span className="text-slate-400">
+                                        (Opsional)
+                                    </span>
+                                </span>
+                                <textarea
+                                    value={form.data.address}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'address',
+                                            event.target.value,
+                                        )
+                                    }
+                                    rows={3}
+                                    className="w-full rounded-2xl border border-black/5 bg-white px-4 py-3 transition outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/15"
+                                    placeholder="Masukkan alamat lengkap Anda"
                                 />
                             </label>
                             <button

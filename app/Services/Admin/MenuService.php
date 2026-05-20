@@ -2,9 +2,9 @@
 
 namespace App\Services\Admin;
 
+use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
 use App\Models\MenuItemVariant;
-use App\Models\MenuItem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +16,12 @@ class MenuService
         'paket_pass',
         'paket_nasi_box',
         'babi_adat',
+    ];
+
+    private const SUB_TYPE_MENU_NAMES = [
+        'paket_pass' => 'Paket Pass',
+        'paket_nasi_box' => 'Paket Napass',
+        'babi_adat' => 'Babi Adat',
     ];
 
     public function getPaginatedMenus(array $filters): LengthAwarePaginator
@@ -39,6 +45,8 @@ class MenuService
                     'image_url' => $item->image_url,
                     'menu_type' => $item->menu_type,
                     'sub_type' => $item->sub_type,
+                    'babi_mentah_price' => $item->babi_mentah_price,
+                    'babi_matang_price' => $item->babi_matang_price,
                     'is_bundle' => $item->is_bundle,
                     'bundle_desc' => $item->bundle_desc,
                     'free_ongkir_km' => $item->free_ongkir_km,
@@ -166,7 +174,7 @@ class MenuService
     {
         $payload = [
             'category_id' => null,
-            'name' => $data['name'],
+            'name' => $this->resolveMenuName($data),
             'menu_type' => $data['menu_type'],
             'sub_type' => $data['sub_type'] ?? null,
             'description' => $data['description'] ?? null,
@@ -174,6 +182,8 @@ class MenuService
             'bundle_desc' => $data['bundle_desc'] ?? null,
             'free_ongkir_km' => $this->normalizeNullableInteger($data['free_ongkir_km'] ?? null),
             'ongkir_subsidi' => $this->normalizeSubsidi($data['ongkir_subsidi'] ?? null),
+            'babi_mentah_price' => $this->normalizeNullableDecimal($data['babi_mentah_price'] ?? null),
+            'babi_matang_price' => $this->normalizeNullableDecimal($data['babi_matang_price'] ?? null),
             'is_available' => (bool) ($data['is_available'] ?? true),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
@@ -185,6 +195,15 @@ class MenuService
         }
 
         return $payload;
+    }
+
+    private function normalizeNullableDecimal(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (float) $value;
     }
 
     /**
@@ -248,5 +267,25 @@ class MenuService
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function resolveMenuName(array $data): string
+    {
+        $submittedName = trim((string) ($data['name'] ?? ''));
+
+        if (($data['menu_type'] ?? null) !== 'eceran') {
+            return $submittedName;
+        }
+
+        if ($submittedName !== '') {
+            return $submittedName;
+        }
+
+        $subType = (string) ($data['sub_type'] ?? '');
+
+        return self::SUB_TYPE_MENU_NAMES[$subType] ?? 'Menu Eceran';
     }
 }

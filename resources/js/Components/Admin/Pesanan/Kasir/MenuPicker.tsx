@@ -1,6 +1,7 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import MenuPickerCard, { type MenuPickerCardItem } from './MenuPickerCard';
+import MenuPickerCard from './MenuPickerCard';
+import type {MenuPickerCardItem} from './MenuPickerCard';
 
 export interface OrderItemSummary {
     menu_item_id: number;

@@ -5,10 +5,9 @@ namespace App\Services\Admin;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
-use App\Models\User;
 use App\Models\PaymentVerification;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Pagination\LengthAwarePaginator;
 use InvalidArgumentException;
 
 class PesananService
@@ -65,6 +64,7 @@ class PesananService
                     'customer_name' => $order->customer_name,
                     'customer_phone' => $order->customer_phone,
                     'booking_date' => $order->booking_date?->toDateString(),
+                    'status' => $order->order_status,
                     'order_status' => $order->order_status,
                     'total_amount' => $order->total_amount,
                     'is_price_pending' => $order->is_price_pending,
@@ -383,7 +383,7 @@ class PesananService
             $sequence = $lastSequence + 1;
         }
 
-        return $date . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $date.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     private function generateUniqueCode(): int

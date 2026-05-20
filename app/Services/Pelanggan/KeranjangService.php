@@ -3,8 +3,8 @@
 namespace App\Services\Pelanggan;
 
 use App\Models\Cart;
-use App\Models\MenuItemPriceTier;
 use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +22,12 @@ class KeranjangService
                 'menu_item_id' => $menuItem->id,
                 'kondisi_produk' => $details['kondisi_produk'],
                 'adat_type' => $details['adat_type'] ?? null,
+                'portion' => $details['portion'] ?? null,
             ],
             [
                 'quantity' => (float) $details['quantity'],
                 'notes' => $details['notes'] ?? null,
+                'portion' => $details['portion'] ?? null,
             ]
         );
 
@@ -40,7 +42,7 @@ class KeranjangService
         return Cart::where('user_id', $user->id)
             ->with(['menuItem.category', 'menuItem.tiers', 'menuItem.variants'])
             ->get()
-            ->filter(fn(Cart $item): bool => $item->menuItem !== null)
+            ->filter(fn (Cart $item): bool => $item->menuItem !== null)
             ->values();
     }
 
@@ -84,6 +86,7 @@ class KeranjangService
     public function updateItem(Cart $cart, array $data): Cart
     {
         $newAdat = $data['adat_type'] ?? $cart->adat_type;
+        $newPortion = $data['portion'] ?? $cart->portion;
         $newQuantity = $data['quantity'];
         $newNotes = array_key_exists('notes', $data) ? $data['notes'] : $cart->notes;
 
@@ -94,6 +97,7 @@ class KeranjangService
                 ->where('menu_item_id', $cart->menu_item_id)
                 ->where('kondisi_produk', $cart->kondisi_produk)
                 ->where('adat_type', $newAdat)
+                ->where('portion', $newPortion)
                 ->where('id', '!=', $cart->id)
                 ->first();
 
@@ -101,7 +105,7 @@ class KeranjangService
                 // Merge quantities
                 $existing->quantity = (float) ($existing->quantity ?? 0) + (float) ($newQuantity ?? 0);
                 // Prefer existing notes; if new notes provided and existing empty, use them
-                if (empty($existing->notes) && !empty($newNotes)) {
+                if (empty($existing->notes) && ! empty($newNotes)) {
                     $existing->notes = $newNotes;
                 }
                 $existing->save();
@@ -116,6 +120,7 @@ class KeranjangService
             $cart->update([
                 'quantity' => $newQuantity,
                 'adat_type' => $newAdat,
+                'portion' => $newPortion,
                 'notes' => $newNotes,
             ]);
 

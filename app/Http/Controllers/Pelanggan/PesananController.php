@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class PesananController extends Controller
 {
@@ -28,7 +29,7 @@ class PesananController extends Controller
         ]);
     }
 
-    public function store(Request $request, PesananService $service): RedirectResponse
+    public function store(Request $request, PesananService $service): SymfonyResponse|RedirectResponse
     {
         $validated = $request->validate([
             'order_type' => 'required|in:takeaway,delivery',
@@ -49,7 +50,9 @@ class PesananController extends Controller
                 $message = 'Pesanan berhasil dibuat dan diskon loyalti telah diterapkan. Silakan upload bukti pembayaran.';
             }
 
-            return redirect()->route('user.pesanan.uploadForm', $order)->with('success', $message);
+            $request->session()->flash('success', $message);
+
+            return Inertia::location(route('user.pesanan.uploadForm', $order));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

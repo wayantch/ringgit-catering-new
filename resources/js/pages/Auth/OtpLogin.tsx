@@ -1,6 +1,7 @@
-import React, { FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import type { FormEvent } from 'react';
+import React from 'react';
 import otp from '@/routes/otp';
 
 export default function OtpLogin() {

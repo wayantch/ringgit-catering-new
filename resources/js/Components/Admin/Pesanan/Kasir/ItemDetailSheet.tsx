@@ -1,12 +1,8 @@
 import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import TierPicker from '@/Components/Pelanggan/TierPicker';
-import {
-    ADAT_OPTIONS,
-    KONDISI_OPTIONS,
-    type CategoryType,
-    type KondisiValue,
-} from '@/constants/kondisiProduk';
+import { ADAT_OPTIONS, KONDISI_OPTIONS } from '@/constants/kondisiProduk';
+import type { CategoryType, KondisiValue } from '@/constants/kondisiProduk';
 import type { MenuPickerCardItem } from './MenuPickerCard';
 
 export interface ItemDetailPayload {
@@ -86,6 +82,12 @@ const formatTierRange = (tier: MenuPickerCardItem['tiers'][number]): string => {
     }
 
     return `${formatKg(tier.berat_min)} - ${formatKg(tier.berat_max)}`;
+};
+
+const formatTierPricePair = (
+    tier: MenuPickerCardItem['tiers'][number],
+): string => {
+    return `Mentah ${formatCurrency(tier.harga_mentah)} · Matang ${formatCurrency(tier.harga_matang)}`;
 };
 
 const getTierQuantityBounds = (
@@ -581,7 +583,7 @@ export default function ItemDetailSheet({
                                 </div>
                                 <p className="mt-3 text-sm leading-6 text-slate-500">
                                     {isTimbangHidup
-                                        ? 'Pilih range, kondisi, adat, lalu catatan agar detail pesanan mirip flow customer.'
+                                        ? 'Pilih kondisi, range, adat, lalu catatan agar detail pesanan mirip flow customer.'
                                         : 'Pilih kondisi dan catatan sebelum menyimpan pesanan.'}
                                 </p>
                             </div>
@@ -628,6 +630,19 @@ export default function ItemDetailSheet({
 
                     {isTimbangHidup ? (
                         <>
+                            <OptionChips
+                                label="Pilih kondisi"
+                                helperText="Pilih kondisi daging sebelum memilih range berat."
+                                options={kondisiOptions.map((opt) => ({
+                                    value: opt.value,
+                                    label: `${opt.emoji} ${opt.label}`,
+                                }))}
+                                value={kondisiProduk || null}
+                                onChange={(value) => {
+                                    setKondisiProduk(value as KondisiValue);
+                                }}
+                            />
+
                             <TierPicker
                                 label="Pilih range berat"
                                 helperText="Pilih range yang sudah diinput admin sebelum mengatur berat pesanan."
@@ -635,7 +650,7 @@ export default function ItemDetailSheet({
                                     id: tier.id,
                                     title: formatTierRange(tier),
                                     description: `Kode ${tier.kode}`,
-                                    price: formatCurrency(tier.harga_mentah),
+                                    price: formatTierPricePair(tier),
                                     meta:
                                         tier.berat_max !== null
                                             ? `${formatKg(tier.berat_min)}-${formatKg(tier.berat_max)}`
@@ -679,28 +694,13 @@ export default function ItemDetailSheet({
                                 <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
                                     <p className="text-sm font-medium text-text">
                                         Pilih range terlebih dahulu untuk
-                                        membuka pengaturan kondisi.
+                                        melanjutkan pengaturan pesanan.
                                     </p>
                                 </section>
                             )}
 
                             {selectedTier && (
                                 <>
-                                    <OptionChips
-                                        label="Pilih kondisi"
-                                        helperText="Pilih kondisi daging untuk pesanan timbang hidup."
-                                        options={kondisiOptions.map((opt) => ({
-                                            value: opt.value,
-                                            label: `${opt.emoji} ${opt.label}`,
-                                        }))}
-                                        value={kondisiProduk || null}
-                                        onChange={(value) => {
-                                            setKondisiProduk(
-                                                value as KondisiValue,
-                                            );
-                                        }}
-                                    />
-
                                     <OptionChips
                                         label="Pilih adat"
                                         helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."

@@ -39,7 +39,9 @@ export default function ItemPickerSheet({
     };
 
     const handleAddItem = () => {
-        if (!selectedMenu) return;
+        if (!selectedMenu) {
+return;
+}
 
         onSelect({
             menu_item_id: selectedMenu.id,
@@ -66,7 +68,9 @@ export default function ItemPickerSheet({
         });
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {
+return null;
+}
 
     const categoryLabel = (type: string) => {
         const labels: Record<string, string> = {

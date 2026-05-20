@@ -1,8 +1,9 @@
 import {
     createInertiaApp,
-    router,
-    type ResolvedComponent,
+    router
+    
 } from '@inertiajs/react';
+import type {ResolvedComponent} from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { tampilFlash } from '@/lib/alert';
 
@@ -34,6 +35,7 @@ createInertiaApp({
         ) {
             // @ts-ignore
             tampilFlash(props.initialPage.props.flash || {});
+
             // remove global flash if present
             try {
                 delete (window as any).__inertia_flash;

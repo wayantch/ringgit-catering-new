@@ -47,6 +47,8 @@ interface MenuItem {
     category?: {
         type: CategoryType | null;
     } | null;
+    babi_mentah_price?: number | null;
+    babi_matang_price?: number | null;
 }
 
 interface AddToCartSheetProps {
@@ -100,7 +102,7 @@ function formatCurrency(value: number | null): string {
 
 function formatKg(value: number): string {
     return `${new Intl.NumberFormat('id-ID', {
-        maximumFractionDigits: 1,
+        maximumFractionDigits: 0,
     }).format(value)} kg`;
 }
 
@@ -120,27 +122,24 @@ function formatTierPrice(value: number | null): string {
     return `${formatCurrency(value)} / kg`;
 }
 
-function formatOptionLabel(value: string): string {
-    return value
-        .replaceAll('_', ' ')
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+function getDefaultKondisiProduk(item: MenuItem | null): KondisiValue {
+    if (!item) {
+        return 'mentah';
+    }
+
+    if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
+        return 'mentah';
+    }
+
+    if (item.menu_type === 'eceran') {
+        return 'satuan';
+    }
+
+    return 'mentah';
 }
 
-function isSmallTimbangRange(
-    item: MenuItem | null,
-    tierId: string | null,
-): boolean {
-    if (!item || item.menu_type !== 'timbang_hidup' || !tierId) {
-        return false;
-    }
-
-    const tier = item.tiers.find((entry) => entry.id === tierId);
-
-    if (!tier || tier.berat_max === null) {
-        return false;
-    }
-
-    return Number(tier.berat_min) <= 13 && Number(tier.berat_max) <= 13;
+function formatTierPricePair(tier: MenuTier): string {
+    return `Mentah ${formatTierPrice(tier.harga_mentah)} · Matang ${formatTierPrice(tier.harga_matang)}`;
 }
 
 function getTierQuantityBounds(
@@ -150,9 +149,8 @@ function getTierQuantityBounds(
         return null;
     }
 
-    const min = Number(Math.max(0.5, Number(tier.berat_min)).toFixed(2));
-    const max =
-        tier.berat_max === null ? null : Number(tier.berat_max.toFixed(2));
+    const min = Math.max(1, Math.ceil(Number(tier.berat_min)));
+    const max = tier.berat_max === null ? null : Math.floor(tier.berat_max);
 
     return { min, max };
 }
@@ -164,10 +162,10 @@ function clampQuantityToBounds(
     const clampedMinimum = Math.max(bounds.min, value);
 
     if (bounds.max === null) {
-        return Number(clampedMinimum.toFixed(2));
+        return Math.round(clampedMinimum);
     }
 
-    return Number(Math.min(bounds.max, clampedMinimum).toFixed(2));
+    return Math.round(Math.min(bounds.max, clampedMinimum));
 }
 
 function buildSummaryLines(params: {
@@ -376,13 +374,7 @@ function WeightAdjuster({
                 <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
                     <button
                         type="button"
-                        onClick={() =>
-                            onChange(
-                                Number(
-                                    Math.max(minValue, value - 0.5).toFixed(2),
-                                ),
-                            )
-                        }
+                        onClick={() => onChange(Math.max(minValue, value - 1))}
                         disabled={value <= minValue}
                         className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
                     >
@@ -395,7 +387,7 @@ function WeightAdjuster({
                         type="button"
                         onClick={() =>
                             onChange(
-                                clampQuantityToBounds(value + 0.5, {
+                                clampQuantityToBounds(value + 1, {
                                     min: minValue,
                                     max: maxValue,
                                 }),
@@ -424,7 +416,9 @@ export default function AddToCartSheet({
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
         null,
     );
-    const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>('');
+    const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>(
+        'mentah',
+    );
     const [adatType, setAdatType] = useState<string>('');
     const [adatFlow, setAdatFlow] = useState<TimbangAdatFlow>('');
     const [selectedBatakParts, setSelectedBatakParts] = useState<BatakPart[]>(
@@ -442,33 +436,30 @@ export default function AddToCartSheet({
             return;
         }
 
-        // default quantity: 0.5 for timbang_hidup, 1 for eceran
-        const defaultQty = item.menu_type === 'timbang_hidup' ? 0.5 : 1;
+        const resetTimer = window.setTimeout(() => {
+            setQuantity(initialQuantity ?? 1);
+            setSelectedTierId(null);
+            setSelectedVariantId(
+                initialVariantId !== null && initialVariantId !== undefined
+                    ? initialVariantId
+                    : (item.variants[0]?.id ?? null),
+            );
+            setKondisiProduk(getDefaultKondisiProduk(item));
+            setAdatType('');
+            setAdatFlow('');
+            setSelectedBatakParts([]);
+            setSelectedNiasParts([]);
+            setSaksangPercent(25);
+            setPanggangPercent(75);
+            setRemainderText('');
+            setLegacyNotes('');
+        }, 0);
 
-        setQuantity(
-            initialQuantity !== null && initialQuantity !== undefined
-                ? initialQuantity
-                : defaultQty,
-        );
-        setSelectedTierId(null);
-        setSelectedVariantId(
-            initialVariantId !== null && initialVariantId !== undefined
-                ? initialVariantId
-                : (item.variants[0]?.id ?? null),
-        );
-        setKondisiProduk('');
-        setAdatType('');
-        setAdatFlow('');
-        setSelectedBatakParts([]);
-        setSelectedNiasParts([]);
-        setSaksangPercent(25);
-        setPanggangPercent(75);
-        setRemainderText('');
-        setLegacyNotes('');
-    }, [isOpen, item]);
+        return () => {
+            window.clearTimeout(resetTimer);
+        };
+    }, [initialQuantity, initialVariantId, isOpen, item]);
 
-    const kategori = (item?.category?.type as CategoryType) ?? 'olahan';
-    const isSmallRangeFlow = isSmallTimbangRange(item, selectedTierId);
     const selectedTier = useMemo(() => {
         if (!item || item.menu_type !== 'timbang_hidup' || !selectedTierId) {
             return null;
@@ -482,6 +473,18 @@ export default function AddToCartSheet({
         [selectedTier],
     );
 
+    const isSmallRangeFlow = useMemo(() => {
+        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
+            return false;
+        }
+
+        if (selectedTier.berat_max === null) {
+            return false;
+        }
+
+        return Math.abs(selectedTier.berat_max - selectedTier.berat_min) <= 6;
+    }, [item, selectedTier]);
+
     const selectedVariant = useMemo(() => {
         if (!item || item.menu_type !== 'eceran') {
             return null;
@@ -494,29 +497,78 @@ export default function AddToCartSheet({
         );
     }, [item, selectedVariantId]);
 
-    const kondisiOptions = KONDISI_OPTIONS.olahan;
+    const kondisiOptions = useMemo(() => {
+        if (!item) {
+            return [];
+        }
+
+        if (item.menu_type === 'timbang_hidup') {
+            return [
+                { value: 'mentah', label: 'Mentah', emoji: '🥩' },
+                { value: 'mateng', label: 'Matang', emoji: '🍳' },
+            ];
+        }
+
+        if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
+            // Babi adat sold as mentah/mateng
+            return KONDISI_OPTIONS.olahan;
+        }
+
+        return KONDISI_OPTIONS.eceran;
+    }, [item]);
+
+    const selectedTierPrice = useMemo(() => {
+        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
+            return null;
+        }
+
+        return kondisiProduk === 'mateng'
+            ? selectedTier.harga_matang
+            : selectedTier.harga_mentah;
+    }, [item, kondisiProduk, selectedTier]);
+
+    const displayedEceranPrice = useMemo(() => {
+        if (!item || item.menu_type !== 'eceran') {
+            return null;
+        }
+
+        if (item.sub_type === 'babi_adat') {
+            if (kondisiProduk === 'mentah') {
+                return item.babi_mentah_price ?? item.min_price ?? null;
+            }
+
+            if (kondisiProduk === 'mateng') {
+                return item.babi_matang_price ?? item.min_price ?? null;
+            }
+
+            // no selection yet, prefer min_price
+            return item.min_price ?? null;
+        }
+
+        return selectedVariant?.harga ?? item.min_price ?? null;
+    }, [item, kondisiProduk, selectedVariant]);
 
     useEffect(() => {
         if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
             return;
         }
 
-        if (selectedTierQuantityBounds) {
-            setQuantity(selectedTierQuantityBounds.min);
-        }
+        const resetTimer = window.setTimeout(() => {
+            if (selectedTierQuantityBounds) {
+                setQuantity(selectedTierQuantityBounds.min);
+            }
 
-        setAdatFlow('');
-        setAdatType('');
-        setSelectedBatakParts([]);
-        setSelectedNiasParts([]);
-        setRemainderText('');
-    }, [item, isSmallRangeFlow, selectedTier, selectedTierQuantityBounds]);
+            setAdatFlow('');
+            setAdatType('');
+            setSelectedBatakParts([]);
+            setSelectedNiasParts([]);
+            setRemainderText('');
+        }, 0);
 
-    useEffect(() => {
-        if (item?.menu_type !== 'timbang_hidup' || !selectedTier) {
-            return;
-        }
-    }, [item, selectedTier]);
+        return () => {
+            window.clearTimeout(resetTimer);
+        };
+    }, [item, selectedTier, selectedTierQuantityBounds]);
 
     const handleBatakToggle = (value: BatakPart): void => {
         setSelectedBatakParts((current) => {
@@ -567,7 +619,9 @@ export default function AddToCartSheet({
         }
 
         const estimatedTotal = Number(
-            (selectedTier.harga_mentah * quantity).toFixed(2),
+            (selectedTierPrice === null
+                ? selectedTier.harga_mentah
+                : selectedTierPrice) * quantity,
         );
 
         if (adatFlow !== '') {
@@ -590,7 +644,6 @@ export default function AddToCartSheet({
     }, [
         adatFlow,
         item,
-        isSmallRangeFlow,
         legacyNotes,
         panggangPercent,
         remainderText,
@@ -598,12 +651,15 @@ export default function AddToCartSheet({
         selectedBatakParts,
         selectedNiasParts,
         selectedTier,
+        selectedTierPrice,
         quantity,
     ]);
 
     const estimatedTierTotal =
-        item?.menu_type === 'timbang_hidup' && selectedTier
-            ? Number((selectedTier.harga_mentah * quantity).toFixed(2))
+        item?.menu_type === 'timbang_hidup' &&
+        selectedTier &&
+        selectedTierPrice !== null
+            ? Number((selectedTierPrice * quantity).toFixed(2))
             : null;
 
     const submit = async (): Promise<void> => {
@@ -615,31 +671,27 @@ export default function AddToCartSheet({
             return;
         }
 
-        if (item.menu_type === 'timbang_hidup' && adatFlow !== '') {
-            if (adatFlow === 'batak' && selectedBatakParts.length === 0) {
-                return;
-            }
-
-            if (adatFlow === 'nias' && selectedNiasParts.length === 0) {
-                return;
-            }
-        } else if (item.menu_type === 'timbang_hidup' && kondisiProduk === '') {
-            return;
-        }
-
         setIsSubmitting(true);
+
+        const computedPortion =
+            item.menu_type === 'timbang_hidup' && selectedTier
+                ? selectedTier.is_half
+                    ? 'setengah'
+                    : 'utuh'
+                : null;
 
         const payload = {
             menu_item_id: item.id,
             kondisi_produk:
                 item.menu_type === 'timbang_hidup'
-                    ? kondisiProduk
+                    ? kondisiProduk || 'mentah'
                     : kondisiProduk || 'satuan',
             adat_type:
                 item.menu_type === 'timbang_hidup' && adatFlow !== ''
                     ? adatFlow || null
                     : adatType || null,
             quantity,
+            portion: computedPortion,
             notes: summaryNotes === '' ? null : summaryNotes,
         };
 
@@ -669,21 +721,11 @@ export default function AddToCartSheet({
     const selectedSummaryLabel =
         item.menu_type === 'timbang_hidup' && !selectedTier
             ? 'Pilih range dulu'
-            : item.menu_type === 'timbang_hidup' && isSmallRangeFlow
-              ? adatFlow === 'batak'
-                  ? 'Batak'
-                  : adatFlow === 'nias'
-                    ? 'Nias'
-                    : adatFlow === 'tanpa_adat'
-                      ? 'Tanpa adat'
-                      : 'Pilih opsi'
-              : item.menu_type === 'timbang_hidup'
-                ? kondisiProduk === 'mateng'
-                    ? 'Mateng'
-                    : kondisiProduk === 'mentah'
-                      ? 'Mentah'
-                      : 'Pilih kondisi'
-                : 'Pilih kondisi';
+            : item.menu_type === 'timbang_hidup'
+              ? kondisiProduk === 'mateng'
+                  ? 'Matang'
+                  : 'Mentah'
+              : 'Pilih kondisi';
 
     return (
         <div className="fixed inset-0 z-60">
@@ -703,7 +745,7 @@ export default function AddToCartSheet({
                         <h3 className="mt-1 truncate text-lg font-semibold text-text sm:text-xl">
                             {item.name}
                         </h3>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 line-clamp-3 text-xs text-slate-500">
                             {item.description ||
                                 'Lengkapi detail pesanan sebelum melanjutkan.'}
                         </p>
@@ -725,7 +767,7 @@ export default function AddToCartSheet({
                                     Ringkasan menu
                                 </p>
                                 <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
                                         {item.menu_type === 'timbang_hidup'
                                             ? 'Timbang hidup'
                                             : (item.sub_type?.replace(
@@ -733,23 +775,20 @@ export default function AddToCartSheet({
                                                   ' ',
                                               ) ?? 'Eceran')}
                                     </span>
-                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
                                         {item.menu_type === 'timbang_hidup'
-                                            ? `${item.tiers.length} tier`
+                                            ? `${item.tiers.length} Opsi`
                                             : `${item.variants.length} varian`}
                                     </span>
-                                    {item.menu_type === 'timbang_hidup' &&
-                                        isSmallRangeFlow && (
-                                            <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-                                                Flow {selectedSummaryLabel}
-                                            </span>
-                                        )}
+                                    {item.menu_type === 'timbang_hidup' && (
+                                        <span className="hidden rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+                                            Kondisi {selectedSummaryLabel}
+                                        </span>
+                                    )}
                                 </div>
-                                <p className="mt-3 text-sm leading-6 text-slate-500">
+                                <p className="text-sm leading-6 text-slate-500">
                                     {item.menu_type === 'timbang_hidup'
-                                        ? isSmallRangeFlow
-                                            ? 'Pilih adat, detail daging, lalu simpan catatan pembagian.'
-                                            : 'Pilih kondisi produk untuk melanjutkan ke keranjang.'
+                                        ? 'Pilih kondisi produk lalu range berat untuk melanjutkan ke keranjang.'
                                         : item.sub_type === 'babi_adat'
                                           ? 'Pilih varian dan kondisi produk sebelum menyimpan pesanan.'
                                           : 'Pilih varian sebelum menyimpan pesanan.'}
@@ -767,9 +806,9 @@ export default function AddToCartSheet({
                                     {item.menu_type === 'timbang_hidup' &&
                                     selectedTier
                                         ? formatCurrency(estimatedTierTotal)
-                                        : formatCurrency(item.min_price)}
+                                        : formatCurrency(displayedEceranPrice)}
                                 </p>
-                                {item.menu_type === 'timbang_hidup' &&
+                                {/* {item.menu_type === 'timbang_hidup' &&
                                     selectedTier && (
                                         <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
                                             <p>
@@ -782,7 +821,7 @@ export default function AddToCartSheet({
                                             <p>
                                                 Harga per kg:{' '}
                                                 {formatTierPrice(
-                                                    selectedTier.harga_mentah,
+                                                    selectedTierPrice,
                                                 )}
                                             </p>
                                         </div>
@@ -793,10 +832,25 @@ export default function AddToCartSheet({
                                             Varian aktif:{' '}
                                             {selectedVariant.label}
                                         </p>
-                                    )}
+                                    )} */}
                             </div>
                         </div>
                     </section>
+
+                    {item.menu_type === 'timbang_hidup' && (
+                        <OptionChips
+                            label="Pilih kondisi"
+                            helperText="Pilih kondisi daging sebelum memilih range berat."
+                            options={kondisiOptions.map((opt) => ({
+                                value: opt.value,
+                                label: `${opt.emoji} ${opt.label}`,
+                            }))}
+                            value={kondisiProduk || null}
+                            onChange={(value) => {
+                                setKondisiProduk(value as KondisiValue);
+                            }}
+                        />
+                    )}
 
                     {item.menu_type === 'timbang_hidup' &&
                         item.tiers.length > 0 && (
@@ -806,8 +860,12 @@ export default function AddToCartSheet({
                                 options={item.tiers.map((tier) => ({
                                     id: tier.id,
                                     title: formatTierRange(tier),
-                                    description: `Kode ${tier.kode}`,
-                                    price: formatTierPrice(tier.harga_mentah),
+                                    description: `Kode ${tier.kode} — ${tier.is_half ? 'Setengah ekor' : 'Utuh / Satu ekor'}`,
+                                    price: formatTierPrice(
+                                        kondisiProduk === 'mateng'
+                                            ? tier.harga_matang
+                                            : tier.harga_mentah,
+                                    ),
                                     meta:
                                         tier.berat_max !== null
                                             ? `${formatKg(tier.berat_min)}-${formatKg(tier.berat_max)}`
@@ -858,21 +916,8 @@ export default function AddToCartSheet({
                         </section>
                     )}
 
-                    {item.menu_type === 'timbang_hidup' && selectedTier ? (
+                    {item.menu_type === 'timbang_hidup' && selectedTier && (
                         <>
-                            <OptionChips
-                                label="Pilih kondisi"
-                                helperText="Pilih kondisi daging untuk pesanan timbang hidup."
-                                options={kondisiOptions.map((opt) => ({
-                                    value: opt.value,
-                                    label: `${opt.emoji} ${opt.label}`,
-                                }))}
-                                value={kondisiProduk || null}
-                                onChange={(value) => {
-                                    setKondisiProduk(value as KondisiValue);
-                                }}
-                            />
-
                             <OptionChips
                                 label="Pilih adat"
                                 helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."
@@ -1050,7 +1095,7 @@ export default function AddToCartSheet({
                                 </section>
                             )}
                         </>
-                    ) : null}
+                    )}
 
                     {/* Eceran subtype info cards */}
                     {item.menu_type === 'eceran' &&
@@ -1078,35 +1123,11 @@ export default function AddToCartSheet({
                                     </div>
                                     {item.free_ongkir_km ? (
                                         <div className="text-sm text-slate-500">
-                                            🚚 Free ongkir {item.free_ongkir_km}
+                                            🚚 Free ongkir {item.free_ongkir_km}{' '}
                                             km
                                         </div>
                                     ) : null}
                                 </div>
-                            </section>
-                        )}
-
-                    {item.menu_type === 'eceran' &&
-                        item.sub_type === 'babi_adat' && (
-                            <section className="rounded-[28px] border border-black/5 bg-secondary p-4 shadow-sm">
-                                <div className="mb-2">
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-700 uppercase">
-                                        {item.name}
-                                    </p>
-                                    <p className="mt-2 text-sm text-slate-700">
-                                        {item.description}
-                                    </p>
-                                    <p className="mt-3 font-semibold text-primary">
-                                        {formatCurrency(
-                                            item.variants[0]?.harga ??
-                                                item.min_price,
-                                        )}
-                                    </p>
-                                </div>
-                                <p className="text-xs text-slate-700">
-                                    Harga sudah all-in (termasuk jeroan). Berat
-                                    estimasi hanya informasi.
-                                </p>
                             </section>
                         )}
 
@@ -1223,16 +1244,13 @@ export default function AddToCartSheet({
                                 isSubmitting ||
                                 (item.menu_type === 'timbang_hidup' &&
                                     !selectedTier) ||
-                                (item.menu_type === 'timbang_hidup' &&
-                                isSmallRangeFlow
+                                (isSmallRangeFlow
                                     ? adatFlow === '' ||
                                       (adatFlow === 'batak' &&
                                           selectedBatakParts.length === 0) ||
                                       (adatFlow === 'nias' &&
                                           selectedNiasParts.length === 0)
-                                    : item.menu_type === 'timbang_hidup'
-                                      ? kondisiProduk === ''
-                                      : false)
+                                    : false)
                             }
                             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
                         >

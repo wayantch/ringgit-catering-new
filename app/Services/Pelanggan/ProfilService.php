@@ -27,8 +27,8 @@ class ProfilService
             ->count();
         $hasRedeemed = $activeConfig !== null
             ? $user->loyaltyRedemptions()
-                ->where('loyalty_config_id', $activeConfig->id)
-                ->exists()
+            ->where('loyalty_config_id', $activeConfig->id)
+            ->exists()
             : false;
 
         return [
@@ -54,6 +54,7 @@ class ProfilService
         $user->update([
             'name' => $data['name'] ?? $user->name,
             'phone' => $data['phone'] ?? ($user->phone ?? null),
+            'address' => $data['address'] ?? ($user->address ?? null),
         ]);
 
         return $user;

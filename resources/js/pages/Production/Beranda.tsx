@@ -1,9 +1,9 @@
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
+import type { PageProps } from '@inertiajs/core';
 import { Head } from '@inertiajs/react';
 import { ClipboardCheck } from 'lucide-react';
-import PesananCard from '@/Components/Produksi/PesananCard';
 import EmptyState from '@/Components/Produksi/EmptyState';
-import type { PageProps } from '@inertiajs/core';
+import PesananCard from '@/Components/Produksi/PesananCard';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 interface PesananAktif {
     id: number;

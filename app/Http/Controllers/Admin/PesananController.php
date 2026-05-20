@@ -94,7 +94,7 @@ class PesananController extends Controller
                 ->where('role', 'pembeli')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'phone'])
-                ->map(static fn(User $user): array => [
+                ->map(static fn (User $user): array => [
                     'id' => $user->hashid,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -237,6 +237,7 @@ class PesananController extends Controller
                 'menu_item_id' => $item->menuItem?->hashid,
                 'menu_name' => $item->menu_name,
                 'menu_category_type' => $item->menu_category_type,
+                'menu_sub_type' => $item->menuItem?->sub_type,
                 'menu_unit' => $item->menu_unit,
                 'kondisi_produk' => $item->kondisi_produk,
                 'adat_type' => $item->adat_type,

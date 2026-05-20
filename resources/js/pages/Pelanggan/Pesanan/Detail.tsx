@@ -54,9 +54,13 @@ interface OrderDetail {
         cashback: number;
     }>;
     total_cashback?: number;
+    total_after_cashback?: number;
+    notes?: string | null;
     items: Array<{
         id: number;
         menu_item: string;
+        menu_category_type?: string | null;
+        menu_sub_type?: string | null;
         kondisi_produk: string;
         adat_type: string | null;
         quantity: string | number;
@@ -200,6 +204,13 @@ function parseAdatNotes(item: OrderDetail['items'][number]): {
     }
 
     return result;
+}
+
+function shouldShowKondisiLabel(item: OrderDetail['items'][number]): boolean {
+    return (
+        item.menu_category_type === 'timbang_hidup' ||
+        item.menu_sub_type === 'babi_adat'
+    );
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -393,6 +404,9 @@ function Detail({ order }: Props) {
     const totalCashback = order.total_cashback ?? 0;
     const cashbackEligible =
         order.cashback_eligible ?? cashbackBreakdown.length > 0;
+    const totalAfterCashback =
+        order.total_after_cashback ??
+        Math.max(Number(order.total_amount) - totalCashback, 0);
 
     const isPickup = order.order_type === 'takeaway';
     const TypeIcon = isPickup ? ShoppingBag : Truck;
@@ -538,14 +552,18 @@ function Detail({ order }: Props) {
                                                                     }
                                                                 </p>
                                                                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
-                                                                    <span
-                                                                        className={`rounded-full px-2 py-1 ${item.kondisi_produk === 'mateng' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
-                                                                    >
-                                                                        {item.kondisi_produk ===
-                                                                        'mateng'
-                                                                            ? 'Mateng'
-                                                                            : 'Mentah'}
-                                                                    </span>
+                                                                    {shouldShowKondisiLabel(
+                                                                        item,
+                                                                    ) && (
+                                                                        <span
+                                                                            className={`rounded-full px-2 py-1 ${item.kondisi_produk === 'mateng' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
+                                                                        >
+                                                                            {item.kondisi_produk ===
+                                                                            'mateng'
+                                                                                ? 'Mateng'
+                                                                                : 'Mentah'}
+                                                                        </span>
+                                                                    )}
                                                                     {parsedNotes.adatLabel && (
                                                                         <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-500">
                                                                             {
@@ -636,12 +654,36 @@ function Detail({ order }: Props) {
                                             <p className="text-sm font-semibold text-slate-600">
                                                 Total Pesanan
                                             </p>
-                                            <p className="text-base font-bold text-primary">
-                                                {fmt(order.total_amount)}
-                                            </p>
+                                            <div className="text-right">
+                                                <p className="text-base font-bold text-primary">
+                                                    {fmt(totalAfterCashback)}
+                                                </p>
+                                                {cashbackEligible &&
+                                                    totalCashback > 0 && (
+                                                        <p className="text-[11px] text-slate-500 line-through">
+                                                            {fmt(
+                                                                order.total_amount,
+                                                            )}
+                                                        </p>
+                                                    )}
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
+
+                                {/* Catatan Tambahan */}
+                                {order.notes && (
+                                    <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+                                        <h2 className="mb-3 text-sm font-semibold text-text">
+                                            Catatan Tambahan
+                                        </h2>
+                                        <div className="rounded-2xl border border-black/5 bg-[#fbfaf6] p-4">
+                                            <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
+                                                {order.notes}
+                                            </p>
+                                        </div>
+                                    </section>
+                                )}
                             </div>
 
                             {/* ── Kanan: Pembayaran (sticky di desktop) ── */}
@@ -682,7 +724,7 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            order.total_amount,
+                                                            totalAfterCashback,
                                                         )}
                                                     </p>
                                                 </div>
@@ -730,7 +772,12 @@ function Detail({ order }: Props) {
 
                                             <PaymentRow
                                                 label="Pelunasan"
-                                                amount={order.remaining_amount}
+                                                amount={
+                                                    cashbackEligible &&
+                                                    totalCashback > 0
+                                                        ? totalAfterCashback
+                                                        : order.remaining_amount
+                                                }
                                                 verification={
                                                     pelunasanVerification
                                                 }
@@ -751,7 +798,7 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            order.total_amount,
+                                                            totalAfterCashback,
                                                         )}
                                                     </p>
                                                 </div>
@@ -798,7 +845,7 @@ function Detail({ order }: Props) {
                                                 label="Pelunasan"
                                                 amount={
                                                     isPelunasanOnlyFlow
-                                                        ? order.total_amount
+                                                        ? totalAfterCashback
                                                         : order.remaining_amount
                                                 }
                                                 verification={
@@ -824,7 +871,7 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            order.total_amount,
+                                                            totalAfterCashback,
                                                         )}
                                                     </p>
                                                 </div>

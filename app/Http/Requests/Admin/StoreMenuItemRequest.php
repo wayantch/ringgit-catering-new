@@ -26,6 +26,8 @@ class StoreMenuItemRequest extends FormRequest
             'bundle_desc' => 'required_if:is_bundle,true|nullable|string',
             'free_ongkir_km' => 'nullable|integer|min:0',
             'ongkir_subsidi' => 'nullable|array',
+            'babi_mentah_price' => 'required_if:sub_type,babi_adat|numeric|min:0',
+            'babi_matang_price' => 'required_if:sub_type,babi_adat|numeric|min:0',
 
             'tiers' => 'required_if:menu_type,timbang_hidup|array|min:1',
             'tiers.*.kode' => 'required|in:A,B,C',
@@ -36,9 +38,24 @@ class StoreMenuItemRequest extends FormRequest
             'tiers.*.harga_matang' => 'required|numeric|min:0',
             'tiers.*.cashback' => 'nullable|numeric|min:0',
 
-            'variants' => 'required_if:menu_type,eceran|array|min:1',
-            'variants.*.label' => 'required|string|max:50',
-            'variants.*.harga' => 'required|numeric|min:0',
+            'variants' => [
+                'array',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    $menuType = $this->input('menu_type');
+                    $subType = $this->input('sub_type');
+
+                    $fixed = ['paket_pass', 'paket_nasi_box', 'babi_adat'];
+
+                    if ($menuType === 'eceran' && ! in_array($subType, $fixed, true)) {
+                        if (! is_array($value) || count($value) === 0) {
+                            $fail('The variants field is required for this sub-type.');
+                        }
+                    }
+                },
+            ],
+            'variants.*.label' => 'required_with:variants|string|max:50',
+            'variants.*.harga' => 'required_with:variants|numeric|min:0',
         ];
     }
 }

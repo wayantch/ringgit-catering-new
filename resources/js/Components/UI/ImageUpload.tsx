@@ -1,5 +1,6 @@
 import { ImageIcon, UploadCloud, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState  } from 'react';
+import type {DragEvent} from 'react';
 
 interface ImageUploadProps {
     label: string;
@@ -26,6 +27,7 @@ export default function ImageUpload({
     useEffect(() => {
         if (! file) {
             setPreviewUrl(null);
+
             return;
         }
 
@@ -52,6 +54,7 @@ export default function ImageUpload({
     const handleDrop = (event: DragEvent<HTMLButtonElement>): void => {
         event.preventDefault();
         const droppedFile = event.dataTransfer.files[0];
+
         if (droppedFile) {
             handleSelect(droppedFile);
         }

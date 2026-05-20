@@ -32,9 +32,16 @@ const STEPS: Record<OrderTimelineProps['source'], TimelineStep[]> = {
 };
 
 function formatDate(value: string): string {
-    if (!value) return '-';
+    if (!value) {
+return '-';
+}
+
     const d = new Date(value);
-    if (isNaN(d.getTime())) return '-';
+
+    if (isNaN(d.getTime())) {
+return '-';
+}
+
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'long',

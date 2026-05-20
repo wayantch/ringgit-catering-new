@@ -1,9 +1,9 @@
 import { Link, usePage, router } from '@inertiajs/react';
 import { Home, ClipboardList, History, User, LogOut, X } from 'lucide-react';
-import produksi from '@/routes/produksi';
-import { logout } from '@/routes';
-import type { RouteDefinition } from '@/wayfinder';
 import { useMemo, useState } from 'react';
+import { logout } from '@/routes';
+import produksi from '@/routes/produksi';
+import type { RouteDefinition } from '@/wayfinder';
 
 interface SharedProps {
     pesananDiprosesCount?: number;
@@ -24,6 +24,7 @@ export default function BottomNavbar() {
 
     const initials = useMemo(() => {
         const name = user?.name?.trim();
+
         if (!name) {
             return 'PR';
         }

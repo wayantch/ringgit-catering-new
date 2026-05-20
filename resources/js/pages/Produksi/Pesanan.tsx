@@ -1,10 +1,10 @@
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
-import PaginationControls from '@/Components/PaginationControls';
+import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ClipboardList, ListFilter } from 'lucide-react';
-import PesananCard from '@/Components/Produksi/PesananCard';
+import PaginationControls from '@/Components/PaginationControls';
 import EmptyState from '@/Components/Produksi/EmptyState';
-import type { PageProps } from '@inertiajs/core';
+import PesananCard from '@/Components/Produksi/PesananCard';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 interface PesananItem {
     id: number;
@@ -63,7 +63,10 @@ export default function Pesanan({ pesanan, filter_status }: Props) {
         .toUpperCase();
 
     const getTabCount = (key: typeof filter_status) => {
-        if (key === 'semua') return pesanan.total;
+        if (key === 'semua') {
+return pesanan.total;
+}
+
         return pesanan.data.filter((p) => p.status === key).length;
     };
 

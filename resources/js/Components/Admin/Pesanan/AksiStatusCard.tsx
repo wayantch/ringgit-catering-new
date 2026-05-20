@@ -19,7 +19,10 @@ export default function AksiStatusCard({
         (editable_until && new Date() > new Date(editable_until));
 
     const handleAction = async (target: string) => {
-        if (!onChangeStatus) return;
+        if (!onChangeStatus) {
+return;
+}
+
         const conf = await konfirmasiStatus(
             target === 'diproses'
                 ? 'Mulai Proses'
@@ -29,7 +32,10 @@ export default function AksiStatusCard({
             '',
             false,
         );
-        if (conf.isConfirmed) onChangeStatus(target);
+
+        if (conf.isConfirmed) {
+onChangeStatus(target);
+}
     };
 
     return (
