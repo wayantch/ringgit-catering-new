@@ -14,6 +14,7 @@ export interface OrderItemRowData {
     adat_type: string | null;
     notes: string;
     quantityStep: number;
+    quantityBounds?: { min: number; max: number | null } | null;
 }
 
 interface Props {
@@ -169,11 +170,13 @@ export default function OrderItemRow({
                             </button>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                            <span>{item.menu_unit}</span>
-                            <span>•</span>
-                            <span>{formatQty(item.qty)} qty</span>
-                        </div>
+                        {item.menu_category_type === 'timbang_hidup' && (
+                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                <span>{item.menu_unit}</span>
+                                <span>•</span>
+                                <span>{formatQty(item.qty)} qty</span>
+                            </div>
+                        )}
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-2">

@@ -2,12 +2,12 @@
 
 namespace App\Services\Admin;
 
+use App\Enums\KondisiProduk as KondisiProdukRules;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\User;
-use App\Enums\KondisiProduk as KondisiProdukRules;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,7 +45,7 @@ class KasirService
                     throw new InvalidArgumentException('Menu item tidak ditemukan');
                 }
 
-                $allowedKondisi = KondisiProdukRules::forCategoryType((string) $menuItem->category?->type);
+                $allowedKondisi = $this->resolveAllowedKondisi($menuItem);
                 $kondisiProduk = (string) $itemData['kondisi_produk'];
 
                 if (! in_array($kondisiProduk, $allowedKondisi, true)) {
@@ -271,5 +271,25 @@ class KasirService
         );
 
         return $code;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveAllowedKondisi(MenuItem $menuItem): array
+    {
+        $allowedKondisi = KondisiProdukRules::forCategoryType((string) $menuItem->category?->type);
+
+        if (
+            $menuItem->menu_type === 'eceran' &&
+            $menuItem->sub_type === 'babi_adat'
+        ) {
+            $allowedKondisi = array_values(array_unique(array_merge(
+                $allowedKondisi,
+                KondisiProdukRules::OLAHAN,
+            )));
+        }
+
+        return $allowedKondisi;
     }
 }

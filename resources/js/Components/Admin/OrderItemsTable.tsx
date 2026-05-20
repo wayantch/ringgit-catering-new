@@ -162,6 +162,16 @@ function shouldShowKondisi(item: OrderItem): boolean {
 }
 
 function formatQty(item: OrderItem): string {
+    const isEceranPackage =
+        item.menu_category_type === 'eceran' &&
+        (item.menu_sub_type === 'paket_pass' ||
+            item.menu_sub_type === 'paket_nasi_box' ||
+            item.menu_sub_type === 'babi_adat');
+
+    if (isEceranPackage) {
+        return `${item.qty}`;
+    }
+
     return item.menu_category_type === 'timbang_hidup'
         ? `${item.qty} kg`
         : `${item.qty} ${item.menu_unit}`;
@@ -291,7 +301,7 @@ function ItemRow({ item }: { item: OrderItem }) {
             parsed.rawNotes);
 
     return (
-        <div className="group rounded-2xl bg-white px-4 py-3.5 ring-1 ring-black/[0.06] transition-all duration-150 hover:shadow-sm hover:ring-primary/20">
+        <div className="group rounded-2xl bg-white px-4 py-3.5 ring-1 ring-black/6 transition-all duration-150 hover:shadow-sm hover:ring-primary/20">
             <div className="flex items-start justify-between gap-4">
                 {/* Kiri */}
                 <div className="min-w-0 flex-1">

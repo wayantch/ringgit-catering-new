@@ -40,6 +40,28 @@ function resolveImageSrc(image: string | null): string | null {
     return `/storage/${image}`;
 }
 
+function getUnitPrice(item: CartItemEceran): number {
+    if (item.subtotal !== null && item.qty > 0) {
+        return Number(item.subtotal) / Number(item.qty);
+    }
+
+    if (item.variant?.harga !== undefined && item.variant?.harga !== null) {
+        return Number(item.variant.harga);
+    }
+
+    return Number(item.menu_item.min_price ?? 0);
+}
+
+function getNextSubtotal(item: CartItemEceran, nextQty: number): number | null {
+    const unitPrice = getUnitPrice(item);
+
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+        return item.subtotal;
+    }
+
+    return unitPrice * nextQty;
+}
+
 export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
     const [qty, setQty] = useState<number>(Math.max(1, Number(item.qty)));
     const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -55,22 +77,54 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                 return;
             }
 
-            router.patch(
-                keranjang.update({ cart: item.id }),
-                {
-                    quantity: qty,
-                    notes: item.notes,
-                },
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        alertSukses('Item diperbarui', 'Berhasil');
+            const nextSubtotal = getNextSubtotal(item, qty);
+
+            router
+                .optimistic((props: any) => {
+                    const cartItems = Array.isArray(props.cartItems)
+                        ? props.cartItems.map((cartItem: CartItemEceran) => {
+                              if (cartItem.id !== item.id) {
+                                  return cartItem;
+                              }
+
+                              return {
+                                  ...cartItem,
+                                  qty,
+                                  subtotal: nextSubtotal,
+                              };
+                          })
+                        : props.cartItems;
+
+                    const subtotal = Array.isArray(cartItems)
+                        ? cartItems.reduce(
+                              (totalValue: number, cartItem: CartItemEceran) =>
+                                  totalValue + Number(cartItem.subtotal ?? 0),
+                              0,
+                          )
+                        : Number(props.summary?.subtotal ?? 0);
+
+                    return {
+                        cartItems,
+                        summary: {
+                            ...props.summary,
+                            subtotal,
+                        },
+                    };
+                })
+                .patch(
+                    keranjang.update({ cart: item.id }),
+                    {
+                        quantity: qty,
+                        notes: item.notes,
                     },
-                    onError: () => {
-                        alertError('Gagal memperbarui item', 'Error');
+                    {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onError: () => {
+                            alertError('Gagal memperbarui item', 'Error');
+                        },
                     },
-                },
-            );
+                );
         }, 500);
 
         return () => {

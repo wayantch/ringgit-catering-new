@@ -62,29 +62,26 @@ export default function Index({ items, filters }: Props) {
             <Head title="Manajemen Menu" />
             <AdminLayout>
                 <div className="space-y-6 p-4">
-                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                            <div>
-                                <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
-                                    Manajemen Menu
-                                </p>
-                                <h1 className="mt-2 text-3xl font-bold text-text lg:text-4xl">
-                                    Manajemen Menu Admin
-                                </h1>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                                    Kelola menu timbang hidup dan eceran dengan
-                                    struktur harga baru.
-                                </p>
-                            </div>
-
-                            <Link
-                                href={menu.create()}
-                                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-600"
-                            >
-                                <Plus className="size-4" />
-                                Tambah Menu
-                            </Link>
+                    {/* Header */}
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
+                                Manajemen Menu
+                            </p>
+                            <h1 className="mt-2 text-3xl font-bold text-slate-900 lg:text-4xl">
+                                Menu Catering
+                            </h1>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                                Kelola data menu dan pantau aktivitas
+                                mereka.
+                            </p>
                         </div>
+                        <Link
+                            href={menu.create()}
+                            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary-600"
+                        >
+                            <Plus className="h-4 w-4" /> Tambah Menu
+                        </Link>
                     </div>
 
                     <MenuFilterBar filters={filters} />

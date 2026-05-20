@@ -3,9 +3,9 @@ import { LayoutGrid, ReceiptText, ShoppingBag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CustomerSummary } from '@/Components/Admin/Pesanan/Kasir/CustomerSection';
 import ItemDetailSheet from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
-import type {ItemDetailPayload} from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
+import type { ItemDetailPayload } from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
 import MenuPicker from '@/Components/Admin/Pesanan/Kasir/MenuPicker';
-import type {OrderItemSummary} from '@/Components/Admin/Pesanan/Kasir/MenuPicker';
+import type { OrderItemSummary } from '@/Components/Admin/Pesanan/Kasir/MenuPicker';
 import type { MenuPickerCardItem } from '@/Components/Admin/Pesanan/Kasir/MenuPickerCard';
 import type { OrderItemRowData } from '@/Components/Admin/Pesanan/Kasir/OrderItemRow';
 import OrderSummaryPanel from '@/Components/Admin/Pesanan/Kasir/OrderSummaryPanel';
@@ -20,6 +20,11 @@ interface Props {
 
 interface FormErrorMap {
     [key: string]: string;
+}
+
+interface QuantityBounds {
+    min: number;
+    max: number | null;
 }
 
 type PaymentMethod = 'full' | 'dp';
@@ -38,7 +43,24 @@ const formatCurrency = (value: number): string => {
     }).format(value);
 };
 
-const getQuantityStep = (unit: string): number => (/kg/i.test(unit) ? 0.5 : 1);
+const getQuantityStep = (_unit: string): number => 1;
+
+const clampQuantityToBounds = (
+    value: number,
+    bounds: QuantityBounds | null | undefined,
+): number => {
+    if (!bounds) {
+        return Number(value.toFixed(2));
+    }
+
+    const clampedMinimum = Math.max(bounds.min, value);
+
+    if (bounds.max === null) {
+        return Number(clampedMinimum.toFixed(2));
+    }
+
+    return Number(Math.min(bounds.max, clampedMinimum).toFixed(2));
+};
 
 const createTempId = (): string => {
     if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -181,15 +203,20 @@ export default function Create({ menuItems, customers }: Props) {
                 adat_type: payload.adat_type,
                 notes: payload.notes,
                 quantityStep: payload.quantityStep,
+                quantityBounds: payload.quantityBounds ?? null,
             };
 
             if (existingIndex >= 0) {
                 const updated = [...current];
                 const existing = current[existingIndex];
+                const nextQty = clampQuantityToBounds(
+                    existing.qty + payload.qty,
+                    existing.quantityBounds,
+                );
                 updated[existingIndex] = {
                     ...existing,
                     ...nextItem,
-                    qty: Number((existing.qty + payload.qty).toFixed(2)),
+                    qty: nextQty,
                 };
 
                 return updated;
@@ -212,10 +239,11 @@ export default function Create({ menuItems, customers }: Props) {
             }
 
             const step = getQuantityStep(current[index].menu_unit);
+            const bounds = current[index].quantityBounds ?? null;
             const next = [...current];
             next[index] = {
                 ...next[index],
-                qty: Number((next[index].qty + step).toFixed(2)),
+                qty: clampQuantityToBounds(next[index].qty + step, bounds),
             };
 
             return next;
@@ -233,9 +261,19 @@ export default function Create({ menuItems, customers }: Props) {
             }
 
             const step = getQuantityStep(current[index].menu_unit);
-            const nextQty = Number((current[index].qty - step).toFixed(2));
+            const bounds = current[index].quantityBounds ?? null;
+            const nextQty = clampQuantityToBounds(
+                current[index].qty - step,
+                bounds,
+            );
 
-            if (nextQty <= 0) {
+            if (bounds && nextQty <= bounds.min) {
+                return current.filter(
+                    (entry) => entry.menu_item_id !== item.id,
+                );
+            }
+
+            if (!bounds && nextQty <= 0) {
                 return current.filter(
                     (entry) => entry.menu_item_id !== item.id,
                 );
@@ -260,10 +298,11 @@ export default function Create({ menuItems, customers }: Props) {
             }
 
             const step = current[index].quantityStep;
+            const bounds = current[index].quantityBounds ?? null;
             const next = [...current];
             next[index] = {
                 ...next[index],
-                qty: Number((next[index].qty + step).toFixed(2)),
+                qty: clampQuantityToBounds(next[index].qty + step, bounds),
             };
 
             return next;
@@ -279,9 +318,17 @@ export default function Create({ menuItems, customers }: Props) {
             }
 
             const step = current[index].quantityStep;
-            const nextQty = Number((current[index].qty - step).toFixed(2));
+            const bounds = current[index].quantityBounds ?? null;
+            const nextQty = clampQuantityToBounds(
+                current[index].qty - step,
+                bounds,
+            );
 
-            if (nextQty <= 0) {
+            if (bounds && nextQty <= bounds.min) {
+                return current.filter((entry) => entry.tempId !== tempId);
+            }
+
+            if (!bounds && nextQty <= 0) {
                 return current.filter((entry) => entry.tempId !== tempId);
             }
 
@@ -367,7 +414,7 @@ export default function Create({ menuItems, customers }: Props) {
             <Head title="Input Pesanan Kasir" />
 
             <div className="flex-col gap-4 p-4 lg:p-6">
-                <header className="mb-5 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#f5f1e8_48%,#e7efe0_100%)] p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+                {/* <header className="mb-5 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#f5f1e8_48%,#e7efe0_100%)] p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-2xl space-y-3">
                             <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
@@ -416,10 +463,10 @@ export default function Create({ menuItems, customers }: Props) {
                             </div>
                         </div>
                     </div>
-                </header>
+                </header> */}
 
                 <div className="lg:hidden">
-                    <div className="flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-black/5 mb-5">
+                    <div className="mb-5 flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-black/5">
                         <button
                             type="button"
                             onClick={() => setMobileTab('menu')}

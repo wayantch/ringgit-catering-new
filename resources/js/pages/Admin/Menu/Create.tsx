@@ -19,7 +19,7 @@ export default function Create() {
         <>
             <Head title="Tambah Menu" />
             <AdminLayout>
-                <div className="mx-auto w-full max-w-7xl space-y-6 p-4">
+                <div className="space-y-6 p-4">
                     <MenuForm
                         mode="create"
                         processing={processing}

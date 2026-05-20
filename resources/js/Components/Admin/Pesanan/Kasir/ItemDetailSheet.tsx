@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import TierPicker from '@/Components/Pelanggan/TierPicker';
 import { ADAT_OPTIONS, KONDISI_OPTIONS } from '@/constants/kondisiProduk';
@@ -19,6 +19,7 @@ export interface ItemDetailPayload {
     adat_type: string | null;
     notes: string;
     quantityStep: number;
+    quantityBounds?: { min: number; max: number | null } | null;
 }
 
 type TimbangAdatFlow = 'batak' | 'nias' | 'tanpa_adat' | '';
@@ -97,9 +98,11 @@ const getTierQuantityBounds = (
         return null;
     }
 
-    const min = Number(Math.max(0.5, Number(tier.berat_min)).toFixed(2));
+    const min = Math.max(1, Math.ceil(Number(tier.berat_min)));
     const max =
-        tier.berat_max === null ? null : Number(tier.berat_max.toFixed(2));
+        tier.berat_max === null
+            ? null
+            : Math.max(min, Math.floor(tier.berat_max));
 
     return { min, max };
 };
@@ -116,6 +119,28 @@ const clampQuantityToBounds = (
 
     return Number(Math.min(bounds.max, clampedMinimum).toFixed(2));
 };
+
+function getDefaultKondisiProduk(
+    item: MenuPickerCardItem | null,
+): KondisiValue | '' {
+    if (!item) {
+        return '';
+    }
+
+    if (item.menu_type === 'timbang_hidup') {
+        return 'mentah';
+    }
+
+    if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
+        return 'mentah';
+    }
+
+    if (item.menu_type === 'eceran') {
+        return 'satuan';
+    }
+
+    return '';
+}
 
 function buildSummaryLines(params: {
     item: MenuPickerCardItem;
@@ -316,44 +341,40 @@ function WeightAdjuster({
                         Berat pesanan
                     </p>
                     <p className="mt-1 text-sm font-medium text-text">
-                        Atur bobot untuk pesanan timbang hidup
+                        Atur bobot per kg sesuai range yang dipilih
                     </p>
                 </div>
 
-                <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
-                    <button
-                        type="button"
-                        onClick={() =>
-                            onChange(
-                                Number(
-                                    Math.max(minValue, value - 0.5).toFixed(2),
-                                ),
-                            )
-                        }
-                        disabled={value <= minValue}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
-                    >
-                        -
-                    </button>
-                    <span className="min-w-16 px-2 text-center text-sm font-semibold text-text">
-                        {formatKg(value)}
+                <label className="flex min-w-32 items-center gap-3 rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-2 shadow-sm">
+                    <span className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                        Qty
                     </span>
-                    <button
-                        type="button"
-                        onClick={() =>
+                    <input
+                        type="number"
+                        min={minValue}
+                        max={maxValue ?? undefined}
+                        step={1}
+                        value={value}
+                        onChange={(event) => {
+                            const nextValue = Number(event.target.value);
+
+                            if (Number.isNaN(nextValue)) {
+                                return;
+                            }
+
                             onChange(
-                                clampQuantityToBounds(value + 0.5, {
+                                clampQuantityToBounds(nextValue, {
                                     min: minValue,
                                     max: maxValue,
                                 }),
-                            )
-                        }
-                        disabled={maxValue !== null && value >= maxValue}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
-                    >
-                        +
-                    </button>
-                </div>
+                            );
+                        }}
+                        className="w-20 border-0 bg-transparent p-0 text-right text-sm font-semibold text-text outline-none focus:ring-0"
+                    />
+                    <span className="text-xs font-medium text-slate-500">
+                        kg
+                    </span>
+                </label>
             </div>
         </section>
     );
@@ -365,8 +386,11 @@ export default function ItemDetailSheet({
     onClose,
     onSave,
 }: Props) {
-    const isTimbangHidup = item?.category.type === 'timbang_hidup';
+    const isTimbangHidup = item?.menu_type === 'timbang_hidup';
     const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
+    const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+        null,
+    );
     const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>('');
     const [adatFlow, setAdatFlow] = useState<TimbangAdatFlow>('');
     const [selectedBatakParts, setSelectedBatakParts] = useState<BatakPart[]>(
@@ -376,7 +400,7 @@ export default function ItemDetailSheet({
     const [saksangPercent, setSaksangPercent] = useState<number>(25);
     const [panggangPercent, setPanggangPercent] = useState<number>(75);
     const [remainderText, setRemainderText] = useState<string>('');
-    const [qty, setQty] = useState(0.5);
+    const [qty, setQty] = useState(1);
     const [priceInput, setPriceInput] = useState('');
     const [notes, setNotes] = useState('');
 
@@ -385,16 +409,19 @@ export default function ItemDetailSheet({
             return;
         }
 
-        setKondisiProduk('');
+        setKondisiProduk(getDefaultKondisiProduk(item));
         setSelectedTierId(null);
+        setSelectedVariantId(
+            item.menu_type === 'eceran' ? (item.variants[0]?.id ?? null) : null,
+        );
         setAdatFlow('');
         setSelectedBatakParts([]);
         setSelectedNiasParts([]);
         setSaksangPercent(25);
         setPanggangPercent(75);
         setRemainderText('');
-        setQty(isTimbangHidup ? 0.5 : 1);
-        setPriceInput(item.base_price === null ? '' : String(item.base_price));
+        setQty(1);
+        setPriceInput('');
         setNotes('');
     }, [isOpen, item, isTimbangHidup]);
 
@@ -414,6 +441,19 @@ export default function ItemDetailSheet({
         () => getTierQuantityBounds(selectedTier),
         [selectedTier],
     );
+    const selectedTierQuantityMax = selectedTierQuantityBounds?.max ?? null;
+
+    const selectedVariant = useMemo(() => {
+        if (!item || item.menu_type !== 'eceran') {
+            return null;
+        }
+
+        return (
+            item.variants.find((variant) => variant.id === selectedVariantId) ??
+            item.variants[0] ??
+            null
+        );
+    }, [item, selectedVariantId]);
 
     useEffect(() => {
         if (!isTimbangHidup || !selectedTier) {
@@ -421,7 +461,7 @@ export default function ItemDetailSheet({
         }
 
         if (selectedTierQuantityBounds) {
-            setQty(selectedTierQuantityBounds.min);
+            setQty(Math.max(1, selectedTierQuantityBounds.min));
         }
 
         setAdatFlow('');
@@ -430,24 +470,72 @@ export default function ItemDetailSheet({
         setRemainderText('');
     }, [isTimbangHidup, selectedTier, selectedTierQuantityBounds]);
 
-    const quantityStep = useMemo(
-        () => (isTimbangHidup ? 0.5 : 1),
-        [isTimbangHidup],
-    );
+    const displayedEceranPrice = useMemo(() => {
+        if (!item || item.menu_type !== 'eceran') {
+            return null;
+        }
+
+        if (item.sub_type === 'babi_adat') {
+            const availablePrices = [
+                item.babi_mentah_price,
+                item.babi_matang_price,
+                item.base_price,
+            ].filter((price): price is number => price !== null);
+
+            if (availablePrices.length > 0) {
+                return Math.min(...availablePrices);
+            }
+
+            if (kondisiProduk === 'mentah') {
+                return item.babi_mentah_price ?? item.base_price ?? null;
+            }
+
+            if (kondisiProduk === 'mateng') {
+                return item.babi_matang_price ?? item.base_price ?? null;
+            }
+
+            return item.base_price ?? null;
+        }
+
+        const availablePrices = [
+            ...item.variants.map((variant) => variant.harga),
+            item.base_price,
+        ].filter((price): price is number => price !== null);
+
+        if (availablePrices.length > 0) {
+            return Math.min(...availablePrices);
+        }
+
+        return selectedVariant?.harga ?? item.base_price ?? null;
+    }, [item, kondisiProduk, selectedVariant]);
+
+    const quantityStep = 1;
 
     const canSave =
         item !== null &&
-        kondisiProduk !== '' &&
-        (!isTimbangHidup || (selectedTier !== null && adatFlow !== '')) &&
-        (!isTimbangHidup || selectedTier !== null);
+        ((isTimbangHidup &&
+            kondisiProduk !== '' &&
+            selectedTier !== null &&
+            adatFlow !== '') ||
+            (item.menu_type === 'eceran' &&
+                kondisiProduk !== '' &&
+                (item.sub_type === 'babi_adat'
+                    ? displayedEceranPrice !== null
+                    : item.variants.length === 0 || selectedVariant !== null)));
 
     const adjustQty = (delta: number): void => {
-        setQty((current) =>
-            Math.max(
-                isTimbangHidup ? 0.5 : quantityStep,
-                Number((current + delta).toFixed(2)),
-            ),
-        );
+        setQty((current) => {
+            const nextValue = Number((current + delta).toFixed(2));
+
+            if (isTimbangHidup && selectedTierQuantityBounds) {
+                return clampQuantityToBounds(nextValue, {
+                    min: selectedTierQuantityBounds.min,
+                    max: selectedTierQuantityBounds.max,
+                });
+            }
+
+            return Math.max(quantityStep, nextValue);
+        });
     };
 
     const handleSave = (): void => {
@@ -468,9 +556,7 @@ export default function ItemDetailSheet({
                 ? kondisiProduk === 'mateng'
                     ? Number(selectedTier.harga_matang)
                     : Number(selectedTier.harga_mentah)
-                : priceInput.trim() === ''
-                  ? null
-                  : Number(priceInput);
+                : displayedEceranPrice;
 
         const estimatedTotal =
             resolvedUnitPrice === null
@@ -507,6 +593,7 @@ export default function ItemDetailSheet({
             adat_type: resolvedAdatType,
             notes: summaryNotes,
             quantityStep,
+            quantityBounds: isTimbangHidup ? selectedTierQuantityBounds : null,
         });
     };
 
@@ -514,20 +601,27 @@ export default function ItemDetailSheet({
         return null;
     }
 
-    const selectedSummaryLabel =
-        isTimbangHidup && !selectedTier
-            ? 'Pilih range dulu'
-            : isTimbangHidup
-              ? kondisiProduk === 'mateng'
-                  ? 'Mateng'
-                  : kondisiProduk === 'mentah'
-                    ? 'Mentah'
-                    : 'Pilih kondisi'
-              : kondisiProduk === 'mateng'
+    let selectedSummaryLabel = 'Pilih varian';
+
+    if (isTimbangHidup && !selectedTier) {
+        selectedSummaryLabel = 'Pilih range dulu';
+    } else if (isTimbangHidup) {
+        selectedSummaryLabel =
+            kondisiProduk === 'mateng'
                 ? 'Mateng'
                 : kondisiProduk === 'mentah'
                   ? 'Mentah'
                   : 'Pilih kondisi';
+    } else if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
+        selectedSummaryLabel =
+            kondisiProduk === 'mateng'
+                ? 'Mateng'
+                : kondisiProduk === 'mentah'
+                  ? 'Mentah'
+                  : 'Pilih kondisi';
+    } else if (selectedVariant) {
+        selectedSummaryLabel = selectedVariant.label;
+    }
 
     return (
         <div className="fixed inset-0 z-60">
@@ -557,14 +651,14 @@ export default function ItemDetailSheet({
                     </button>
                 </div>
 
-                <div className="max-h-[calc(100vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
+                <div className="max-h-[calc(80vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
                     <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
                         <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
                             <div>
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                     Ringkasan menu
                                 </p>
-                                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                                {/* <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
                                     <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
                                         {isTimbangHidup
                                             ? 'Timbang hidup'
@@ -580,7 +674,7 @@ export default function ItemDetailSheet({
                                             Flow {selectedSummaryLabel}
                                         </span>
                                     )}
-                                </div>
+                                </div> */}
                                 <p className="mt-3 text-sm leading-6 text-slate-500">
                                     {isTimbangHidup
                                         ? 'Pilih kondisi, range, adat, lalu catatan agar detail pesanan mirip flow customer.'
@@ -594,36 +688,39 @@ export default function ItemDetailSheet({
                                         ? 'Estimasi harga'
                                         : 'Harga mulai'}
                                 </p>
-                                <p className="mt-1 text-lg font-semibold text-primary">
-                                    {isTimbangHidup && selectedTier
-                                        ? formatCurrency(
-                                              kondisiProduk === 'mateng'
-                                                  ? selectedTier.harga_matang *
-                                                        qty
-                                                  : selectedTier.harga_mentah *
-                                                        qty,
-                                          )
-                                        : formatCurrency(
-                                              item?.base_price ?? null,
-                                          )}
-                                </p>
-                                {isTimbangHidup && selectedTier && (
-                                    <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
-                                        <p>Tier aktif: {selectedTier.kode}</p>
-                                        <p>
-                                            Range admin:{' '}
-                                            {formatTierRange(selectedTier)}
+                                {isTimbangHidup && selectedTier ? (
+                                    <>
+                                        <p className="mt-1 text-lg font-semibold text-primary">
+                                            {formatCurrency(
+                                                kondisiProduk === 'mateng'
+                                                    ? selectedTier.harga_matang *
+                                                          qty
+                                                    : selectedTier.harga_mentah *
+                                                          qty,
+                                            )}
                                         </p>
-                                        <p>
+                                        {/* <p className="mt-2 text-xs leading-5 text-slate-500">
                                             Harga per kg:{' '}
                                             {formatCurrency(
                                                 kondisiProduk === 'mateng'
                                                     ? selectedTier.harga_matang
                                                     : selectedTier.harga_mentah,
                                             )}
+                                        </p> */}
+                                    </>
+                                ) : // <p className="mt-1 text-lg font-semibold text-primary">
+                                //     {formatCurrency(displayedEceranPrice)}
+                                // </p>
+                                null}
+                                {/* {isTimbangHidup && selectedTier && (
+                                    <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
+                                        <p>Tier aktif: {selectedTier.kode}</p>
+                                        <p>
+                                            Range admin:{' '}
+                                            {formatTierRange(selectedTier)}
                                         </p>
                                     </div>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     </section>
@@ -665,8 +762,7 @@ export default function ItemDetailSheet({
                                     <WeightAdjuster
                                         value={qty}
                                         minValue={
-                                            selectedTierQuantityBounds?.min ??
-                                            0.5
+                                            selectedTierQuantityBounds?.min ?? 1
                                         }
                                         maxValue={
                                             selectedTierQuantityBounds?.max ??
@@ -975,113 +1071,199 @@ export default function ItemDetailSheet({
                         </>
                     ) : (
                         <>
-                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                                <div className="mb-3">
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                        Kondisi
-                                    </p>
-                                    <p className="mt-1 text-sm font-medium text-text">
-                                        Pilih kondisi produk
-                                    </p>
-                                </div>
+                            {item.sub_type === 'babi_adat' && (
+                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                    <div className="mb-3">
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Kondisi produk
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium text-text">
+                                            Pilih kondisi produk sebelum
+                                            menyimpan pesanan
+                                        </p>
+                                    </div>
 
-                                <div className="grid grid-cols-2 gap-2">
-                                    {kondisiOptions.map((option) => (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {KONDISI_OPTIONS.olahan.map(
+                                            (option) => (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setKondisiProduk(
+                                                            option.value,
+                                                        )
+                                                    }
+                                                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                                                        kondisiProduk ===
+                                                        option.value
+                                                            ? 'border-primary bg-primary text-white'
+                                                            : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:text-primary'
+                                                    }`}
+                                                >
+                                                    <span className="mr-2">
+                                                        {option.emoji}
+                                                    </span>
+                                                    {option.label}
+                                                </button>
+                                            ),
+                                        )}
+                                    </div>
+                                </section>
+                            )}
+
+                            {item.sub_type !== 'babi_adat' &&
+                                item.variants.length > 0 && (
+                                    <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                        <div className="mb-3">
+                                            <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                                Pilih varian
+                                            </p>
+                                            <p className="mt-1 text-sm font-medium text-text">
+                                                Pilih varian yang sama seperti
+                                                flow add to cart user
+                                            </p>
+                                        </div>
+
+                                        <div className="grid gap-2 sm:grid-cols-2">
+                                            {item.variants.map((variant) => (
+                                                <button
+                                                    key={variant.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedVariantId(
+                                                            variant.id,
+                                                        )
+                                                    }
+                                                    className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                                                        selectedVariant?.id ===
+                                                        variant.id
+                                                            ? 'border-primary bg-primary text-white'
+                                                            : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:text-primary'
+                                                    }`}
+                                                >
+                                                    <span className="block">
+                                                        {variant.label}
+                                                    </span>
+                                                    <span
+                                                        className={`mt-1 block text-xs font-medium ${selectedVariant?.id === variant.id ? 'text-white/80' : 'text-slate-400'}`}
+                                                    >
+                                                        {formatCurrency(
+                                                            variant.harga,
+                                                        )}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                            {item.sub_type === 'paket_pass' && (
+                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                    <div className="mb-2">
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Isi Paket
+                                        </p>
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            {item.bundle_desc ?? 'Paket pass'}
+                                        </p>
+                                    </div>
+                                    {item.free_ongkir_km ? (
+                                        <div className="mt-3 rounded-2xl bg-[#fbfaf6] p-3 text-sm text-slate-500">
+                                            🚚 Free ongkir {item.free_ongkir_km}{' '}
+                                            km
+                                        </div>
+                                    ) : null}
+                                </section>
+                            )}
+
+                            {item.sub_type === 'paket_nasi_box' && (
+                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                    <div className="mb-2">
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Isi Paket
+                                        </p>
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            {item.bundle_desc ??
+                                                'Paket nasi box'}
+                                        </p>
+                                    </div>
+                                    {item.free_ongkir_km ? (
+                                        <div className="mt-3 rounded-2xl bg-[#fbfaf6] p-3 text-sm text-slate-500">
+                                            🚚 Free ongkir {item.free_ongkir_km}{' '}
+                                            km
+                                        </div>
+                                    ) : null}
+                                </section>
+                            )}
+
+                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Qty
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium text-text">
+                                            Atur jumlah pesanan
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center rounded-full border border-slate-200 bg-secondary/50 p-1">
                                         <button
-                                            key={option.value}
                                             type="button"
-                                            onClick={() =>
-                                                setKondisiProduk(option.value)
+                                            onClick={() => adjustQty(-1)}
+                                            disabled={
+                                                isTimbangHidup &&
+                                                selectedTierQuantityBounds
+                                                    ? qty <=
+                                                      selectedTierQuantityBounds.min
+                                                    : qty <= 1
                                             }
-                                            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                                                kondisiProduk === option.value
-                                                    ? 'border-primary bg-primary text-white'
-                                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:text-primary'
-                                            }`}
+                                            className="flex size-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
                                         >
-                                            <span className="mr-2">
-                                                {option.emoji}
-                                            </span>
-                                            {option.label}
+                                            -
                                         </button>
-                                    ))}
+                                        <span className="min-w-14 px-2 text-center text-sm font-semibold text-text">
+                                            {qty}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => adjustQty(1)}
+                                            disabled={
+                                                isTimbangHidup &&
+                                                selectedTierQuantityMax !== null
+                                                    ? qty >=
+                                                      selectedTierQuantityMax
+                                                    : false
+                                            }
+                                            className="flex size-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
-                            </section>
 
-                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                                <label className="mb-2 block text-sm font-semibold text-text">
-                                    Harga
-                                </label>
-                                <div className="relative">
-                                    <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm font-semibold text-slate-400">
-                                        Rp
-                                    </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={priceInput}
-                                        onChange={(event) =>
-                                            setPriceInput(event.target.value)
-                                        }
-                                        placeholder={
-                                            item?.base_price === null
-                                                ? 'Harga menyusul'
-                                                : String(item?.base_price)
-                                        }
-                                        className="w-full rounded-xl border border-slate-200 py-3 pr-4 pl-11 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                    />
+                                <div className="mt-3 flex items-center gap-2 rounded-2xl bg-[#fbfaf6] px-3 py-2 text-xs text-slate-500">
+                                    <Check className="h-4 w-4 text-emerald-600" />
+                                    Jumlah dapat disesuaikan sebelum menyimpan
+                                    pesanan.
                                 </div>
-                                <p className="mt-2 text-xs text-slate-400">
-                                    {formatCurrency(item?.base_price ?? null)}
-                                </p>
                             </section>
                         </>
                     )}
 
                     <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                        <div className="mb-3 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Qty
-                                </p>
-                                <p className="mt-1 text-sm font-medium text-text">
-                                    Atur jumlah pesanan
-                                </p>
-                            </div>
-
-                            <div className="flex items-center rounded-full border border-slate-200 bg-secondary/50 p-1">
-                                <button
-                                    type="button"
-                                    onClick={() => adjustQty(-quantityStep)}
-                                    className="flex size-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
-                                >
-                                    -
-                                </button>
-                                <span className="min-w-14 px-2 text-center text-sm font-semibold text-text">
-                                    {qty}
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => adjustQty(quantityStep)}
-                                    className="flex size-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
                         <label className="mb-2 block text-sm font-semibold text-text">
-                            Catatan
+                            Catatan tambahan
                         </label>
                         <textarea
+                            id="notes"
+                            name="notes"
                             value={notes}
                             onChange={(event) => setNotes(event.target.value)}
                             rows={3}
-                            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            placeholder="Opsional"
+                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-4 py-3 text-sm transition outline-none focus:border-primary/30"
+                            placeholder="Contoh: potong kecil, kemasan terpisah"
                         />
                     </section>
                 </div>

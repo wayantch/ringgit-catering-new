@@ -92,7 +92,7 @@ class KeranjangService
 
         // If changing adat_type (or even keeping it) would collide with an existing cart
         // item (same user, menu_item, kondisi_produk, adat_type), merge quantities instead
-        return DB::transaction(function () use ($cart, $newAdat, $newQuantity, $newNotes) {
+        return DB::transaction(function () use ($cart, $newAdat, $newPortion, $newQuantity, $newNotes) {
             $existing = Cart::where('user_id', $cart->user_id)
                 ->where('menu_item_id', $cart->menu_item_id)
                 ->where('kondisi_produk', $cart->kondisi_produk)

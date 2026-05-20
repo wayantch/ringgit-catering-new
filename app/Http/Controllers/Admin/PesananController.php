@@ -57,10 +57,24 @@ class PesananController extends Controller
     public function create(): Response
     {
         $menuItems = MenuItem::query()
-            ->with(['category:id,name,type', 'tiers'])
+            ->with(['category:id,name,type', 'tiers', 'variants'])
             ->where('is_available', true)
             ->orderBy('sort_order')
-            ->get(['id', 'category_id', 'name', 'image', 'unit', 'base_price', 'is_available']);
+            ->get([
+                'id',
+                'category_id',
+                'name',
+                'image',
+                'menu_type',
+                'sub_type',
+                'base_price',
+                'babi_mentah_price',
+                'babi_matang_price',
+                'bundle_desc',
+                'free_ongkir_km',
+                'unit',
+                'is_available',
+            ]);
 
         return Inertia::render('Admin/Pesanan/Create', [
             'menuItems' => $menuItems->map(static function (MenuItem $menuItem): array {
@@ -68,7 +82,13 @@ class PesananController extends Controller
                     'id' => $menuItem->hashid,
                     'name' => $menuItem->name,
                     'image' => $menuItem->image,
+                    'menu_type' => $menuItem->menu_type,
+                    'sub_type' => $menuItem->sub_type,
                     'base_price' => $menuItem->base_price !== null ? (float) $menuItem->base_price : null,
+                    'babi_mentah_price' => $menuItem->babi_mentah_price !== null ? (float) $menuItem->babi_mentah_price : null,
+                    'babi_matang_price' => $menuItem->babi_matang_price !== null ? (float) $menuItem->babi_matang_price : null,
+                    'bundle_desc' => $menuItem->bundle_desc,
+                    'free_ongkir_km' => $menuItem->free_ongkir_km,
                     'unit' => $menuItem->unit,
                     'is_available' => (bool) $menuItem->is_available,
                     'category' => [
@@ -88,13 +108,20 @@ class PesananController extends Controller
                             'cashback' => (float) $tier->cashback,
                         ];
                     })->values(),
+                    'variants' => $menuItem->variants->map(static function ($variant): array {
+                        return [
+                            'id' => (string) $variant->id,
+                            'label' => $variant->label,
+                            'harga' => (float) $variant->harga,
+                        ];
+                    })->values(),
                 ];
             })->values(),
             'customers' => User::query()
                 ->where('role', 'pembeli')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'phone'])
-                ->map(static fn (User $user): array => [
+                ->map(static fn(User $user): array => [
                     'id' => $user->hashid,
                     'name' => $user->name,
                     'email' => $user->email,

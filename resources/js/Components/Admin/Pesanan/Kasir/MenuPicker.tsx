@@ -112,7 +112,7 @@ export default function MenuPicker({
 
             <div className="p-4 sm:p-5">
                 {filteredItems.length === 0 ? (
-                    <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+                    <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
                         <p className="text-sm font-semibold text-text">
                             Menu tidak ditemukan
                         </p>

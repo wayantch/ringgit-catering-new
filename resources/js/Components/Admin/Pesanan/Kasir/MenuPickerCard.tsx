@@ -1,4 +1,4 @@
-import { Plus, Minus, ChevronRight } from 'lucide-react';
+import { ArrowRight, Package, Plus, ShoppingCart } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 type CategoryType = 'timbang_hidup' | 'olahan' | 'eceran';
@@ -7,9 +7,27 @@ export interface MenuPickerCardItem {
     id: number;
     name: string;
     image: string | null;
+    menu_type: CategoryType;
+    sub_type:
+        | 'babi_adat'
+        | 'paket_pass'
+        | 'paket_nasi_box'
+        | 'saksang'
+        | 'panggang'
+        | 'sop_tulang'
+        | null;
     base_price: number | null;
+    babi_mentah_price: number | null;
+    babi_matang_price: number | null;
+    bundle_desc: string | null;
+    free_ongkir_km: number | null;
     unit: string;
     is_available: boolean;
+    variants: Array<{
+        id: string;
+        label: string;
+        harga: number;
+    }>;
     tiers: Array<{
         id: string;
         kode: string;
@@ -56,10 +74,8 @@ const formatCurrency = (value: number | null): string => {
 
 function MenuImageFallback({ item }: { item: MenuPickerCardItem }): ReactNode {
     return (
-        <div className="flex h-full w-full items-center justify-center bg-primary/10">
-            <div className="flex size-14 items-center justify-center rounded-2xl bg-white/80 text-2xl shadow-sm ring-1 ring-black/5">
-                🍽️
-            </div>
+        <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#eef2ea_0%,#f8f7f2_100%)] text-xs text-slate-400">
+            Gambar belum tersedia
             <div className="sr-only">{item.name}</div>
         </div>
     );
@@ -67,7 +83,22 @@ function MenuImageFallback({ item }: { item: MenuPickerCardItem }): ReactNode {
 
 function resolveDisplayPrice(item: MenuPickerCardItem): number | null {
     if (item.menu_type !== 'timbang_hidup') {
-        return item.base_price;
+        if (item.sub_type === 'babi_adat') {
+            const prices = [
+                item.babi_mentah_price,
+                item.babi_matang_price,
+                item.base_price,
+            ].filter((price): price is number => price !== null);
+
+            return prices.length > 0 ? Math.min(...prices) : null;
+        }
+
+        const prices = [
+            ...item.variants.map((variant) => variant.harga),
+            item.base_price,
+        ].filter((price): price is number => price !== null);
+
+        return prices.length > 0 ? Math.min(...prices) : null;
     }
 
     if (item.tiers.length === 0) {
@@ -96,10 +127,8 @@ export default function MenuPickerCard({
     const displayPrice = resolveDisplayPrice(item);
 
     return (
-        <article
-            className={`group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${isActive ? 'ring-2 ring-primary/30' : ''} ${!item.is_available ? 'opacity-75' : ''}`}
-        >
-            <div className="relative aspect-4/3 overflow-hidden bg-secondary/40">
+        <article className="group relative overflow-hidden rounded-[28px] border border-black/5 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5">
+            <div className="relative aspect-video overflow-hidden bg-slate-100">
                 {item.image ? (
                     <img
                         src={
@@ -108,39 +137,34 @@ export default function MenuPickerCard({
                                 : `/storage/${item.image}`
                         }
                         alt={item.name}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         loading="lazy"
                     />
                 ) : (
                     <MenuImageFallback item={item} />
                 )}
 
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(17,24,39,0.14),transparent_42%)]" />
+
                 {!item.is_available && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-slate-950/55 backdrop-blur-[1px]">
-                        <span className="rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm">
-                            Tidak Tersedia
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/45">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+                            Tidak tersedia
                         </span>
                     </div>
                 )}
 
                 <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    <span
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${CATEGORY_BADGE[item.category.type]}`}
-                    >
+                    <span className="inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
                         {item.category.name}
                     </span>
-                    {item.base_price === null && (
-                        <span className="rounded-full bg-accent-2/10 px-2.5 py-1 text-[11px] font-semibold text-accent-2">
-                            Harga Menyusul
-                        </span>
-                    )}
                 </div>
             </div>
 
-            <div className="space-y-3 p-4">
-                <div className="space-y-1">
+            <div className="space-y-2 p-5">
+                <div>
                     <div className="flex items-start justify-between gap-3">
-                        <h3 className="line-clamp-2 text-sm leading-5 font-semibold text-text">
+                        <h3 className="line-clamp-2 text-base leading-6 font-semibold text-text">
                             {item.name}
                         </h3>
                         {isActive && (
@@ -149,53 +173,60 @@ export default function MenuPickerCard({
                             </span>
                         )}
                     </div>
-                    <p className="text-xs text-slate-400">Per {item.unit}</p>
-                    <p className="text-sm font-semibold text-text">
-                        {formatCurrency(displayPrice)}
-                    </p>
+                    {/* <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
+                        {item.bundle_desc ||
+                            item.category.name ||
+                            'Menu pilihan'}
+                    </p> */}
                 </div>
 
-                {!item.is_available ? (
-                    <button
-                        type="button"
-                        disabled
-                        className="flex w-full items-center justify-center rounded-xl bg-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-500"
-                    >
-                        Tidak Tersedia
-                    </button>
-                ) : isActive ? (
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => onDecrement(item)}
-                            className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-primary/20 hover:text-primary"
-                        >
-                            <Minus className="size-4" />
-                        </button>
-                        <div className="min-w-0 flex-1 rounded-xl bg-secondary/60 px-3 py-2 text-center">
-                            <p className="text-sm font-semibold text-text">
-                                {quantity}
-                            </p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => onIncrement(item)}
-                            className="flex size-10 items-center justify-center rounded-xl bg-primary text-white transition hover:bg-primary-600"
-                        >
-                            <Plus className="size-4" />
-                        </button>
+                {/* <div className="text-[11px] text-slate-500">
+                    {item.bundle_desc && (
+                        <span className="line-clamp-1 rounded-lg bg-slate-100 px-2.5 py-1 font-medium">
+                            {item.bundle_desc}
+                        </span>
+                    )}
+                </div> */}
+
+                <hr className="my-4 border-slate-200" />
+
+                <div className="flex items-end justify-between gap-3">
+                    <div>
+                        <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                            Mulai dari
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-primary">
+                            {formatCurrency(displayPrice)}
+                        </p>
                     </div>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={() => onAdd(item)}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-600"
-                    >
-                        <Plus className="size-4" />
-                        Tambah
-                        <ChevronRight className="size-4" />
-                    </button>
-                )}
+
+                    {!item.is_available ? (
+                        <button
+                            type="button"
+                            disabled
+                            className="inline-flex h-10 items-center gap-2 rounded-full bg-slate-200 px-4 text-sm font-semibold text-slate-500"
+                        >
+                            Tidak Tersedia
+                        </button>
+                    ) : isActive ? (
+                        <div className="inline-flex h-10 items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 text-sm font-semibold text-primary">
+                            Sudah dipilih
+                            <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-text shadow-sm ring-1 ring-black/5">
+                                {quantity}
+                            </span>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => onAdd(item)}
+                            className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                        >
+                            <ShoppingCart className="h-4 w-4" />
+                            Tambah
+                            <ArrowRight className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
             </div>
         </article>
     );

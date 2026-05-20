@@ -56,7 +56,7 @@ export default function Edit({ menu: item }: Props) {
         <>
             <Head title={`Edit Menu: ${item.name}`} />
             <AdminLayout>
-                <div className="mx-auto w-full max-w-7xl space-y-6 p-4">
+                <div className="space-y-6 p-4">
                     <MenuForm
                         mode="edit"
                         item={item}
