@@ -3,6 +3,7 @@ interface TierPickerOption {
     title: string;
     description: string;
     price: string;
+    cashback?: string;
     meta?: string;
 }
 
@@ -70,10 +71,16 @@ export default function TierPicker({
                                 )}
                             </div>
 
-                            <div className="mt-4 flex items-center justify-between gap-3">
-                                <span className="text-xs font-medium text-slate-400">
-                                    {active ? 'Dipilih' : 'Pilih opsi'}
-                                </span>
+                            <div className="mt-4 flex items-center justify-between gap-3 text-xs font-medium">
+                                {option.cashback ? (
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
+                                        {option.cashback}
+                                    </span>
+                                ) : (
+                                    <span className="text-slate-400">
+                                        Pilih opsi
+                                    </span>
+                                )}
                                 <span
                                     className={`text-sm font-semibold ${active ? 'text-primary' : 'text-text'}`}
                                 >

@@ -1,15 +1,16 @@
 import { UtensilsCrossed } from 'lucide-react';
 import CustomerSection from './CustomerSection';
-import type {CustomerSummary} from './CustomerSection';
+import type { CustomerSummary } from './CustomerSection';
 import DeliverySection from './DeliverySection';
 import OrderItemRow from './OrderItemRow';
-import type {OrderItemRowData} from './OrderItemRow';
+import type { OrderItemRowData } from './OrderItemRow';
 import PaymentSection from './PaymentSection';
 
 interface Calculation {
     isPending: boolean;
     subtotal: number;
     uniqueCode: number;
+    cashback: number;
     total: number;
     dpUniqueCode: number;
     dpAmount: number;

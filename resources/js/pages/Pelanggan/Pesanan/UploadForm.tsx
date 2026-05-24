@@ -16,8 +16,11 @@ interface Order {
         | 'selesai'
         | 'dibatalkan';
     total_amount: string | number;
+    subtotal: string | number;
     dp_amount: string | number;
     remaining_amount: string | number;
+    unique_code: string | number | null;
+    dp_unique_code?: string | number | null;
     cashback_eligible?: boolean;
     cashback_breakdown?: Array<{
         menu_name: string;
@@ -70,14 +73,12 @@ function UploadForm({ order }: Props) {
         }).format(Number(value));
     };
 
-    const cashbackBreakdown = order.cashback_breakdown ?? [];
     const totalCashback = order.total_cashback ?? 0;
+    const cashbackEligible = order.cashback_eligible ?? totalCashback > 0;
     const fullPaymentAmount = Math.max(
         Number(order.total_amount) - totalCashback,
         0,
     );
-    const cashbackEligible =
-        order.cashback_eligible ?? cashbackBreakdown.length > 0;
 
     return (
         <>
@@ -155,6 +156,15 @@ function UploadForm({ order }: Props) {
                                             </span>
                                         </div>
 
+                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                            <span>Kode Unik DP</span>
+                                            <span className="font-medium text-text">
+                                                +{' '}
+                                                {order.dp_unique_code ||
+                                                    order.unique_code}
+                                            </span>
+                                        </div>
+
                                         <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2">
                                             <span className="text-sm text-slate-600">
                                                 Sisa Pembayaran (Pelunasan)
@@ -170,77 +180,38 @@ function UploadForm({ order }: Props) {
 
                                 {/* Pelunasan/full payment shows only total */}
                                 {form.data.payment_type === 'pelunasan' && (
-                                    <div className="border-t border-black/5 pt-2">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="font-semibold text-primary">
-                                                Total setelah cashback
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                            <span>Total keseluruhan item</span>
+                                            <span className="font-medium text-text">
+                                                {formatCurrency(order.subtotal)}
                                             </span>
-                                            <span className="text-xl font-bold text-primary">
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                            <span>Kode Unik</span>
+                                            <span className="font-medium text-text">
+                                                + {order.unique_code ?? 0}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                            <span>DP</span>
+                                            <span className="font-medium text-text">
+                                                {formatCurrency(
+                                                    order.dp_amount,
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold text-primary">
+                                            <span>Total</span>
+                                            <span className="text-lg">
                                                 {formatCurrency(
                                                     fullPaymentAmount,
                                                 )}
                                             </span>
                                         </div>
-
-                                        {cashbackEligible &&
-                                            totalCashback > 0 && (
-                                                <div className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
-                                                    <span>
-                                                        Total sebelum cashback
-                                                    </span>
-                                                    <span className="line-through">
-                                                        {formatCurrency(
-                                                            order.total_amount,
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                        {cashbackEligible &&
-                                            cashbackBreakdown.length > 0 && (
-                                                <div className="mt-4 rounded-2xl border border-accent-2/20 bg-accent-2/10 p-4 text-sm text-accent">
-                                                    <div className="flex items-center gap-2 font-semibold">
-                                                        <Check className="size-4" />
-                                                        Cashback Full Payment
-                                                    </div>
-                                                    <div className="mt-3 space-y-2 text-xs leading-5">
-                                                        {cashbackBreakdown.map(
-                                                            (item) => (
-                                                                <div
-                                                                    key={`${item.menu_name}-${item.kode}`}
-                                                                    className="flex items-start justify-between gap-3"
-                                                                >
-                                                                    <span>
-                                                                        {
-                                                                            item.menu_name
-                                                                        }{' '}
-                                                                        (Gol.{' '}
-                                                                        {
-                                                                            item.kode
-                                                                        }
-                                                                        )
-                                                                    </span>
-                                                                    <span className="font-semibold">
-                                                                        {formatCurrency(
-                                                                            item.cashback,
-                                                                        )}
-                                                                    </span>
-                                                                </div>
-                                                            ),
-                                                        )}
-                                                        <div className="flex items-center justify-between gap-3 border-t border-accent-2/20 pt-2 font-semibold">
-                                                            <span>
-                                                                Total Cashback
-                                                            </span>
-                                                            <span>
-                                                                {formatCurrency(
-                                                                    totalCashback,
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
                                     </div>
                                 )}
 

@@ -74,7 +74,7 @@ const SUB_TYPE_CONFIG: Record<
         emoji: '🎁',
     },
     paket_nasi_box: {
-        label: 'Nasi Box',
+        label: 'Paket Napass',
         cls: 'bg-amber-50 text-amber-700',
         emoji: '🍱',
     },
@@ -186,7 +186,7 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
                         </span>
                     )}
                 </div>
-                <hr className='my-4 border-slate-200'/>
+                <hr className="my-4 border-slate-200" />
 
                 <div className="flex items-end justify-between gap-3">
                     <div>

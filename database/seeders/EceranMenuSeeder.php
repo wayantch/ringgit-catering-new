@@ -42,7 +42,7 @@ class EceranMenuSeeder extends Seeder
         ]);
         $panggangBox->variants()->create(['label' => 'PANGGANG BOX', 'harga' => 220000]);
 
-        // Paket Nasi Box
+        // Paket Napass
         $napass = MenuItem::create([
             'name' => 'Paket NAPASS',
             'menu_type' => 'eceran',

@@ -78,7 +78,7 @@ export default function TypeSelector({ value, onSelect }: TypeSelectorProps) {
                     active={value === 'eceran'}
                     emoji="📦"
                     title="Eceran"
-                    description="Menu satuan dan paket: Paket PASS, Nasi Box, atau Babi Adat (all-in)."
+                    description="Menu satuan dan paket: Paket PASS, Paket Napass, atau Babi Adat (all-in)."
                     onClick={() => onSelect('eceran')}
                 />
             </div>

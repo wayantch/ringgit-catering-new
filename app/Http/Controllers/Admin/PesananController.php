@@ -121,7 +121,7 @@ class PesananController extends Controller
                 ->where('role', 'pembeli')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'phone'])
-                ->map(static fn(User $user): array => [
+                ->map(static fn (User $user): array => [
                     'id' => $user->hashid,
                     'name' => $user->name,
                     'email' => $user->email,
@@ -276,6 +276,41 @@ class PesananController extends Controller
             ];
         })->values()->toArray();
 
+        $cashbackBreakdown = [];
+
+        foreach ($order->items as $item) {
+            $menuItem = $item->menuItem;
+
+            if (! $menuItem || $menuItem->menu_type !== 'timbang_hidup') {
+                continue;
+            }
+
+            $quantity = (float) $item->quantity;
+            $tiers = $menuItem->relationLoaded('tiers')
+                ? $menuItem->tiers
+                : $menuItem->tiers()->orderBy('sort_order')->get();
+
+            $tier = $tiers->first(static function ($tier) use ($quantity): bool {
+                return $tier->matchesBerat($quantity);
+            });
+
+            if (! $tier || (float) $tier->cashback <= 0) {
+                continue;
+            }
+
+            $cashbackBreakdown[] = [
+                'menu_name' => $item->menu_name,
+                'kode' => $tier->kode,
+                'cashback' => (float) $tier->cashback,
+            ];
+        }
+
+        $totalCashback = array_reduce(
+            $cashbackBreakdown,
+            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
+            0.0,
+        );
+
         $payments = $order->payments->map(static function ($payment): array {
             return [
                 'id' => $payment->hashid,
@@ -325,9 +360,15 @@ class PesananController extends Controller
             'notes' => $order->notes,
             'subtotal' => $order->subtotal,
             'total_amount' => $order->total_amount,
+            'unique_code' => $order->unique_code,
+            'dp_unique_code' => $order->dp_unique_code,
             'dp_percentage' => $order->dp_percentage,
             'dp_amount' => $order->dp_amount,
             'remaining_amount' => $order->remaining_amount,
+            'cashback_eligible' => count($cashbackBreakdown) > 0,
+            'cashback_breakdown' => $cashbackBreakdown,
+            'total_cashback' => $totalCashback,
+            'total_after_cashback' => max(0, (float) $order->total_amount - $totalCashback),
             'is_price_pending' => $order->is_price_pending,
             'editable_until' => $order->editable_until,
             'isEditable' => $order->isEditable(),

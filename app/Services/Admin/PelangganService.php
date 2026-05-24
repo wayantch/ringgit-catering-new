@@ -4,10 +4,9 @@ namespace App\Services\Admin;
 
 use App\Models\Order;
 use App\Models\User;
-use App\Services\LoyaltyService;
 use App\Services\Auth\OtpService;
+use App\Services\LoyaltyService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class PelangganService
 {
@@ -26,7 +25,7 @@ class PelangganService
         $query = User::where('role', 'pembeli');
 
         // Search by name or email
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -35,7 +34,7 @@ class PelangganService
         }
 
         // Filter by status
-        if (!empty($filters['status']) && $filters['status'] !== 'semua') {
+        if (! empty($filters['status']) && $filters['status'] !== 'semua') {
             if ($filters['status'] === 'aktif') {
                 $query->whereNotNull('email_verified_at');
             } elseif ($filters['status'] === 'belum_login') {
@@ -156,8 +155,8 @@ class PelangganService
         $completedOrderCount = $user->orders()->where('order_status', 'selesai')->count();
         $hasRedeemed = $activeConfig !== null
             ? $user->loyaltyRedemptions()
-            ->where('loyalty_config_id', $activeConfig->id)
-            ->exists()
+                ->where('loyalty_config_id', $activeConfig->id)
+                ->exists()
             : false;
 
         return [
@@ -165,6 +164,7 @@ class PelangganService
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            'address' => $user->address,
             'email_verified_at' => $user->email_verified_at,
             'created_at' => $user->created_at,
             'total_orders' => $user->orders()->count(),

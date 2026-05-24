@@ -65,12 +65,12 @@ class KeranjangService
         // Generate unique code (last 3 digits of order number style)
         $uniqueCode = rand(100, 999);
         $dpAmount = round($subtotal * 0.25);
-        $dpWithCode = $dpAmount + ($uniqueCode / 1000);
+        $dpWithCode = $dpAmount + $uniqueCode;
 
         return [
             'subtotal' => $subtotal,
             'unique_code' => $uniqueCode,
-            'total' => $subtotal + ($uniqueCode / 1000),
+            'total' => $subtotal + $uniqueCode,
             'dp_amount' => $dpAmount,
             'dp_unique_code' => $uniqueCode,
             'dp_total' => $dpWithCode,

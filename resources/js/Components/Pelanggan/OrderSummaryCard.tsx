@@ -128,10 +128,14 @@ export default function OrderSummaryCard({
                 <h2 className="mt-1 text-lg font-semibold text-text">
                     Ringkasan Pesanan
                 </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                    Berikut adalah ringkasan pesanan untuk mengetahui total
+                    pembayaran sebelum melanjutkan ke checkout.
+                </p>
             </div>
 
             <div className="space-y-4 p-4 sm:p-5">
-                <div className="space-y-3 rounded-2xl bg-[#fbfaf6] p-4 text-sm">
+                {/* <div className="space-y-3 rounded-2xl bg-[#fbfaf6] p-4 text-sm">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-3 text-slate-600">
                             <span>
@@ -158,13 +162,54 @@ export default function OrderSummaryCard({
                         </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold text-primary">
-                        <span>Total</span>
-                        <span>
+                    {cashbackEligible && totalCashback > 0 && (
+                        <div className="flex items-center justify-between gap-3 text-slate-600">
+                            <span>Cashback</span>
+                            <span className="font-medium text-text">
+                                - {formatCurrency(totalCashback)}
+                            </span>
+                        </div>
+                    )}
+
+                    <div
+                        className={`flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold ${
+                            cashbackEligible && totalCashback > 0
+                                ? 'text-slate-400'
+                                : 'text-primary'
+                        }`}
+                    >
+                        <span
+                            className={
+                                cashbackEligible && totalCashback > 0
+                                    ? 'line-through'
+                                    : ''
+                            }
+                        >
+                            Total
+                        </span>
+                        <span
+                            className={
+                                cashbackEligible && totalCashback > 0
+                                    ? 'line-through'
+                                    : ''
+                            }
+                        >
                             {formatCurrency(mode === 'full' ? total : dpTotal)}
                         </span>
                     </div>
-                </div>
+
+                    {cashbackEligible && totalCashback > 0 && (
+                        <div className="flex items-center justify-between gap-3 font-semibold text-primary">
+                            <span>Total setelah Cashback</span>
+                            <span>
+                                {formatCurrency(
+                                    (mode === 'full' ? total : dpTotal) -
+                                        totalCashback,
+                                )}
+                            </span>
+                        </div>
+                    )}
+                </div> */}
 
                 <div className="space-y-2 rounded-2xl border border-black/5 bg-white p-4 text-sm shadow-sm">
                     <div className="flex flex-wrap gap-2">
@@ -194,24 +239,56 @@ export default function OrderSummaryCard({
                         </button>
                     </div>
 
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3 text-slate-600">
+                            <span>
+                                Timbang Hidup ({timbangItems.length} item)
+                            </span>
+                            <span className="font-medium text-text">
+                                {formatCurrency(timbangSubtotal)}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 text-slate-600">
+                            <span>
+                                Eceran & Paket ({eceranItems.length} item)
+                            </span>
+                            <span className="font-medium text-text">
+                                {formatCurrency(eceranSubtotal)}
+                            </span>
+                        </div>
+                    </div>
+
                     {mode === 'full' ? (
                         <>
-                            <div className="flex items-center justify-between gap-3 text-slate-600">
-                                <span>Total</span>
-                                <span className="font-medium text-text">
-                                    {formatCurrency(total)}
-                                </span>
-                            </div>
                             <div className="flex items-center justify-between gap-3 text-slate-600">
                                 <span>Kode unik</span>
                                 <span className="font-medium text-text">
                                     + {uniqueCode}
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold text-primary">
-                                <span>Total bayar</span>
-                                <span>{formatCurrency(total)}</span>
-                            </div>
+                            {cashbackEligible && totalCashback > 0 && (
+                                <div className="flex items-center justify-between gap-3 text-slate-600">
+                                    <span>Cashback</span>
+                                    <span className="font-medium text-text">
+                                        - {formatCurrency(totalCashback)}
+                                    </span>
+                                </div>
+                            )}
+                            <div
+                                className={`flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold ${
+                                    cashbackEligible && totalCashback > 0
+                                        ? 'text-slate-400'
+                                        : 'text-primary'
+                                }`}
+                            ></div>
+                            {cashbackEligible && totalCashback > 0 && (
+                                <div className="flex items-center justify-between gap-3 font-semibold text-primary">
+                                    <span>Total:</span>
+                                    <span>
+                                        {formatCurrency(total - totalCashback)}
+                                    </span>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <>
@@ -227,6 +304,8 @@ export default function OrderSummaryCard({
                                     + {dpUniqueCode}
                                 </span>
                             </div>
+                            <hr className="my-2 border-black/5" />
+
                             <div className="flex items-center justify-between gap-3 font-semibold text-primary">
                                 <span>Total DP</span>
                                 <span>{formatCurrency(dpTotal)}</span>
@@ -241,36 +320,6 @@ export default function OrderSummaryCard({
                     )}
                 </div>
 
-                {cashbackEligible &&
-                    mode === 'full' &&
-                    cashbackBreakdown.length > 0 && (
-                        <div className="rounded-2xl border border-accent-2/20 bg-accent-2/10 p-4 text-sm text-accent">
-                            <div className="flex items-center gap-2 font-semibold">
-                                <Gift className="size-4" />
-                                Cashback Full Payment
-                            </div>
-                            <div className="mt-3 space-y-2 text-xs leading-5">
-                                {cashbackBreakdown.map((item) => (
-                                    <div
-                                        key={`${item.menu_name}-${item.kode}`}
-                                        className="flex items-start justify-between gap-3"
-                                    >
-                                        <span>
-                                            {item.menu_name} (Gol. {item.kode})
-                                        </span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(item.cashback)}
-                                        </span>
-                                    </div>
-                                ))}
-                                <div className="flex items-center justify-between gap-3 border-t border-accent-2/20 pt-2 font-semibold">
-                                    <span>Total Cashback</span>
-                                    <span>{formatCurrency(totalCashback)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                 {hasPendingPrice && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                         Ada item dengan harga menyusul. Total akan dihitung
@@ -282,15 +331,15 @@ export default function OrderSummaryCard({
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
                         <div className="flex items-center gap-2 font-semibold">
                             <Truck className="size-4" />
-                            Gratis Ongkir s/d Rp {formatCurrency(ongkirMax)}
+                            Gratis Ongkir s/d {ongkirMax} km (Jabodetabek)
                         </div>
                     </div>
                 )}
 
-                <p className="text-xs leading-5 text-slate-400">
+                {/* <p className="text-xs leading-5 text-slate-400">
                     {paymentLabel} dipilih hanya untuk tampilan ringkasan. Kode
                     unik final ditentukan saat simpan pesanan.
-                </p>
+                </p> */}
 
                 <Link
                     href={checkout()}

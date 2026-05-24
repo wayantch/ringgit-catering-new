@@ -37,11 +37,15 @@ const SUB_TYPE_LABEL: Record<SubType, string> = {
     panggang: 'Panggang',
     sop_tulang: 'Sop Tulang',
     paket_pass: 'Paket Pass',
-    paket_nasi_box: 'Paket Nasi Box',
+    paket_nasi_box: 'Paket Napass',
     babi_adat: 'Babi Adat',
 };
 
-function formatCurrency(value: string | number): string {
+function formatCurrency(value: string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+        return '0';
+    }
+
     return new Intl.NumberFormat('id-ID', {
         maximumFractionDigits: 0,
     }).format(Number(value));
@@ -209,7 +213,7 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                         {item.name}
                                     </p>
                                     <p className="line-clamp-1 text-xs text-slate-500">
-                                        {item.description ?? '-'}
+                                        {/* {item.description ?? '-'} */}
                                     </p>
                                 </td>
                                 <td className="px-4 py-3">

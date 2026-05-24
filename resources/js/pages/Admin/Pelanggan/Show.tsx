@@ -29,6 +29,7 @@ interface Props {
         name: string;
         email: string;
         phone: string | null;
+        address: string | null;
         email_verified_at: string | null;
         created_at: string;
         total_orders: number;
@@ -213,7 +214,7 @@ export default function Show({ pelanggan }: Props) {
 
                             <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                    Bergabung
+                                    TGL Bergabung
                                 </p>
                                 <p className="mt-2 text-sm font-medium text-text">
                                     {formatDate(pelanggan.created_at)}
@@ -252,6 +253,16 @@ export default function Show({ pelanggan }: Props) {
                                         )}
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                                <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                    Alamat
+                                </p>
+                                <p className="mt-2 text-sm leading-6 font-medium text-text">
+                                    {pelanggan.address?.trim() ||
+                                        'Alamat belum diisi'}
+                                </p>
                             </div>
 
                             {pelanggan.loyalty_min_orders !== null && (
@@ -317,7 +328,7 @@ export default function Show({ pelanggan }: Props) {
                                                     No. Pesanan
                                                 </th>
                                                 <th className="px-4 py-3 text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
-                                                    Tanggal
+                                                    tgl booking
                                                 </th>
                                                 <th className="px-4 py-3 text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
                                                     Jenis

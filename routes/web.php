@@ -1,24 +1,23 @@
 <?php
 
-use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\PengaturanLoyaltiController;
 use App\Http\Controllers\Admin\PesananController;
+use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Auth\OtpController;
-use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Pelanggan\BerandaController;
 use App\Http\Controllers\Pelanggan\CheckoutController;
 use App\Http\Controllers\Pelanggan\KeranjangController;
 use App\Http\Controllers\Pelanggan\MenuController as PelangganMenuController;
 use App\Http\Controllers\Pelanggan\PesananController as PelangganPesananController;
 use App\Http\Controllers\Pelanggan\ProfilController;
-use App\Http\Controllers\Production\PesananController as ProductionPesananController;
 use App\Http\Controllers\Produksi\BerandaController as ProduksiBerandaController;
 use App\Http\Controllers\Produksi\PesananController as ProduksiPesananController;
 use App\Http\Controllers\Produksi\RiwayatController as ProduksiRiwayatController;
-use App\Http\Controllers\Admin\PrintController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -107,6 +106,8 @@ Route::middleware(['auth', 'role:pembeli,user'])
         Route::prefix('pesanan')->name('pesanan.')->group(function (): void {
             Route::get('/', [PelangganPesananController::class, 'index'])->name('index');
             Route::post('/', [PelangganPesananController::class, 'store'])->name('store');
+            Route::get('/draft/upload', [PelangganPesananController::class, 'uploadDraftForm'])->name('uploadDraftForm');
+            Route::post('/draft/upload-bukti', [PelangganPesananController::class, 'uploadDraftBukti'])->name('uploadDraftBukti');
             Route::get('/{order}/upload', [PelangganPesananController::class, 'uploadForm'])->name('uploadForm');
             Route::get('/{order}', [PelangganPesananController::class, 'show'])->name('show');
             Route::post('/{order}/upload-bukti', [PelangganPesananController::class, 'uploadBukti'])->name('uploadBukti');

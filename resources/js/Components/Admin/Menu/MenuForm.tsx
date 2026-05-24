@@ -42,6 +42,8 @@ interface MenuItem {
     sub_type: SubType | null;
     is_bundle: boolean;
     bundle_desc: string | null;
+    babi_mentah_price?: string | number | null;
+    babi_matang_price?: string | number | null;
     free_ongkir_km: number | null;
     ongkir_subsidi: Array<{
         min_kg: string | number | null;
@@ -151,8 +153,8 @@ const SUB_TYPE_OPTIONS = [
     },
     {
         value: 'paket_nasi_box',
-        label: 'Paket Nasi Box',
-        description: 'Nasi box per porsi, harga satuan',
+        label: 'Paket Napass',
+        description: 'Paket Napass per porsi, harga satuan',
     },
     {
         value: 'babi_adat',
@@ -637,7 +639,7 @@ export default function MenuForm({
                             onChange={(event) => setName(event.target.value)}
                             placeholder={
                                 menuType === 'eceran'
-                                    ? 'Contoh: Nasi Box Babi Panggang'
+                                    ? 'Contoh: Paket Napass Babi Panggang'
                                     : 'Contoh: Saksang Special'
                             }
                             error={errors.name}
@@ -967,7 +969,7 @@ export default function MenuForm({
                             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                                 <p className="font-semibold text-text">
                                     {subType === 'paket_nasi_box'
-                                        ? 'Paket Nasi Box'
+                                        ? 'Paket Napass'
                                         : subType === 'babi_adat'
                                           ? 'Babi Adat'
                                           : 'Paket Pass'}
@@ -1012,7 +1014,7 @@ export default function MenuForm({
                 <Section
                     title={
                         subType === 'paket_nasi_box'
-                            ? 'Paket Nasi Box'
+                            ? 'Paket Napass'
                             : subType === 'babi_adat'
                               ? 'Babi Adat'
                               : 'Paket Pass'

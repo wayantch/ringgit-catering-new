@@ -20,6 +20,7 @@ export interface ItemDetailPayload {
     notes: string;
     quantityStep: number;
     quantityBounds?: { min: number; max: number | null } | null;
+    cashback: number | null;
 }
 
 type TimbangAdatFlow = 'batak' | 'nias' | 'tanpa_adat' | '';
@@ -31,7 +32,7 @@ type BatakPart =
     | 'batak_soit'
     | 'batak_ekor'
     | 'batak_jeroan';
-type NiasPart = 'nias_barat' | 'nias_kota' | 'nias_sekitar';
+type NiasPart = 'nias_barat' | 'nias_kota' | 'nias_selatan';
 
 const BATAK_PARTS: Array<{ value: BatakPart; label: string }> = [
     { value: 'batak_lengkap', label: 'Lengkap' },
@@ -46,10 +47,16 @@ const BATAK_PARTS: Array<{ value: BatakPart; label: string }> = [
 const NIAS_PARTS: Array<{ value: NiasPart; label: string }> = [
     { value: 'nias_barat', label: 'Nias Barat' },
     { value: 'nias_kota', label: 'Nias Kota' },
-    { value: 'nias_sekitar', label: 'Nias Sekitar' },
+    { value: 'nias_selatan', label: 'Nias Selatan' },
 ];
 
-const SACRIFICE_PERCENTS = [25, 50, 75, 100] as const;
+const NIAS_PART_LABELS: Record<NiasPart, string> = {
+    nias_barat: 'Nias Barat',
+    nias_kota: 'Nias Kota',
+    nias_selatan: 'Nias Selatan',
+};
+
+const SACRIFICE_PERCENTS = [0, 25, 50, 75, 100] as const;
 
 interface Props {
     isOpen: boolean;
@@ -85,10 +92,45 @@ const formatTierRange = (tier: MenuPickerCardItem['tiers'][number]): string => {
     return `${formatKg(tier.berat_min)} - ${formatKg(tier.berat_max)}`;
 };
 
-const formatTierPricePair = (
+const formatTierPriceByCondition = (
     tier: MenuPickerCardItem['tiers'][number],
+    kondisiProduk: KondisiValue | '',
 ): string => {
-    return `Mentah ${formatCurrency(tier.harga_mentah)} · Matang ${formatCurrency(tier.harga_matang)}`;
+    if (kondisiProduk === 'mateng') {
+        return formatCurrency(tier.harga_matang);
+    }
+
+    return formatCurrency(tier.harga_mentah);
+};
+
+const formatTierCashback = (
+    tier: MenuPickerCardItem['tiers'][number],
+): string | undefined => {
+    if (tier.cashback <= 0) {
+        return undefined;
+    }
+
+    return `Cashback ${formatCurrency(tier.cashback)}`;
+};
+
+const getBabiAdatPriceByCondition = (
+    item: MenuPickerCardItem,
+    kondisiProduk: KondisiValue | '',
+): number | null => {
+    if (kondisiProduk === 'mateng') {
+        return item.babi_matang_price ?? item.base_price ?? null;
+    }
+
+    if (kondisiProduk === 'mentah') {
+        return item.babi_mentah_price ?? item.base_price ?? null;
+    }
+
+    return (
+        item.base_price ??
+        item.babi_mentah_price ??
+        item.babi_matang_price ??
+        null
+    );
 };
 
 const getTierQuantityBounds = (
@@ -149,9 +191,10 @@ function buildSummaryLines(params: {
     estimatedTotal: number | null;
     flow: TimbangAdatFlow;
     batakParts: BatakPart[];
-    niasParts: NiasPart[];
+    niasPart: NiasPart | '';
     saksangPercent: number;
     panggangPercent: number;
+    batakRemainingPercent: number;
     remainderText: string;
     notes: string;
 }): string {
@@ -162,9 +205,10 @@ function buildSummaryLines(params: {
         estimatedTotal,
         flow,
         batakParts,
-        niasParts,
+        niasPart,
         saksangPercent,
         panggangPercent,
+        batakRemainingPercent,
         remainderText,
         notes,
     } = params;
@@ -185,13 +229,13 @@ function buildSummaryLines(params: {
                 : 'Batak detail: belum dipilih',
         );
         lines.push(
-            `Sisa daging: Saksang ${saksangPercent}%, Panggang ${panggangPercent}%${remainderText ? `, ${remainderText}` : ''}`,
+            `Sisa daging: Saksang ${saksangPercent}%, Panggang ${panggangPercent}%${batakRemainingPercent > 0 ? `, Sisa ${batakRemainingPercent}%: ${remainderText}` : ''}`,
         );
     } else if (flow === 'nias') {
         lines.push('Adat utama: Nias');
         lines.push(
-            niasParts.length > 0
-                ? `Nias detail: ${niasParts.join(', ')}`
+            niasPart
+                ? `Nias detail: ${NIAS_PART_LABELS[niasPart]}`
                 : 'Nias detail: belum dipilih',
         );
         lines.push(
@@ -345,36 +389,50 @@ function WeightAdjuster({
                     </p>
                 </div>
 
-                <label className="flex min-w-32 items-center gap-3 rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-2 shadow-sm">
-                    <span className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
-                        Qty
-                    </span>
-                    <input
-                        type="number"
-                        min={minValue}
-                        max={maxValue ?? undefined}
-                        step={1}
-                        value={value}
-                        onChange={(event) => {
-                            const nextValue = Number(event.target.value);
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        aria-label="Kurangi berat"
+                        onClick={() => {
+                            const next = Number((value - 1).toFixed(2));
+                            const clamped = Math.max(minValue, next);
+                            const finalValue =
+                                maxValue === null
+                                    ? clamped
+                                    : Math.min(maxValue, clamped);
 
-                            if (Number.isNaN(nextValue)) {
-                                return;
-                            }
-
-                            onChange(
-                                clampQuantityToBounds(nextValue, {
-                                    min: minValue,
-                                    max: maxValue,
-                                }),
-                            );
+                            onChange(finalValue);
                         }}
-                        className="w-20 border-0 bg-transparent p-0 text-right text-sm font-semibold text-text outline-none focus:ring-0"
-                    />
+                        className="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-primary/20 hover:text-primary"
+                    >
+                        -
+                    </button>
+
+                    <div className="min-w-32 rounded-xl bg-secondary/50 px-4 py-2 text-center text-sm font-semibold text-text">
+                        {formatKg(value)}
+                    </div>
+
+                    <button
+                        type="button"
+                        aria-label="Tambah berat"
+                        onClick={() => {
+                            const next = Number((value + 1).toFixed(2));
+                            const clamped = Math.max(minValue, next);
+                            const finalValue =
+                                maxValue === null
+                                    ? clamped
+                                    : Math.min(maxValue, clamped);
+
+                            onChange(finalValue);
+                        }}
+                        className="flex size-9 items-center justify-center rounded-xl bg-primary text-white transition hover:bg-primary-600"
+                    >
+                        +
+                    </button>
                     <span className="text-xs font-medium text-slate-500">
                         kg
                     </span>
-                </label>
+                </div>
             </div>
         </section>
     );
@@ -396,7 +454,7 @@ export default function ItemDetailSheet({
     const [selectedBatakParts, setSelectedBatakParts] = useState<BatakPart[]>(
         [],
     );
-    const [selectedNiasParts, setSelectedNiasParts] = useState<NiasPart[]>([]);
+    const [selectedNiasPart, setSelectedNiasPart] = useState<NiasPart | ''>('');
     const [saksangPercent, setSaksangPercent] = useState<number>(25);
     const [panggangPercent, setPanggangPercent] = useState<number>(75);
     const [remainderText, setRemainderText] = useState<string>('');
@@ -416,7 +474,7 @@ export default function ItemDetailSheet({
         );
         setAdatFlow('');
         setSelectedBatakParts([]);
-        setSelectedNiasParts([]);
+        setSelectedNiasPart('');
         setSaksangPercent(25);
         setPanggangPercent(75);
         setRemainderText('');
@@ -442,6 +500,15 @@ export default function ItemDetailSheet({
         [selectedTier],
     );
     const selectedTierQuantityMax = selectedTierQuantityBounds?.max ?? null;
+    const selectedTierNeedsAdat = Boolean(
+        selectedTier && !selectedTier.is_half,
+    );
+    const batakRemainingPercent = Math.max(
+        0,
+        100 - saksangPercent - panggangPercent,
+    );
+    const batakNeedsRemainder =
+        adatFlow === 'batak' && batakRemainingPercent > 0;
 
     const selectedVariant = useMemo(() => {
         if (!item || item.menu_type !== 'eceran') {
@@ -466,7 +533,7 @@ export default function ItemDetailSheet({
 
         setAdatFlow('');
         setSelectedBatakParts([]);
-        setSelectedNiasParts([]);
+        setSelectedNiasPart('');
         setRemainderText('');
     }, [isTimbangHidup, selectedTier, selectedTierQuantityBounds]);
 
@@ -476,25 +543,7 @@ export default function ItemDetailSheet({
         }
 
         if (item.sub_type === 'babi_adat') {
-            const availablePrices = [
-                item.babi_mentah_price,
-                item.babi_matang_price,
-                item.base_price,
-            ].filter((price): price is number => price !== null);
-
-            if (availablePrices.length > 0) {
-                return Math.min(...availablePrices);
-            }
-
-            if (kondisiProduk === 'mentah') {
-                return item.babi_mentah_price ?? item.base_price ?? null;
-            }
-
-            if (kondisiProduk === 'mateng') {
-                return item.babi_matang_price ?? item.base_price ?? null;
-            }
-
-            return item.base_price ?? null;
+            return getBabiAdatPriceByCondition(item, kondisiProduk);
         }
 
         const availablePrices = [
@@ -516,7 +565,9 @@ export default function ItemDetailSheet({
         ((isTimbangHidup &&
             kondisiProduk !== '' &&
             selectedTier !== null &&
-            adatFlow !== '') ||
+            (!selectedTierNeedsAdat || adatFlow !== '') &&
+            (adatFlow !== 'nias' || selectedNiasPart !== '') &&
+            (!batakNeedsRemainder || remainderText.trim() !== '')) ||
             (item.menu_type === 'eceran' &&
                 kondisiProduk !== '' &&
                 (item.sub_type === 'babi_adat'
@@ -544,11 +595,13 @@ export default function ItemDetailSheet({
         }
 
         const resolvedAdatType = isTimbangHidup
-            ? adatFlow === 'batak'
-                ? (selectedBatakParts[0] ?? 'batak_lengkap')
-                : adatFlow === 'nias'
-                  ? 'nias_simbi_simbi'
-                  : 'lainnya'
+            ? !selectedTierNeedsAdat
+                ? null
+                : adatFlow === 'batak'
+                  ? (selectedBatakParts[0] ?? 'batak_lengkap')
+                  : adatFlow === 'nias'
+                    ? 'nias_simbi_simbi'
+                    : 'lainnya'
             : null;
 
         const resolvedUnitPrice =
@@ -569,11 +622,12 @@ export default function ItemDetailSheet({
                   tier: selectedTier,
                   quantity: qty,
                   estimatedTotal,
-                  flow: adatFlow,
+                  flow: selectedTierNeedsAdat ? adatFlow : '',
                   batakParts: selectedBatakParts,
-                  niasParts: selectedNiasParts,
+                  niasPart: selectedNiasPart,
                   saksangPercent,
                   panggangPercent,
+                  batakRemainingPercent,
                   remainderText: remainderText.trim(),
                   notes,
               })
@@ -583,7 +637,7 @@ export default function ItemDetailSheet({
             menuItem: item,
             menu_item_id: item.id,
             menu_name: item.name,
-            menu_category_type: item.category.type,
+            menu_category_type: item.menu_type,
             menu_unit: item.unit,
             menu_image: item.image,
             base_price: item.base_price,
@@ -594,6 +648,10 @@ export default function ItemDetailSheet({
             notes: summaryNotes,
             quantityStep,
             quantityBounds: isTimbangHidup ? selectedTierQuantityBounds : null,
+            cashback:
+                isTimbangHidup && selectedTier && selectedTier.cashback > 0
+                    ? selectedTier.cashback
+                    : null,
         });
     };
 
@@ -652,79 +710,6 @@ export default function ItemDetailSheet({
                 </div>
 
                 <div className="max-h-[calc(80vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
-                    <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                        <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
-                            <div>
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Ringkasan menu
-                                </p>
-                                {/* <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {isTimbangHidup
-                                            ? 'Timbang hidup'
-                                            : (item?.category.type ?? 'olahan')}
-                                    </span>
-                                    <span className="rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {isTimbangHidup
-                                            ? `${item?.tiers.length ?? 0} tier`
-                                            : '1 item'}
-                                    </span>
-                                    {isTimbangHidup && selectedTier && (
-                                        <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-                                            Flow {selectedSummaryLabel}
-                                        </span>
-                                    )}
-                                </div> */}
-                                <p className="mt-3 text-sm leading-6 text-slate-500">
-                                    {isTimbangHidup
-                                        ? 'Pilih kondisi, range, adat, lalu catatan agar detail pesanan mirip flow customer.'
-                                        : 'Pilih kondisi dan catatan sebelum menyimpan pesanan.'}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#fbfaf6] p-4">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    {isTimbangHidup && selectedTier
-                                        ? 'Estimasi harga'
-                                        : 'Harga mulai'}
-                                </p>
-                                {isTimbangHidup && selectedTier ? (
-                                    <>
-                                        <p className="mt-1 text-lg font-semibold text-primary">
-                                            {formatCurrency(
-                                                kondisiProduk === 'mateng'
-                                                    ? selectedTier.harga_matang *
-                                                          qty
-                                                    : selectedTier.harga_mentah *
-                                                          qty,
-                                            )}
-                                        </p>
-                                        {/* <p className="mt-2 text-xs leading-5 text-slate-500">
-                                            Harga per kg:{' '}
-                                            {formatCurrency(
-                                                kondisiProduk === 'mateng'
-                                                    ? selectedTier.harga_matang
-                                                    : selectedTier.harga_mentah,
-                                            )}
-                                        </p> */}
-                                    </>
-                                ) : // <p className="mt-1 text-lg font-semibold text-primary">
-                                //     {formatCurrency(displayedEceranPrice)}
-                                // </p>
-                                null}
-                                {/* {isTimbangHidup && selectedTier && (
-                                    <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
-                                        <p>Tier aktif: {selectedTier.kode}</p>
-                                        <p>
-                                            Range admin:{' '}
-                                            {formatTierRange(selectedTier)}
-                                        </p>
-                                    </div>
-                                )} */}
-                            </div>
-                        </div>
-                    </section>
-
                     {isTimbangHidup ? (
                         <>
                             <OptionChips
@@ -745,13 +730,14 @@ export default function ItemDetailSheet({
                                 helperText="Pilih range yang sudah diinput admin sebelum mengatur berat pesanan."
                                 options={(item?.tiers ?? []).map((tier) => ({
                                     id: tier.id,
-                                    title: formatTierRange(tier),
-                                    description: `Kode ${tier.kode}`,
-                                    price: formatTierPricePair(tier),
-                                    meta:
-                                        tier.berat_max !== null
-                                            ? `${formatKg(tier.berat_min)}-${formatKg(tier.berat_max)}`
-                                            : `${formatKg(tier.berat_min)}+`,
+                                    title: `Kode ${tier.kode} - ${tier.is_half ? 'Setengah ekor' : 'Utuh/satu ekor'}`,
+                                    description: formatTierRange(tier),
+                                    price: formatTierPriceByCondition(
+                                        tier,
+                                        kondisiProduk,
+                                    ),
+                                    cashback: formatTierCashback(tier),
+                                    meta: tier.is_half ? 'Setengah' : 'Utuh',
                                 }))}
                                 value={selectedTierId}
                                 onChange={setSelectedTierId}
@@ -795,7 +781,44 @@ export default function ItemDetailSheet({
                                 </section>
                             )}
 
-                            {selectedTier && (
+                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            Ringkasan menu
+                                        </p>
+                                        <p className="mt-3 text-sm leading-6 text-slate-500">
+                                            {isTimbangHidup
+                                                ? 'Pilih kondisi, range, adat, lalu catatan agar detail pesanan mirip flow customer.'
+                                                : 'Pilih kondisi dan catatan sebelum menyimpan pesanan.'}
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                            {isTimbangHidup && selectedTier
+                                                ? 'Estimasi harga'
+                                                : 'Harga mulai'}
+                                        </p>
+                                        {isTimbangHidup && selectedTier ? (
+                                            <>
+                                                <p className="mt-1 text-lg font-semibold text-primary">
+                                                    {formatCurrency(
+                                                        kondisiProduk ===
+                                                            'mateng'
+                                                            ? selectedTier.harga_matang *
+                                                                  qty
+                                                            : selectedTier.harga_mentah *
+                                                                  qty,
+                                                    )}
+                                                </p>
+                                            </>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {selectedTier && selectedTierNeedsAdat && (
                                 <>
                                     <OptionChips
                                         label="Pilih adat"
@@ -814,10 +837,13 @@ export default function ItemDetailSheet({
                                                 value as TimbangAdatFlow,
                                             );
                                             setSelectedBatakParts([]);
-                                            setSelectedNiasParts([]);
+                                            setSelectedNiasPart('');
                                             setRemainderText('');
 
                                             if (value === 'batak') {
+                                                setSaksangPercent(25);
+                                                setPanggangPercent(75);
+                                            } else {
                                                 setSaksangPercent(25);
                                                 setPanggangPercent(75);
                                             }
@@ -880,31 +906,14 @@ export default function ItemDetailSheet({
                                     )}
 
                                     {adatFlow === 'nias' && (
-                                        <MultiSelectChips
+                                        <OptionChips
                                             label="Detail Nias"
-                                            helperText="Bisa pilih lebih dari satu wilayah adat."
+                                            helperText="Pilih satu wilayah adat saja."
                                             options={NIAS_PARTS}
-                                            value={selectedNiasParts}
-                                            onToggle={(value) => {
-                                                setSelectedNiasParts(
-                                                    (current) => {
-                                                        if (
-                                                            current.includes(
-                                                                value as NiasPart,
-                                                            )
-                                                        ) {
-                                                            return current.filter(
-                                                                (entry) =>
-                                                                    entry !==
-                                                                    value,
-                                                            );
-                                                        }
-
-                                                        return [
-                                                            ...current,
-                                                            value as NiasPart,
-                                                        ];
-                                                    },
+                                            value={selectedNiasPart || null}
+                                            onChange={(value) => {
+                                                setSelectedNiasPart(
+                                                    value as NiasPart,
                                                 );
                                             }}
                                         />
@@ -944,23 +953,94 @@ export default function ItemDetailSheet({
                                                                         );
 
                                                                     setSaksangPercent(
-                                                                        (
-                                                                            prevSaksang,
-                                                                        ) => {
-                                                                            if (
-                                                                                panggangPercent ===
-                                                                                100 -
-                                                                                    prevSaksang
-                                                                            ) {
-                                                                                setPanggangPercent(
-                                                                                    100 -
-                                                                                        percent,
-                                                                                );
-                                                                            }
-
-                                                                            return percent;
-                                                                        },
+                                                                        Math.min(
+                                                                            100,
+                                                                            Math.max(
+                                                                                0,
+                                                                                percent,
+                                                                            ),
+                                                                        ),
                                                                     );
+
+                                                                    if (
+                                                                        percent +
+                                                                            panggangPercent >
+                                                                        100
+                                                                    ) {
+                                                                        setPanggangPercent(
+                                                                            Math.max(
+                                                                                0,
+                                                                                100 -
+                                                                                    percent,
+                                                                            ),
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                            >
+                                                                {SACRIFICE_PERCENTS.map(
+                                                                    (
+                                                                        percent,
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                percent
+                                                                            }
+                                                                            value={
+                                                                                percent
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                percent
+                                                                            }
+                                                                            %
+                                                                        </option>
+                                                                    ),
+                                                                )}
+                                                            </select>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                                Panggang %
+                                                            </label>
+                                                            <select
+                                                                value={
+                                                                    panggangPercent
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    const percent =
+                                                                        Number(
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                        );
+
+                                                                    setPanggangPercent(
+                                                                        Math.min(
+                                                                            100,
+                                                                            Math.max(
+                                                                                0,
+                                                                                percent,
+                                                                            ),
+                                                                        ),
+                                                                    );
+
+                                                                    if (
+                                                                        saksangPercent +
+                                                                            percent >
+                                                                        100
+                                                                    ) {
+                                                                        setSaksangPercent(
+                                                                            Math.max(
+                                                                                0,
+                                                                                100 -
+                                                                                    percent,
+                                                                            ),
+                                                                        );
+                                                                    }
                                                                 }}
                                                                 className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
                                                             >
@@ -988,34 +1068,40 @@ export default function ItemDetailSheet({
                                                     </div>
 
                                                     <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
-                                                        Otomatis: sisa panggang
-                                                        mengikuti saksang. Kalau
-                                                        ingin pembagian lain
-                                                        seperti 25% saksang, 50%
-                                                        panggang, dan sisanya
-                                                        babi kecap, ubah persen
-                                                        secara manual lalu tulis
-                                                        sisanya di catatan.
+                                                        Saksang akan dibuat{' '}
+                                                        {saksangPercent}%,
+                                                        panggang akan dibuat{' '}
+                                                        {panggangPercent}%.
+                                                        {batakRemainingPercent >
+                                                        0
+                                                            ? ` Silahkan input sisa daging lainnya sebesar ${batakRemainingPercent}%.`
+                                                            : ' Pembagian sudah mencapai 100%.'}
                                                     </div>
 
-                                                    <div>
-                                                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                            Sisa lainnya
-                                                        </label>
-                                                        <input
-                                                            value={
-                                                                remainderText
-                                                            }
-                                                            onChange={(event) =>
-                                                                setRemainderText(
-                                                                    event.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                            placeholder="Contoh: babi kecap"
-                                                        />
-                                                    </div>
+                                                    {batakNeedsRemainder && (
+                                                        <div>
+                                                            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                                Sisa daging
+                                                                lainnya
+                                                            </label>
+                                                            <input
+                                                                value={
+                                                                    remainderText
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    setRemainderText(
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                                placeholder="Contoh: babi kecap"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
 
@@ -1105,6 +1191,25 @@ export default function ItemDetailSheet({
                                                         {option.emoji}
                                                     </span>
                                                     {option.label}
+                                                    <span
+                                                        className={`mt-1 block text-xs font-medium ${
+                                                            kondisiProduk ===
+                                                            option.value
+                                                                ? 'text-white/80'
+                                                                : 'text-slate-400'
+                                                        }`}
+                                                    >
+                                                        {formatCurrency(
+                                                            option.value ===
+                                                                'mateng'
+                                                                ? (item.babi_matang_price ??
+                                                                      item.base_price ??
+                                                                      null)
+                                                                : (item.babi_mentah_price ??
+                                                                      item.base_price ??
+                                                                      null),
+                                                        )}
+                                                    </span>
                                                 </button>
                                             ),
                                         )}
@@ -1184,8 +1289,7 @@ export default function ItemDetailSheet({
                                             Isi Paket
                                         </p>
                                         <p className="mt-1 text-sm text-slate-600">
-                                            {item.bundle_desc ??
-                                                'Paket nasi box'}
+                                            {item.bundle_desc ?? 'Paket Napass'}
                                         </p>
                                     </div>
                                     {item.free_ongkir_km ? (

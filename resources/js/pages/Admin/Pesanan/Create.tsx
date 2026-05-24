@@ -70,11 +70,49 @@ const createTempId = (): string => {
     return `temp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
+const resolveItemCashback = (payload: ItemDetailPayload): number | null => {
+    if (typeof payload.cashback === 'number' && payload.cashback > 0) {
+        return payload.cashback;
+    }
+
+    if (
+        (payload.menu_category_type ?? payload.menuItem.menu_type) !==
+        'timbang_hidup'
+    ) {
+        return null;
+    }
+
+    const matchingTier = payload.menuItem.tiers.find((tier) => {
+        const matchesPrice =
+            Number(tier.harga_mentah) === Number(payload.price) ||
+            Number(tier.harga_matang) === Number(payload.price);
+
+        if (!matchesPrice) {
+            return false;
+        }
+
+        const bounds = payload.quantityBounds ?? null;
+
+        if (!bounds) {
+            return true;
+        }
+
+        const matchesMinimum = payload.qty >= bounds.min;
+        const matchesMaximum = bounds.max === null || payload.qty <= bounds.max;
+
+        return matchesMinimum && matchesMaximum;
+    });
+
+    return matchingTier && matchingTier.cashback > 0
+        ? matchingTier.cashback
+        : null;
+};
+
 export default function Create({ menuItems, customers }: Props) {
-    const [customerType, setCustomerType] = useState<CustomerType>('terdaftar');
+    const [customerType, setCustomerType] = useState<CustomerType>('walkin');
     const [selectedCustomer, setSelectedCustomer] =
         useState<CustomerSummary | null>(null);
-    const [walkInName, setWalkInName] = useState('');
+    const [walkInName, setWalkInName] = useState('Pelanggan Walk-in');
     const [walkInPhone, setWalkInPhone] = useState('');
     const [walkInEmail, setWalkInEmail] = useState('');
     const [orderType, setOrderType] = useState<OrderType>('takeaway');
@@ -96,10 +134,13 @@ export default function Create({ menuItems, customers }: Props) {
 
     const calculation = useMemo(() => {
         if (orderItems.some((item) => item.price === null)) {
+            const cashback = 0;
+
             return {
                 isPending: true,
                 subtotal: 0,
                 uniqueCode: 123,
+                cashback,
                 total: 0,
                 dpUniqueCode: 456,
                 dpAmount: 0,
@@ -111,22 +152,32 @@ export default function Create({ menuItems, customers }: Props) {
             return carry + (item.price ?? 0) * item.qty;
         }, 0);
 
+        const cashback = orderItems.reduce((carry, item) => {
+            if (item.menu_category_type !== 'timbang_hidup') {
+                return carry;
+            }
+
+            return carry + (item.cashback ?? 0);
+        }, 0);
+
         const uniqueCode = 123;
-        const total = subtotal + uniqueCode;
+        const total =
+            subtotal + uniqueCode - (paymentMethod === 'full' ? cashback : 0);
         const dpUniqueCode = 456;
         const dpAmount = Math.round(subtotal * 0.25) + dpUniqueCode;
-        const remaining = total - dpAmount;
+        const remaining = subtotal + uniqueCode - dpAmount;
 
         return {
             isPending: false,
             subtotal,
             uniqueCode,
+            cashback,
             total,
             dpUniqueCode,
             dpAmount,
             remaining,
         };
-    }, [orderItems]);
+    }, [orderItems, paymentMethod]);
 
     const selectedSummaryItems = useMemo<OrderItemSummary[]>(() => {
         return orderItems.map((item) => ({
@@ -193,12 +244,14 @@ export default function Create({ menuItems, customers }: Props) {
                         : createTempId(),
                 menu_item_id: payload.menu_item_id,
                 menu_name: payload.menu_name,
-                menu_category_type: payload.menu_category_type,
+                menu_category_type:
+                    payload.menu_category_type ?? payload.menuItem.menu_type,
                 menu_unit: payload.menu_unit,
                 menu_image: payload.menu_image,
                 base_price: payload.base_price,
                 qty: payload.qty,
                 price: payload.price,
+                cashback: resolveItemCashback(payload),
                 kondisi_produk: payload.kondisi_produk || 'mentah',
                 adat_type: payload.adat_type,
                 notes: payload.notes,
@@ -385,6 +438,7 @@ export default function Create({ menuItems, customers }: Props) {
                 base_price: item.base_price,
                 qty: item.qty,
                 price: item.price,
+                cashback: item.cashback,
                 kondisi_produk: item.kondisi_produk,
                 adat_type: item.adat_type,
                 notes: item.notes.trim() === '' ? null : item.notes.trim(),
@@ -414,57 +468,6 @@ export default function Create({ menuItems, customers }: Props) {
             <Head title="Input Pesanan Kasir" />
 
             <div className="flex-col gap-4 p-4 lg:p-6">
-                {/* <header className="mb-5 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#f5f1e8_48%,#e7efe0_100%)] p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="max-w-2xl space-y-3">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
-                                <ReceiptText className="size-3.5" />
-                                Admin Panel
-                            </span>
-                            <div>
-                                <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-                                    Input Pesanan Kasir
-                                </h1>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                                    Split-screen POS untuk input pesanan manual
-                                    dengan pencarian menu cepat, ringkasan
-                                    real-time, dan kalkulasi pembayaran
-                                    otomatis.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-3 lg:w-105">
-                            <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Menu
-                                </p>
-                                <p className="mt-2 text-2xl font-semibold text-text">
-                                    {menuItems.length}
-                                </p>
-                            </div>
-                            <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Item Dipilih
-                                </p>
-                                <p className="mt-2 text-2xl font-semibold text-text">
-                                    {orderItems.length}
-                                </p>
-                            </div>
-                            <div className="rounded-2xl bg-white/85 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Estimasi
-                                </p>
-                                <p className="mt-2 text-lg font-semibold text-text">
-                                    {calculation.isPending
-                                        ? 'Harga menyusul'
-                                        : formatCurrency(calculation.total)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </header> */}
-
                 <div className="lg:hidden">
                     <div className="mb-5 flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-black/5">
                         <button

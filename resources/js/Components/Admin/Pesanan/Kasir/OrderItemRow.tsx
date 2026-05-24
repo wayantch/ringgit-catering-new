@@ -10,6 +10,7 @@ export interface OrderItemRowData {
     base_price: number | null;
     qty: number;
     price: number | null;
+    cashback?: number | null;
     kondisi_produk: string;
     adat_type: string | null;
     notes: string;
@@ -204,6 +205,11 @@ export default function OrderItemRow({
                                 <p className="text-sm font-semibold text-text">
                                     {formatCurrency(item.price)}
                                 </p>
+                                {item.cashback && item.cashback > 0 && (
+                                    <p className="text-xs font-semibold text-emerald-600">
+                                        Cashback {formatCurrency(item.cashback)}
+                                    </p>
+                                )}
                                 <p className="text-xs text-slate-400">
                                     Subtotal:{' '}
                                     {subtotal === null

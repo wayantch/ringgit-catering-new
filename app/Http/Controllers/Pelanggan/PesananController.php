@@ -42,17 +42,12 @@ class PesananController extends Controller
         ]);
 
         try {
-            $order = $service->create($request->user(), $validated);
+            $draft = $service->buildCheckoutDraft($request->user(), $validated);
 
-            $message = 'Pesanan berhasil dibuat. Silakan upload bukti pembayaran.';
+            $request->session()->put('checkout_draft', $draft);
+            $request->session()->flash('success', 'Checkout tersimpan. Silakan upload bukti pembayaran.');
 
-            if (($validated['use_loyalty_discount'] ?? false) && (float) $order->loyalty_discount > 0) {
-                $message = 'Pesanan berhasil dibuat dan diskon loyalti telah diterapkan. Silakan upload bukti pembayaran.';
-            }
-
-            $request->session()->flash('success', $message);
-
-            return Inertia::location(route('user.pesanan.uploadForm', $order));
+            return Inertia::location(route('user.pesanan.uploadDraftForm'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -99,5 +94,53 @@ class PesananController extends Controller
         return Inertia::render('Pelanggan/Pesanan/UploadForm', [
             'order' => $detail,
         ]);
+    }
+
+    public function uploadDraftForm(Request $request): Response|RedirectResponse
+    {
+        $draft = $request->session()->get('checkout_draft');
+
+        if (! is_array($draft)) {
+            return redirect()
+                ->route('user.checkout')
+                ->with('error', 'Draft checkout tidak ditemukan. Silakan checkout ulang.');
+        }
+
+        return Inertia::render('Pelanggan/Pesanan/UploadDraftForm', [
+            'draft' => $draft,
+        ]);
+    }
+
+    public function uploadDraftBukti(Request $request, PesananService $service): RedirectResponse
+    {
+        $draft = $request->session()->get('checkout_draft');
+
+        if (! is_array($draft)) {
+            return redirect()
+                ->route('user.checkout')
+                ->with('error', 'Draft checkout tidak ditemukan. Silakan checkout ulang.');
+        }
+
+        $validated = $request->validate([
+            'payment_type' => 'required|in:dp,pelunasan',
+            'proof_image' => 'required|image|max:2048',
+        ]);
+
+        try {
+            $order = $service->finalizeCheckoutDraft(
+                $request->user(),
+                $draft,
+                $validated['proof_image'],
+                $validated['payment_type'],
+            );
+
+            $request->session()->forget('checkout_draft');
+
+            return redirect()
+                ->route('user.pesanan.show', $order)
+                ->with('success', 'Bukti pembayaran berhasil diupload. Admin akan memverifikasi dalam waktu singkat.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

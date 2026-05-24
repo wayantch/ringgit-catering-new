@@ -15,7 +15,7 @@ class PesananService
     public function getPaginatedOrders(array $filters = [], int $perPage = 15, int $page = 1): array
     {
         $query = Order::query()
-            ->with(['user', 'createdBy', 'items', 'payments', 'paymentVerifications'])
+            ->with(['user', 'createdBy', 'items.menuItem.tiers', 'payments', 'paymentVerifications'])
             ->latest('created_at');
 
         // Only show pembeli orders that have payment verifications (bukti upload)
@@ -56,7 +56,16 @@ class PesananService
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         return [
-            'data' => collect($paginator->items())->map(static function (Order $order): array {
+            'data' => collect($paginator->items())->map(function (Order $order): array {
+                $cashbackBreakdown = $this->buildCashbackBreakdown($order);
+                $totalCashback = array_reduce(
+                    $cashbackBreakdown,
+                    static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
+                    0.0,
+                );
+                $paymentMethod = $this->resolvePaymentMethod($order);
+                $shouldApplyCashback = $paymentMethod === 'full' && $totalCashback > 0;
+
                 return [
                     'id' => $order->hashid,
                     'order_number' => $order->order_number,
@@ -66,7 +75,13 @@ class PesananService
                     'booking_date' => $order->booking_date?->toDateString(),
                     'status' => $order->order_status,
                     'order_status' => $order->order_status,
+                    'payment_method' => $paymentMethod,
                     'total_amount' => $order->total_amount,
+                    'cashback_eligible' => count($cashbackBreakdown) > 0,
+                    'total_cashback' => $totalCashback,
+                    'total_after_cashback' => $shouldApplyCashback
+                        ? max(0, (float) $order->total_amount - $totalCashback)
+                        : (float) $order->total_amount,
                     'is_price_pending' => $order->is_price_pending,
                 ];
             })->values()->all(),
@@ -82,7 +97,7 @@ class PesananService
         return $order->load([
             'user',
             'createdBy',
-            'items.menuItem',
+            'items.menuItem.tiers',
             'payments.verifiedBy',
             'paymentVerifications',
         ]);
@@ -368,6 +383,78 @@ class PesananService
             'remaining_amount' => round($remainingAmount, 2),
             'is_price_pending' => $isPricePending,
         ];
+    }
+
+    /**
+     * @return array<int, array{menu_name: string, kode: string, cashback: float}>
+     */
+    private function buildCashbackBreakdown(Order $order): array
+    {
+        $breakdown = [];
+
+        foreach ($order->items as $item) {
+            $menuItem = $item->menuItem;
+
+            if (! $menuItem || $menuItem->menu_type !== 'timbang_hidup') {
+                continue;
+            }
+
+            $quantity = (float) $item->quantity;
+            $tiers = $menuItem->relationLoaded('tiers')
+                ? $menuItem->tiers
+                : $menuItem->tiers()->orderBy('sort_order')->get();
+
+            $tier = $tiers->first(static function ($tier) use ($quantity): bool {
+                return $tier->matchesBerat($quantity);
+            });
+
+            if (! $tier || (float) $tier->cashback <= 0) {
+                continue;
+            }
+
+            $breakdown[] = [
+                'menu_name' => $item->menu_name,
+                'kode' => $tier->kode,
+                'cashback' => (float) $tier->cashback,
+            ];
+        }
+
+        return $breakdown;
+    }
+
+    private function resolvePaymentMethod(Order $order): string
+    {
+        if ($order->source === 'admin') {
+            return (float) $order->dp_amount > 0 ? 'dp' : 'full';
+        }
+
+        $paymentVerificationType = $order->paymentVerifications
+            ->pluck('payment_type')
+            ->filter()
+            ->last();
+
+        if ($paymentVerificationType === 'dp') {
+            return 'dp';
+        }
+
+        if ($paymentVerificationType === 'pelunasan') {
+            return 'full';
+        }
+
+        $paymentType = $order->payments
+            ->pluck('type')
+            ->filter()
+            ->last();
+
+        if ($paymentType === 'dp') {
+            return 'dp';
+        }
+
+        if ($paymentType === 'pelunasan') {
+            return 'full';
+        }
+
+        return (float) $order->dp_amount > 0 ? 'dp' : 'full';
     }
 
     private function generateOrderNumber(): string

@@ -37,7 +37,9 @@ function statusClass(
     return 'bg-emerald-50 text-emerald-600';
 }
 
-function formatCurrency(value: string | number): string {
+function formatCurrency(value: string | number | null | undefined): string {
+    if (value === null || value === undefined) return 'Rp 0';
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -76,13 +78,13 @@ export default function PesananCard({ order }: PesananCardProps) {
             {/* Meta info dalam grid 2 kolom */}
             <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-2">
                 <div className="flex flex-col gap-0.5">
-                    <p className="text-[11px] text-slate-400">Tanggal</p>
+                    <p className="text-[11px] text-slate-400">Tgl Booking</p>
                     <p className="text-[13px] font-medium text-slate-700">
                         {formatDate(order.booking_date)}
                     </p>
                 </div>
                 <div className="flex flex-col gap-0.5">
-                    <p className="text-[11px] text-slate-400">Waktu</p>
+                    <p className="text-[11px] text-slate-400">Jam</p>
                     <p className="text-[13px] font-medium text-slate-700">
                         {order.booking_time}
                     </p>

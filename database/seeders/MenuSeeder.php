@@ -4,153 +4,234 @@ namespace Database\Seeders;
 
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
+use App\Models\MenuItemVariant;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class MenuSeeder extends Seeder
 {
     private const FALLBACK_IMAGE = 'https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
+    private const OLD_ITEM_NAMES = [
+        'Daging Babi Segar',
+        'Usus Babi',
+        'Jantung Babi',
+        'Saksang',
+        'Panggang Babi',
+        'Sop Tulang Babi',
+        'Saksang Porsi',
+        'Panggang Porsi',
+        'Sop Tulang Porsi',
+        'Paket PASS',
+        'Paket PASS mini',
+        'PANGGANG BOX',
+        'Paket NAPASS',
+        'NASI BIPANG',
+        'NASI SAKSANG',
+        'NAMARGOAR (matang)',
+        'NAMARGOAR (mentah)',
+        'SIMBI-SIMBI',
+    ];
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Get all pork-based item names
-        $allPorkItems = [
-            'Daging Babi Segar',
-            'Usus Babi',
-            'Jantung Babi',
-            'Saksang',
-            'Panggang Babi',
-            'Sop Tulang Babi',
-            'Saksang Porsi',
-            'Panggang Porsi',
-            'Sop Tulang Porsi',
-        ];
+        DB::transaction(function (): void {
+            $this->purgeExistingSeedData();
 
-        // Delete non-pork items
-        MenuItem::whereNotIn('name', $allPorkItems)->delete();
-
-        $categories = [
-            ['name' => 'Timbang Hidup', 'type' => 'timbang_hidup'],
-            ['name' => 'Daging Olahan', 'type' => 'olahan'],
-            ['name' => 'Porsi Eceran', 'type' => 'eceran'],
-        ];
-
-        $itemNames = [
-            'timbang_hidup' => [
-                'Daging Babi Segar',
-                'Usus Babi',
-                'Jantung Babi',
-            ],
-            'olahan' => [
-                'Saksang',
-                'Panggang Babi',
-                'Sop Tulang Babi',
-            ],
-            'eceran' => [
-                'Saksang Porsi',
-                'Panggang Porsi',
-                'Sop Tulang Porsi',
-            ],
-        ];
-
-        foreach ($categories as $index => $cat) {
-            MenuCategory::updateOrCreate(
-                ['type' => $cat['type']],
+            $timbangHidupCategory = MenuCategory::updateOrCreate(
+                ['type' => 'timbang_hidup'],
                 [
-                    'name' => $cat['name'],
-                    'slug' => Str::slug($cat['name']),
-                    'description' => $cat['name'] . ' untuk pelanggan',
-                    'sort_order' => $index + 1,
+                    'name' => 'Timbang Hidup',
+                    'slug' => Str::slug('Timbang Hidup'),
+                    'description' => 'Menu timbang hidup untuk pelanggan',
+                    'sort_order' => 1,
                     'is_active' => true,
                 ]
             );
 
-            // create some sample items for each category
-            foreach ($itemNames[$cat['type']] as $i => $name) {
+            $eceranCategory = MenuCategory::updateOrCreate(
+                ['type' => 'eceran'],
+                [
+                    'name' => 'Eceran',
+                    'slug' => Str::slug('Eceran'),
+                    'description' => 'Menu eceran untuk pelanggan',
+                    'sort_order' => 2,
+                    'is_active' => true,
+                ]
+            );
 
-                MenuItem::updateOrCreate(
-                    ['name' => $name],
-                    [
-                        'category_id' => null,
-                        'description' => $this->getItemDescription($cat['type'], $name),
-                        'image' => $this->getItemImageUrl($cat['type'], $name),
-                        // Use rounded thousand values so prices look like typical IDs (e.g. 23000)
-                        'base_price' => $cat['type'] === 'eceran' ? rand(15, 45) * 1000 : rand(30, 150) * 1000,
-                        'unit' => $cat['type'] === 'timbang_hidup' ? 'kg' : ($cat['type'] === 'eceran' ? 'pcs' : 'porsi'),
-                        'is_available' => true,
-                        'stock_quantity' => 100,
-                        'min_order_hours' => $cat['type'] === 'eceran' ? 72 : 24,
-                        'sort_order' => $i + 1,
-                    ]
-                );
-            }
+            $timbangHidup = MenuItem::updateOrCreate(
+                ['name' => 'Timbang Hidup'],
+                [
+                    'category_id' => $timbangHidupCategory->id,
+                    'description' => 'Daging babi timbang hidup dengan pilihan tier A, B, dan C.',
+                    'image' => self::FALLBACK_IMAGE,
+                    'base_price' => null,
+                    'unit' => 'kg',
+                    'stock_quantity' => 100,
+                    'min_order_hours' => 24,
+                    'menu_type' => 'timbang_hidup',
+                    'sub_type' => null,
+                    'is_bundle' => false,
+                    'bundle_desc' => null,
+                    'free_ongkir_km' => null,
+                    'ongkir_subsidi' => null,
+                    'babi_mentah_price' => null,
+                    'babi_matang_price' => null,
+                    'is_available' => true,
+                    'sort_order' => 1,
+                ]
+            );
+
+            $timbangHidup->tiers()->delete();
+            $this->seedTimbangHidupTiers($timbangHidup);
+
+            $paketPass = MenuItem::updateOrCreate(
+                ['name' => 'Paket Pass'],
+                [
+                    'category_id' => $eceranCategory->id,
+                    'description' => 'Paket Pass isi 3 item untuk sajian praktis.',
+                    'image' => self::FALLBACK_IMAGE,
+                    'base_price' => 430000,
+                    'unit' => 'paket',
+                    'stock_quantity' => 100,
+                    'min_order_hours' => 72,
+                    'menu_type' => 'eceran',
+                    'sub_type' => 'paket_pass',
+                    'is_bundle' => true,
+                    'bundle_desc' => 'Isi 3 item: lauk utama, pendamping, dan sambal.',
+                    'free_ongkir_km' => 10,
+                    'ongkir_subsidi' => null,
+                    'babi_mentah_price' => null,
+                    'babi_matang_price' => null,
+                    'is_available' => true,
+                    'sort_order' => 1,
+                ]
+            );
+
+            $paketPass->variants()->delete();
+            $this->seedVariants($paketPass, [
+                ['label' => 'Paket Pass', 'harga' => 430000],
+            ]);
+
+            $paketNapass = MenuItem::updateOrCreate(
+                ['name' => 'Paket Napass'],
+                [
+                    'category_id' => $eceranCategory->id,
+                    'description' => 'Paket Napass isi 2 item untuk porsi lebih ringkas.',
+                    'image' => self::FALLBACK_IMAGE,
+                    'base_price' => 275000,
+                    'unit' => 'paket',
+                    'stock_quantity' => 100,
+                    'min_order_hours' => 72,
+                    'menu_type' => 'eceran',
+                    'sub_type' => 'paket_nasi_box',
+                    'is_bundle' => true,
+                    'bundle_desc' => 'Isi 2 item: nasi dan lauk.',
+                    'free_ongkir_km' => 10,
+                    'ongkir_subsidi' => null,
+                    'babi_mentah_price' => null,
+                    'babi_matang_price' => null,
+                    'is_available' => true,
+                    'sort_order' => 2,
+                ]
+            );
+
+            $paketNapass->variants()->delete();
+            $this->seedVariants($paketNapass, [
+                ['label' => 'Paket Napass', 'harga' => 275000],
+            ]);
+
+            $babiAdat = MenuItem::updateOrCreate(
+                ['name' => 'Babi Adat'],
+                [
+                    'category_id' => $eceranCategory->id,
+                    'description' => 'Babi adat isi 1 item untuk kebutuhan adat dan acara keluarga.',
+                    'image' => self::FALLBACK_IMAGE,
+                    'base_price' => null,
+                    'unit' => 'paket',
+                    'stock_quantity' => 100,
+                    'min_order_hours' => 72,
+                    'menu_type' => 'eceran',
+                    'sub_type' => 'babi_adat',
+                    'is_bundle' => true,
+                    'bundle_desc' => 'Isi 1 item: pilihan babi adat.',
+                    'free_ongkir_km' => 10,
+                    'ongkir_subsidi' => null,
+                    'babi_mentah_price' => 85000,
+                    'babi_matang_price' => 95000,
+                    'is_available' => true,
+                    'sort_order' => 3,
+                ]
+            );
+
+            $babiAdat->variants()->delete();
+            $this->seedVariants($babiAdat, [
+                ['label' => 'Babi Adat', 'harga' => 85000],
+            ]);
+        });
+    }
+
+    private function purgeExistingSeedData(): void
+    {
+        MenuItem::withTrashed()
+            ->whereIn('name', self::OLD_ITEM_NAMES)
+            ->forceDelete();
+
+        MenuItemPriceTier::query()
+            ->whereHas('menuItem', function ($query): void {
+                $query->whereIn('name', ['Timbang Hidup']);
+            })
+            ->delete();
+
+        MenuItemVariant::query()
+            ->whereHas('menuItem', function ($query): void {
+                $query->whereIn('name', ['Paket Pass', 'Paket Napass', 'Babi Adat']);
+            })
+            ->delete();
+    }
+
+    /**
+     * @param  array<int, array{label: string, harga: int|float|string}>  $variants
+     */
+    private function seedVariants(MenuItem $item, array $variants): void
+    {
+        foreach ($variants as $index => $variant) {
+            $item->variants()->create([
+                'label' => $variant['label'],
+                'harga' => $variant['harga'],
+                'sort_order' => $index + 1,
+            ]);
         }
     }
 
-    private function getItemDescription(string $type, string $name): string
+    /**
+     * @param  array<int, array{kode: string, is_half: bool, berat_min: int|float|string, berat_max: int|float|string|null, harga_mentah: int|float|string, harga_matang: int|float|string, cashback: int|float|string}>  $tiers
+     */
+    private function seedTimbangHidupTiers(MenuItem $item, array $tiers = []): void
     {
-        $descriptions = [
-            'timbang_hidup' => [
-                'Daging Babi Segar' => 'Daging babi segar berkualitas tinggi, siap untuk dimasak atau diproses sesuai kebutuhan Anda.',
-                'Daging Babi Pilihan Premium' => 'Daging babi pilihan premium dengan kualitas terbaik, cocok untuk hidangan spesial.',
-                'Usus Babi' => 'Usus babi bersih dan segar, sempurna untuk membuat olahan tradisional.',
-                'Jantung Babi' => 'Jantung babi segar, kaya nutrisi dan cocok untuk berbagai masakan.',
-                'Hati Babi' => 'Hati babi berkualitas, bahan ideal untuk masakan tradisional dan modern.',
-                'Tulang Babi' => 'Tulang babi segar untuk membuat kaldu dan sup yang gurih.',
-            ],
-            'olahan' => [
-                'Saksang' => 'Saksang babi tradisional dengan bumbu khas yang nikmat dan menggugah selera.',
-                'Panggang Babi' => 'Daging babi yang dipanggang sempurna dengan bumbu yang lezat.',
-                'Sop Tulang Babi' => 'Sup tulang babi yang gurih dengan kaldu yang kaya rasa.',
-                'Babi Goreng Crispy' => 'Babi goreng dengan tekstur crispy di luar dan lembut di dalam.',
-                'Daging Babi Kuah Kental' => 'Daging babi dengan kuah kental yang nikmat dan menggugah selera.',
-                'Bumbu Babi Kemasan' => 'Bumbu siap pakai untuk memasak babi dengan cita rasa otentik.',
-            ],
-            'eceran' => [
-                'Saksang Porsi' => 'Saksang tradisional dalam porsi pas untuk 1-2 orang.',
-                'Panggang Porsi' => 'Panggang babi dalam porsi individual yang praktis.',
-                'Sop Tulang Porsi' => 'Sop tulang babi dalam kemasan higienis, siap disajikan.',
-                'Babi Goreng Porsi' => 'Babi goreng crispy dalam porsi menarik.',
-                'Paket Nasi + Babi' => 'Paket hemat berisi nasi dengan pilihan lauk babi.',
-                'Sambal Babi Kemasan' => 'Sambal babi kemasan yang siap disajikan dengan berbagai hidangan.',
-            ],
+        $tiers = $tiers !== [] ? $tiers : [
+            ['kode' => 'A', 'is_half' => false, 'berat_min' => 10, 'berat_max' => 19.99, 'harga_mentah' => 95000, 'harga_matang' => 105000, 'cashback' => 50000],
+            ['kode' => 'B', 'is_half' => false, 'berat_min' => 20, 'berat_max' => 49.99, 'harga_mentah' => 90000, 'harga_matang' => 100000, 'cashback' => 75000],
+            ['kode' => 'C', 'is_half' => false, 'berat_min' => 50, 'berat_max' => null, 'harga_mentah' => 85000, 'harga_matang' => 95000, 'cashback' => 100000],
         ];
 
-        return $descriptions[$type][$name] ?? 'Menu pilihan berkualitas dari Ringgit Catering.';
-    }
-
-    private function getItemImageUrl(string $type, string $name): string
-    {
-        $images = [
-            'Daging Babi Segar' => 'https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Daging Babi Pilihan Premium' => 'https://images.pexels.com/photos/1927377/pexels-photo-1927377.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Usus Babi' => 'https://images.pexels.com/photos/8309615/pexels-photo-8309615.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Jantung Babi' => 'https://images.pexels.com/photos/6210876/pexels-photo-6210876.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Hati Babi' => 'https://images.pexels.com/photos/566566/pexels-photo-566566.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Tulang Babi' => 'https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Saksang' => 'https://images.pexels.com/photos/725991/pexels-photo-725991.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Panggang Babi' => 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Sop Tulang Babi' => 'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Babi Goreng Crispy' => 'https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Daging Babi Kuah Kental' => 'https://images.pexels.com/photos/723198/pexels-photo-723198.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Bumbu Babi Kemasan' => 'https://images.pexels.com/photos/4198019/pexels-photo-4198019.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Saksang Porsi' => 'https://images.pexels.com/photos/725991/pexels-photo-725991.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Panggang Porsi' => 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Sop Tulang Porsi' => 'https://images.pexels.com/photos/539451/pexels-photo-539451.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Babi Goreng Porsi' => 'https://images.pexels.com/photos/410648/pexels-photo-410648.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Paket Nasi + Babi' => 'https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'Sambal Babi Kemasan' => 'https://images.pexels.com/photos/6941019/pexels-photo-6941019.jpeg?auto=compress&cs=tinysrgb&w=1200',
-        ];
-
-        $fallbackByType = [
-            'timbang_hidup' => 'https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'olahan' => 'https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg?auto=compress&cs=tinysrgb&w=1200',
-            'eceran' => 'https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1200',
-        ];
-
-        return $images[$name] ?? $fallbackByType[$type] ?? self::FALLBACK_IMAGE;
+        foreach ($tiers as $index => $tier) {
+            $item->tiers()->create([
+                'kode' => $tier['kode'],
+                'is_half' => $tier['is_half'],
+                'berat_min' => $tier['berat_min'],
+                'berat_max' => $tier['berat_max'],
+                'harga_mentah' => $tier['harga_mentah'],
+                'harga_matang' => $tier['harga_matang'],
+                'cashback' => $tier['cashback'],
+                'sort_order' => $index + 1,
+            ]);
+        }
     }
 }

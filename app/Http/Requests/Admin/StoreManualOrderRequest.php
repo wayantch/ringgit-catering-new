@@ -4,9 +4,9 @@ namespace App\Http\Requests\Admin;
 
 use App\AdatType;
 use App\Enums\KondisiProduk as KondisiProdukRules;
-use App\OrderType;
 use App\Models\MenuItem;
 use App\Models\User;
+use App\OrderType;
 use App\Rules\ValidHashid;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,8 +20,8 @@ class StoreManualOrderRequest extends FormRequest
 
     public function rules(): array
     {
-        $orderTypes = array_map(static fn(OrderType $orderType): string => $orderType->value, OrderType::cases());
-        $adatValues = array_map(static fn(AdatType $adatType): string => $adatType->value, AdatType::cases());
+        $orderTypes = array_map(static fn (OrderType $orderType): string => $orderType->value, OrderType::cases());
+        $adatValues = array_map(static fn (AdatType $adatType): string => $adatType->value, AdatType::cases());
         $kondisiValues = array_merge(
             KondisiProdukRules::TIMBANG_HIDUP,
             KondisiProdukRules::OLAHAN,
@@ -48,7 +48,8 @@ class StoreManualOrderRequest extends FormRequest
             'items.*.menu_unit' => 'required|string|max:50',
             'items.*.menu_image' => 'nullable|string',
             'items.*.base_price' => ['nullable', 'numeric', 'min:0'],
-            'items.*.kondisi_produk' => ['required', Rule::in($kondisiValues)],
+            'items.*.cashback' => ['nullable', 'numeric', 'min:0'],
+            'items.*.kondisi_produk' => ['required', Rule::in(array_merge($kondisiValues, ['satuan', 'adat']))],
             'items.*.adat_type' => ['nullable', Rule::in($adatValues)],
             'items.*.qty' => 'required|numeric|min:0.5',
             'items.*.price' => ['nullable', 'numeric', 'min:0'],

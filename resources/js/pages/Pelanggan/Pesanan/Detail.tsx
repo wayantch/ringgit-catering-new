@@ -311,16 +311,20 @@ function PaymentRow({
             )}
 
             {/* Tombol upload */}
-            {canUpload && status !== 'verified' && (
-                <button
-                    type="button"
-                    onClick={onUpload}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-2xl bg-primary px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary-600"
-                >
-                    <Upload className="h-3.5 w-3.5" />
-                    {hasProof ? 'Ganti Bukti' : `Upload Bukti ${label}`}
-                </button>
-            )}
+            {canUpload &&
+                status !== 'verified' &&
+                (!hasProof || status === 'rejected') && (
+                    <button
+                        type="button"
+                        onClick={onUpload}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-2xl bg-primary px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary-600"
+                    >
+                        <Upload className="h-3.5 w-3.5" />
+                        {status === 'rejected'
+                            ? 'Ganti Bukti'
+                            : `Upload Bukti ${label}`}
+                    </button>
+                )}
 
             {/* Info ditolak */}
             {status === 'rejected' && canUpload && (
@@ -404,11 +408,20 @@ function Detail({ order }: Props) {
     const totalCashback = order.total_cashback ?? 0;
     const cashbackEligible =
         order.cashback_eligible ?? cashbackBreakdown.length > 0;
+    const isFullPaymentOrder = isAdminOrder
+        ? isAdminFullPaid
+        : isPelunasanOnlyFlow;
+    const shouldShowCashback =
+        cashbackEligible && totalCashback > 0 && isFullPaymentOrder;
     const totalAfterCashback =
         order.total_after_cashback ??
         Math.max(Number(order.total_amount) - totalCashback, 0);
+    const displayTotalAmount = shouldShowCashback
+        ? totalAfterCashback
+        : Number(order.total_amount);
 
     const isPickup = order.order_type === 'takeaway';
+    const bookingTimeLabel = isPickup ? 'Jam Ambil' : 'Jam Kirim';
     const TypeIcon = isPickup ? ShoppingBag : Truck;
 
     return (
@@ -493,7 +506,7 @@ function Detail({ order }: Props) {
                                         />
                                         <InfoRow
                                             icon={Clock}
-                                            label="Jam"
+                                            label={bookingTimeLabel}
                                             value={order.booking_time}
                                         />
                                         <InfoRow
@@ -656,16 +669,15 @@ function Detail({ order }: Props) {
                                             </p>
                                             <div className="text-right">
                                                 <p className="text-base font-bold text-primary">
-                                                    {fmt(totalAfterCashback)}
+                                                    {fmt(displayTotalAmount)}
                                                 </p>
-                                                {cashbackEligible &&
-                                                    totalCashback > 0 && (
-                                                        <p className="text-[11px] text-slate-500 line-through">
-                                                            {fmt(
-                                                                order.total_amount,
-                                                            )}
-                                                        </p>
-                                                    )}
+                                                {shouldShowCashback && (
+                                                    <p className="text-[11px] text-slate-500 line-through">
+                                                        {fmt(
+                                                            order.total_amount,
+                                                        )}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -724,13 +736,13 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            totalAfterCashback,
+                                                            displayTotalAmount,
                                                         )}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            {cashbackEligible && (
+                                            {shouldShowCashback && (
                                                 <CashbackInfo
                                                     cashbackBreakdown={
                                                         cashbackBreakdown
@@ -773,9 +785,8 @@ function Detail({ order }: Props) {
                                             <PaymentRow
                                                 label="Pelunasan"
                                                 amount={
-                                                    cashbackEligible &&
-                                                    totalCashback > 0
-                                                        ? totalAfterCashback
+                                                    shouldShowCashback
+                                                        ? displayTotalAmount
                                                         : order.remaining_amount
                                                 }
                                                 verification={
@@ -798,23 +809,22 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            totalAfterCashback,
+                                                            displayTotalAmount,
                                                         )}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            {cashbackEligible &&
-                                                isPelunasanOnlyFlow && (
-                                                    <CashbackInfo
-                                                        cashbackBreakdown={
-                                                            cashbackBreakdown
-                                                        }
-                                                        totalCashback={
-                                                            totalCashback
-                                                        }
-                                                    />
-                                                )}
+                                            {shouldShowCashback && (
+                                                <CashbackInfo
+                                                    cashbackBreakdown={
+                                                        cashbackBreakdown
+                                                    }
+                                                    totalCashback={
+                                                        totalCashback
+                                                    }
+                                                />
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
@@ -844,8 +854,8 @@ function Detail({ order }: Props) {
                                             <PaymentRow
                                                 label="Pelunasan"
                                                 amount={
-                                                    isPelunasanOnlyFlow
-                                                        ? totalAfterCashback
+                                                    shouldShowCashback
+                                                        ? displayTotalAmount
                                                         : order.remaining_amount
                                                 }
                                                 verification={
@@ -871,23 +881,22 @@ function Detail({ order }: Props) {
                                                     </p>
                                                     <p className="text-base font-bold text-primary">
                                                         {fmt(
-                                                            totalAfterCashback,
+                                                            displayTotalAmount,
                                                         )}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            {cashbackEligible &&
-                                                isPelunasanOnlyFlow && (
-                                                    <CashbackInfo
-                                                        cashbackBreakdown={
-                                                            cashbackBreakdown
-                                                        }
-                                                        totalCashback={
-                                                            totalCashback
-                                                        }
-                                                    />
-                                                )}
+                                            {shouldShowCashback && (
+                                                <CashbackInfo
+                                                    cashbackBreakdown={
+                                                        cashbackBreakdown
+                                                    }
+                                                    totalCashback={
+                                                        totalCashback
+                                                    }
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </section>

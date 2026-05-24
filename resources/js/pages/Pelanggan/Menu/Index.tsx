@@ -79,8 +79,8 @@ const sectionMeta: Record<
         badge: 'Berat',
     },
     paket_nasi_box: {
-        title: 'Paket Nasi Box',
-        description: 'Paket nasi box untuk acara, sudah berisi lauk dan nasi.',
+        title: 'Paket Napass',
+        description: 'Paket Napass untuk acara, sudah berisi lauk dan nasi.',
         eyebrow: 'Eceran',
         badge: 'Box',
     },

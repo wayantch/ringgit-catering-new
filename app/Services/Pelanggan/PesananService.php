@@ -10,6 +10,7 @@ use App\Models\PaymentVerification;
 use App\Models\User;
 use App\Services\LoyaltyService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -22,33 +23,92 @@ class PesananService
     ) {}
 
     /**
+     * Prepare a checkout draft without creating an order yet.
+     *
+     * @return array{checkout: array, summary: array, cart_count: int}
+     */
+    public function buildCheckoutDraft(User $user, array $data): array
+    {
+        ['cartItems' => $cartItems, 'cartSummary' => $cartSummary] = $this->getCheckoutCartData($user, $data);
+        $cashbackBreakdown = $this->buildCashbackBreakdownFromCartItems($cartItems);
+        $cashbackTotal = array_reduce(
+            $cashbackBreakdown,
+            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
+            0.0,
+        );
+
+        return [
+            'checkout' => $data,
+            'summary' => array_merge($cartSummary, [
+                'cashback_breakdown' => $cashbackBreakdown,
+                'cashback_total' => $cashbackTotal,
+                'total_after_cashback' => max(0, (float) $cartSummary['total'] - $cashbackTotal),
+            ]),
+            'cart_count' => $cartItems->count(),
+        ];
+    }
+
+    /**
+     * Finalize a draft checkout by creating the order and uploading the proof.
+     */
+    public function finalizeCheckoutDraft(
+        User $user,
+        array $draft,
+        UploadedFile $file,
+        string $paymentType,
+    ): Order {
+        if (! isset($draft['checkout'], $draft['summary'], $draft['cart_count'])) {
+            throw new \Exception('Draft checkout tidak valid.');
+        }
+
+        $keranjangService = new KeranjangService;
+        $currentCartItems = $keranjangService->getCartItems($user);
+        $currentCartSummary = $keranjangService->getCartSummary($user);
+
+        if (
+            $currentCartItems->count() !== (int) $draft['cart_count'] ||
+            (float) $currentCartSummary['subtotal'] !== (float) $draft['summary']['subtotal']
+        ) {
+            throw new \Exception('Keranjang berubah. Silakan checkout ulang.');
+        }
+
+        $checkoutData = $draft['checkout'];
+        $checkoutData['use_loyalty_discount'] = false;
+
+        $order = $this->create($user, $checkoutData);
+
+        $order->update([
+            'subtotal' => $draft['summary']['subtotal'],
+            'unique_code' => $draft['summary']['unique_code'],
+            'dp_unique_code' => $draft['summary']['dp_unique_code'],
+            'total_amount' => $draft['summary']['total'],
+            'dp_amount' => $draft['summary']['dp_total'],
+            'remaining_amount' => $draft['summary']['remaining_amount'],
+        ]);
+
+        if (! empty($draft['checkout']['use_loyalty_discount'])) {
+            $activeConfig = $this->loyaltyService->getActiveConfig();
+
+            if ($activeConfig && $this->loyaltyService->isEligible($user, $activeConfig)) {
+                $this->loyaltyService->applyToOrder($order->refresh(), $activeConfig);
+            }
+        }
+
+        $this->uploadPaymentVerification($order->refresh(), $file, $paymentType);
+
+        return $order->refresh();
+    }
+
+    /**
      * Create order from cart items
      */
     public function create(User $user, array $data): Order
     {
-        $keranjangService = new KeranjangService;
-        $cartItems = $keranjangService->getCartItems($user);
-        $cartSummary = $keranjangService->getCartSummary($user);
-
-        if ($cartItems->isEmpty()) {
-            throw new \Exception('Keranjang kosong');
-        }
-
-        // Temporary rule: olahan/eceran items must be booked at least H+1.
-        $minimumBookingDate = now()->addDay()->startOfDay();
-        $bookingDate = Carbon::parse($data['booking_date'])->startOfDay();
-
-        foreach ($cartItems as $item) {
-            $categoryType = $this->resolveMenuCategoryType($item->menuItem);
-
-            if (in_array($categoryType, ['olahan', 'eceran'], true) && $bookingDate->lt($minimumBookingDate)) {
-                throw new \Exception('Pesanan minimal H+1 dari tanggal pemesanan.');
-            }
-        }
+        ['cartItems' => $cartItems, 'cartSummary' => $cartSummary] = $this->getCheckoutCartData($user, $data);
 
         // Generate order number
         $lastOrder = Order::latest('id')->first();
-        $orderNumber = 'ORD-' . now()->format('Ymd') . '-' . str_pad(($lastOrder?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
+        $orderNumber = 'ORD-'.now()->format('Ymd').'-'.str_pad(($lastOrder?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
 
         $order = DB::transaction(function () use ($user, $data, $cartItems, $cartSummary, $orderNumber) {
             $orderData = [
@@ -64,6 +124,8 @@ class PesananService
                 'delivery_address' => $data['delivery_address'] ?? null,
                 'order_status' => 'baru',
                 'subtotal' => $cartSummary['subtotal'],
+                'unique_code' => $cartSummary['unique_code'],
+                'dp_unique_code' => $cartSummary['dp_unique_code'],
                 'total_amount' => $cartSummary['total'],
                 'dp_amount' => $cartSummary['dp_total'],
                 'remaining_amount' => $cartSummary['remaining_amount'],
@@ -109,7 +171,7 @@ class PesananService
                 $itemNotes = $cartItem->notes;
                 if (! empty($cartItem->portion)) {
                     $label = $cartItem->portion === 'utuh' ? 'Utuh / Satu ekor' : 'Setengah ekor';
-                    $itemNotes = trim(($label) . ($itemNotes ? ' - ' . $itemNotes : ''));
+                    $itemNotes = trim(($label).($itemNotes ? ' - '.$itemNotes : ''));
                 }
 
                 OrderItem::create([
@@ -143,6 +205,36 @@ class PesananService
         });
 
         return $order;
+    }
+
+    /**
+     * @return array{cartItems: Collection<int, mixed>, cartSummary: array}
+     */
+    private function getCheckoutCartData(User $user, array $data): array
+    {
+        $keranjangService = new KeranjangService;
+        $cartItems = $keranjangService->getCartItems($user);
+
+        if ($cartItems->isEmpty()) {
+            throw new \Exception('Keranjang kosong');
+        }
+
+        // Temporary rule: olahan/eceran items must be booked at least H+1.
+        $minimumBookingDate = now()->addDay()->startOfDay();
+        $bookingDate = Carbon::parse($data['booking_date'])->startOfDay();
+
+        foreach ($cartItems as $item) {
+            $categoryType = $this->resolveMenuCategoryType($item->menuItem);
+
+            if (in_array($categoryType, ['olahan', 'eceran'], true) && $bookingDate->lt($minimumBookingDate)) {
+                throw new \Exception('Pesanan minimal H+1 dari tanggal pemesanan.');
+            }
+        }
+
+        return [
+            'cartItems' => $cartItems,
+            'cartSummary' => $keranjangService->getCartSummary($user),
+        ];
     }
 
     /**
@@ -206,23 +298,26 @@ class PesananService
             'order_type' => $order->order_type === 'takeaway' ? 'Pickup' : 'Delivery',
             'order_status' => $order->order_status,
             'delivery_address' => $order->delivery_address,
+            'subtotal' => $order->subtotal,
             'total_amount' => $order->total_amount,
             'dp_amount' => $order->dp_amount,
             'remaining_amount' => $order->remaining_amount,
+            'unique_code' => $order->unique_code,
+            'dp_unique_code' => $order->dp_unique_code,
             'notes' => $order->notes,
             'source' => $order->source,
             'cashback_eligible' => count($cashbackBreakdown) > 0,
             'cashback_breakdown' => $cashbackBreakdown,
             'total_cashback' => array_reduce(
                 $cashbackBreakdown,
-                static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
+                static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
                 0.0,
             ),
             'total_after_cashback' => max(
                 0,
                 (float) $order->total_amount - array_reduce(
                     $cashbackBreakdown,
-                    static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
+                    static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
                     0.0,
                 ),
             ),
@@ -284,6 +379,44 @@ class PesananService
 
             $breakdown[] = [
                 'menu_name' => $item->menu_name,
+                'kode' => $tier->kode,
+                'cashback' => (float) $tier->cashback,
+            ];
+        }
+
+        return $breakdown;
+    }
+
+    /**
+     * @param  iterable<int, mixed>  $cartItems
+     * @return array<int, array{menu_name: string, kode: string, cashback: float}>
+     */
+    private function buildCashbackBreakdownFromCartItems(Collection $cartItems): array
+    {
+        $breakdown = [];
+
+        foreach ($cartItems as $item) {
+            $menuItem = $item->menuItem;
+
+            if (! $menuItem || $menuItem->menu_type !== 'timbang_hidup') {
+                continue;
+            }
+
+            $quantity = (float) $item->quantity;
+            $tiers = $menuItem->relationLoaded('tiers')
+                ? $menuItem->tiers
+                : $menuItem->tiers()->orderBy('sort_order')->get();
+
+            $tier = $tiers->first(static function (MenuItemPriceTier $tier) use ($quantity): bool {
+                return $tier->matchesBerat($quantity);
+            });
+
+            if (! $tier || (float) $tier->cashback <= 0) {
+                continue;
+            }
+
+            $breakdown[] = [
+                'menu_name' => $menuItem->name,
                 'kode' => $tier->kode,
                 'cashback' => (float) $tier->cashback,
             ];
@@ -370,7 +503,7 @@ class PesananService
 
         $cashbackTotal = array_reduce(
             $this->buildCashbackBreakdown($order),
-            static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
+            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
             0.0,
         );
 

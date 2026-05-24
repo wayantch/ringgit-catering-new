@@ -21,6 +21,9 @@ return new class extends Migration
 
         // Recreate unique index to include portion
         Schema::table('carts', function (Blueprint $table) {
+            $table->index('user_id', 'carts_user_id_index');
+            $table->index('menu_item_id', 'carts_menu_item_id_index');
+
             // Drop existing unique index if present (name varies by DB), attempt by columns
             try {
                 $table->dropUnique(['user_id', 'menu_item_id', 'kondisi_produk', 'adat_type']);

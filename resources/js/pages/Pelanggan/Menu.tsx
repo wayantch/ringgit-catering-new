@@ -77,9 +77,9 @@ const SECTIONS = [
     },
     {
         key: 'paket_nasi_box',
-        title: 'Paket Nasi Box',
+        title: 'Paket Napass',
         emoji: '🍱',
-        description: 'Nasi box per porsi',
+        description: 'Paket Napass per porsi',
     },
     {
         key: 'babi_adat',
@@ -207,8 +207,8 @@ function Index({ timbang_hidup, eceran }: Props) {
             );
 
             if (found) {
-return found;
-}
+                return found;
+            }
         }
 
         return null;
@@ -216,8 +216,8 @@ return found;
 
     useEffect(() => {
         if (filteredSections.length === 0) {
-return;
-}
+            return;
+        }
 
         if (
             !filteredSections.some((section) => section.id === activeSectionId)

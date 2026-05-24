@@ -246,7 +246,7 @@ class KasirService
         $prefix = "RCS-{$date}-";
 
         $lastOrder = Order::query()
-            ->where('order_number', 'like', $prefix . '%')
+            ->where('order_number', 'like', $prefix.'%')
             ->lockForUpdate()
             ->orderByDesc('order_number')
             ->first();
@@ -256,7 +256,7 @@ class KasirService
             $sequence = ((int) substr($lastOrder->order_number, -4)) + 1;
         }
 
-        return $prefix . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
     }
 
     private function generateUniqueCode(?int $except = null): int
@@ -279,6 +279,10 @@ class KasirService
     private function resolveAllowedKondisi(MenuItem $menuItem): array
     {
         $allowedKondisi = KondisiProdukRules::forCategoryType((string) $menuItem->category?->type);
+
+        if ($menuItem->menu_type === 'eceran') {
+            $allowedKondisi = KondisiProdukRules::ECERAN;
+        }
 
         if (
             $menuItem->menu_type === 'eceran' &&

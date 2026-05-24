@@ -62,6 +62,7 @@ it('includes a cashback-adjusted total in the user order detail payload', functi
         'booking_time' => '10:00',
         'order_status' => 'baru',
         'subtotal' => 3240000,
+        'unique_code' => 555,
         'total_amount' => 3240000,
         'dp_amount' => 810000,
         'remaining_amount' => 2430000,
@@ -84,6 +85,8 @@ it('includes a cashback-adjusted total in the user order detail payload', functi
     $detail = app(PesananService::class)->getDetail($order);
 
     expect($detail['cashback_eligible'])->toBeTrue()
+        ->and($detail['subtotal'])->toBe('3240000.00')
+        ->and($detail['unique_code'])->toBe(555)
         ->and($detail['total_cashback'])->toBe(75000.0)
         ->and($detail['total_after_cashback'])->toBe(3165000.0)
         ->and($detail['items'][0]['menu_category_type'])->toBe('timbang_hidup')

@@ -68,7 +68,7 @@ type BatakPart =
     | 'batak_soit'
     | 'batak_ekor'
     | 'batak_jeroan';
-type NiasPart = 'nias_barat' | 'nias_kota' | 'nias_sekitar';
+type NiasPart = 'nias_barat' | 'nias_kota' | 'nias_selatan';
 
 const BATAK_PARTS: Array<{ value: BatakPart; label: string }> = [
     { value: 'batak_lengkap', label: 'Lengkap' },
@@ -83,7 +83,7 @@ const BATAK_PARTS: Array<{ value: BatakPart; label: string }> = [
 const NIAS_PARTS: Array<{ value: NiasPart; label: string }> = [
     { value: 'nias_barat', label: 'Nias Barat' },
     { value: 'nias_kota', label: 'Nias Kota' },
-    { value: 'nias_sekitar', label: 'Nias Sekitar' },
+    { value: 'nias_selatan', label: 'Nias Selatan' },
 ];
 
 const SACRIFICE_PERCENTS = [25, 50, 75, 100] as const;
@@ -473,17 +473,55 @@ export default function AddToCartSheet({
         [selectedTier],
     );
 
-    const isSmallRangeFlow = useMemo(() => {
-        if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
-            return false;
+    const shouldShowAdatOptions = useMemo(() => {
+        return Boolean(selectedTier && !selectedTier.is_half);
+    }, [selectedTier]);
+
+    const batakTotalPercent = saksangPercent + panggangPercent;
+
+    const shouldShowBatakRemainderInput =
+        adatFlow === 'batak' && batakTotalPercent < 100;
+
+    const isBatakTotalOverLimit =
+        adatFlow === 'batak' && batakTotalPercent > 100;
+
+    const isAdatSelectionComplete = useMemo(() => {
+        if (!selectedTier || selectedTier.is_half) {
+            return true;
         }
 
-        if (selectedTier.berat_max === null) {
-            return false;
+        if (adatFlow === 'batak') {
+            if (batakTotalPercent > 100) {
+                return false;
+            }
+
+            if (batakTotalPercent < 100) {
+                return (
+                    selectedBatakParts.length > 0 &&
+                    remainderText.trim().length > 0
+                );
+            }
+
+            return selectedBatakParts.length > 0;
         }
 
-        return Math.abs(selectedTier.berat_max - selectedTier.berat_min) <= 6;
-    }, [item, selectedTier]);
+        if (adatFlow === 'nias') {
+            return selectedNiasParts.length > 0;
+        }
+
+        if (adatFlow === 'tanpa_adat') {
+            return remainderText.trim().length > 0;
+        }
+
+        return false;
+    }, [
+        adatFlow,
+        batakTotalPercent,
+        remainderText,
+        selectedBatakParts,
+        selectedNiasParts,
+        selectedTier,
+    ]);
 
     const selectedVariant = useMemo(() => {
         if (!item || item.menu_type !== 'eceran') {
@@ -590,27 +628,20 @@ export default function AddToCartSheet({
 
     const handleNiasToggle = (value: NiasPart): void => {
         setSelectedNiasParts((current) => {
-            if (current.includes(value)) {
-                return current.filter((entry) => entry !== value);
+            if (current[0] === value) {
+                return [];
             }
 
-            return [...current, value];
+            return [value];
         });
     };
 
     const handleSaksangChange = (percent: number): void => {
-        setSaksangPercent((prevSaksang) => {
-            setPanggangPercent((prevPanggang) => {
-                // only auto-update panggang when it was previously the complement
-                if (prevPanggang === 100 - prevSaksang) {
-                    return 100 - percent;
-                }
+        setSaksangPercent(percent);
+    };
 
-                return prevPanggang;
-            });
-
-            return percent;
-        });
+    const handlePanggangChange = (percent: number): void => {
+        setPanggangPercent(percent);
     };
 
     const summaryNotes = useMemo(() => {
@@ -671,6 +702,15 @@ export default function AddToCartSheet({
             return;
         }
 
+        if (
+            item.menu_type === 'timbang_hidup' &&
+            selectedTier &&
+            !selectedTier.is_half &&
+            !isAdatSelectionComplete
+        ) {
+            return;
+        }
+
         setIsSubmitting(true);
 
         const computedPortion =
@@ -687,7 +727,9 @@ export default function AddToCartSheet({
                     ? kondisiProduk || 'mentah'
                     : kondisiProduk || 'satuan',
             adat_type:
-                item.menu_type === 'timbang_hidup' && adatFlow !== ''
+                item.menu_type === 'timbang_hidup' &&
+                shouldShowAdatOptions &&
+                adatFlow !== ''
                     ? adatFlow || null
                     : adatType || null,
             quantity,
@@ -760,83 +802,6 @@ export default function AddToCartSheet({
                 </div>
 
                 <div className="max-h-[calc(100vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
-                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                        <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
-                            <div>
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Ringkasan menu
-                                </p>
-                                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {item.menu_type === 'timbang_hidup'
-                                            ? 'Timbang hidup'
-                                            : (item.sub_type?.replace(
-                                                  '_',
-                                                  ' ',
-                                              ) ?? 'Eceran')}
-                                    </span>
-                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {item.menu_type === 'timbang_hidup'
-                                            ? `${item.tiers.length} Opsi`
-                                            : `${item.variants.length} varian`}
-                                    </span>
-                                    {item.menu_type === 'timbang_hidup' && (
-                                        <span className="hidden rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-                                            Kondisi {selectedSummaryLabel}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm leading-6 text-slate-500">
-                                    {item.menu_type === 'timbang_hidup'
-                                        ? 'Pilih kondisi produk lalu range berat untuk melanjutkan ke keranjang.'
-                                        : item.sub_type === 'babi_adat'
-                                          ? 'Pilih varian dan kondisi produk sebelum menyimpan pesanan.'
-                                          : 'Pilih varian sebelum menyimpan pesanan.'}
-                                </p>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#fbfaf6] p-4">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier
-                                        ? 'Estimasi harga'
-                                        : 'Harga mulai'}
-                                </p>
-                                <p className="mt-1 text-lg font-semibold text-primary">
-                                    {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier
-                                        ? formatCurrency(estimatedTierTotal)
-                                        : formatCurrency(displayedEceranPrice)}
-                                </p>
-                                {/* {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier && (
-                                        <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
-                                            <p>
-                                                Tier aktif: {selectedTier.kode}
-                                            </p>
-                                            <p>
-                                                Range admin:{' '}
-                                                {formatTierRange(selectedTier)}
-                                            </p>
-                                            <p>
-                                                Harga per kg:{' '}
-                                                {formatTierPrice(
-                                                    selectedTierPrice,
-                                                )}
-                                            </p>
-                                        </div>
-                                    )}
-                                {item.menu_type === 'eceran' &&
-                                    selectedVariant && (
-                                        <p className="mt-2 text-xs leading-5 text-slate-500">
-                                            Varian aktif:{' '}
-                                            {selectedVariant.label}
-                                        </p>
-                                    )} */}
-                            </div>
-                        </div>
-                    </section>
-
                     {item.menu_type === 'timbang_hidup' && (
                         <OptionChips
                             label="Pilih kondisi"
@@ -856,7 +821,7 @@ export default function AddToCartSheet({
                         item.tiers.length > 0 && (
                             <TierPicker
                                 label="Pilih range berat"
-                                helperText="Pilih range yang sudah diinput admin sebelum mengatur berat pesanan."
+                                helperText="Pilih range yang tersedia sebelum mengatur berat pesanan."
                                 options={item.tiers.map((tier) => ({
                                     id: tier.id,
                                     title: formatTierRange(tier),
@@ -896,14 +861,6 @@ export default function AddToCartSheet({
                                 }
                                 onChange={setQuantity}
                             />
-                            <section className="rounded-[28px] border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
-                                Range kg dari admin untuk tier ini:{' '}
-                                {formatTierRange(selectedTier)}
-                                <span className="mt-1 block text-xs text-slate-500">
-                                    Total estimasi saat ini:{' '}
-                                    {formatCurrency(estimatedTierTotal)}
-                                </span>
-                            </section>
                         </div>
                     )}
 
@@ -916,186 +873,326 @@ export default function AddToCartSheet({
                         </section>
                     )}
 
-                    {item.menu_type === 'timbang_hidup' && selectedTier && (
-                        <>
-                            <OptionChips
-                                label="Pilih adat"
-                                helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."
-                                options={[
-                                    { value: 'batak', label: 'Batak' },
-                                    { value: 'nias', label: 'Nias' },
-                                    {
-                                        value: 'tanpa_adat',
-                                        label: 'Lainnya',
-                                    },
-                                ]}
-                                value={adatFlow}
-                                onChange={(value) => {
-                                    setAdatFlow(value as TimbangAdatFlow);
-                                    setAdatType(value);
-                                    setSelectedBatakParts([]);
-                                    setSelectedNiasParts([]);
-                                    setRemainderText('');
+                    <section className="sticky top-0 z-20 rounded-[20px] border border-black/5 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-4">
+                        <div className="grid gap-3 sm:grid-cols-[1.2fr_0.8fr] sm:items-start sm:gap-4">
+                            <div>
+                                <p className="text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase sm:text-[11px] sm:tracking-[0.2em]">
+                                    Ringkasan menu
+                                </p>
+                                {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier && (
+                                        <div className="mt-1 block text-xs text-slate-500">
+                                            Range kg dari admin untuk tier ini:{' '}
+                                            {formatTierRange(selectedTier)}
+                                        </div>
+                                    )}
+                                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                        {item.menu_type === 'timbang_hidup'
+                                            ? 'Timbang hidup'
+                                            : (item.sub_type?.replace(
+                                                  '_',
+                                                  ' ',
+                                              ) ?? 'Eceran')}
+                                    </span>
+                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
+                                        {item.menu_type === 'timbang_hidup'
+                                            ? `${item.tiers.length} Opsi`
+                                            : `${item.variants.length} varian`}
+                                    </span>
+                                    {item.menu_type === 'timbang_hidup' && (
+                                        <span className="hidden rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
+                                            Kondisi {selectedSummaryLabel}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
 
-                                    if (value === 'batak') {
-                                        setSaksangPercent(25);
-                                        setPanggangPercent(75);
-                                    }
-                                }}
-                            />
+                            <div className="rounded-2xl bg-[#fbfaf6] p-3 sm:p-4">
+                                <p className="text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase sm:text-[11px] sm:tracking-[0.2em]">
+                                    {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier
+                                        ? 'Estimasi harga'
+                                        : 'Harga mulai'}
+                                </p>
+                                <p className="mt-1 text-base font-semibold text-primary sm:text-lg">
+                                    {item.menu_type === 'timbang_hidup' &&
+                                    selectedTier
+                                        ? formatCurrency(estimatedTierTotal)
+                                        : formatCurrency(displayedEceranPrice)}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
 
-                            {adatFlow === 'batak' && (
-                                <MultiSelectChips
-                                    label="Detail Batak"
-                                    helperText="Pilih satu atau beberapa. Jika Lengkap dipilih, opsi lain akan dinonaktifkan."
-                                    options={BATAK_PARTS}
-                                    value={selectedBatakParts}
-                                    onToggle={(value) =>
-                                        handleBatakToggle(value as BatakPart)
-                                    }
-                                    disableOthersWhenComplete
+                    {item.menu_type === 'timbang_hidup' &&
+                        selectedTier &&
+                        shouldShowAdatOptions && (
+                            <>
+                                <OptionChips
+                                    label="Pilih adat"
+                                    helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."
+                                    options={[
+                                        { value: 'batak', label: 'Batak' },
+                                        { value: 'nias', label: 'Nias' },
+                                        {
+                                            value: 'tanpa_adat',
+                                            label: 'Lainnya',
+                                        },
+                                    ]}
+                                    value={adatFlow}
+                                    onChange={(value) => {
+                                        setAdatFlow(value as TimbangAdatFlow);
+                                        setAdatType(value);
+                                        setSelectedBatakParts([]);
+                                        setSelectedNiasParts([]);
+                                        setRemainderText('');
+
+                                        if (value === 'batak') {
+                                            setSaksangPercent(25);
+                                            setPanggangPercent(75);
+                                        }
+                                    }}
                                 />
-                            )}
 
-                            {adatFlow === 'nias' && (
-                                <MultiSelectChips
-                                    label="Detail Nias"
-                                    helperText="Bisa pilih lebih dari satu wilayah adat."
-                                    options={NIAS_PARTS}
-                                    value={selectedNiasParts}
-                                    onToggle={(value) =>
-                                        handleNiasToggle(value as NiasPart)
-                                    }
-                                />
-                            )}
+                                {adatFlow === 'batak' && (
+                                    <MultiSelectChips
+                                        label="Detail Batak"
+                                        helperText="Pilih satu atau beberapa. Jika Lengkap dipilih, opsi lain akan dinonaktifkan."
+                                        options={BATAK_PARTS}
+                                        value={selectedBatakParts}
+                                        onToggle={(value) =>
+                                            handleBatakToggle(
+                                                value as BatakPart,
+                                            )
+                                        }
+                                        disableOthersWhenComplete
+                                    />
+                                )}
 
-                            {adatFlow && (
-                                <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                                    <div className="mb-3">
-                                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                            Sisa daging
-                                        </p>
-                                        <p className="mt-1 text-sm font-medium text-text">
-                                            Atur pembagian sisa daging setelah
-                                            adat dipilih
-                                        </p>
-                                    </div>
+                                {adatFlow === 'nias' && (
+                                    <OptionChips
+                                        label="Detail Nias"
+                                        helperText="Pilih satu wilayah adat saja."
+                                        options={NIAS_PARTS}
+                                        value={selectedNiasParts[0] ?? null}
+                                        onChange={(value) =>
+                                            handleNiasToggle(value as NiasPart)
+                                        }
+                                    />
+                                )}
 
-                                    {adatFlow === 'batak' && (
-                                        <div className="space-y-4">
-                                            <div className="grid gap-3 sm:grid-cols-2">
-                                                <div>
-                                                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                        Saksang %
-                                                    </label>
-                                                    <select
-                                                        value={saksangPercent}
-                                                        onChange={(event) =>
-                                                            handleSaksangChange(
-                                                                Number(
+                                {adatFlow && (
+                                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                                        <div className="mb-3">
+                                            <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                                                Sisa daging
+                                            </p>
+                                            <p className="mt-1 text-sm font-medium text-text">
+                                                Atur pembagian sisa daging
+                                                setelah adat dipilih
+                                            </p>
+                                        </div>
+
+                                        {adatFlow === 'batak' && (
+                                            <div className="space-y-4">
+                                                <div className="grid gap-3 sm:grid-cols-2">
+                                                    <div>
+                                                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                            Saksang %
+                                                        </label>
+                                                        <select
+                                                            value={
+                                                                saksangPercent
+                                                            }
+                                                            onChange={(event) =>
+                                                                handleSaksangChange(
+                                                                    Number(
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                        >
+                                                            {SACRIFICE_PERCENTS.map(
+                                                                (percent) => (
+                                                                    <option
+                                                                        key={
+                                                                            percent
+                                                                        }
+                                                                        value={
+                                                                            percent
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            percent
+                                                                        }
+                                                                        %
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                            Panggang %
+                                                        </label>
+                                                        <select
+                                                            value={
+                                                                panggangPercent
+                                                            }
+                                                            onChange={(event) =>
+                                                                handlePanggangChange(
+                                                                    Number(
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                        >
+                                                            {SACRIFICE_PERCENTS.map(
+                                                                (percent) => (
+                                                                    <option
+                                                                        key={
+                                                                            percent
+                                                                        }
+                                                                        value={
+                                                                            percent
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            percent
+                                                                        }
+                                                                        %
+                                                                    </option>
+                                                                ),
+                                                            )}
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
+                                                    {isBatakTotalOverLimit ? (
+                                                        <span className="font-medium text-red-600">
+                                                            Total saksang dan
+                                                            panggang melebihi
+                                                            100%. Kurangi salah
+                                                            satu persen.
+                                                        </span>
+                                                    ) : batakTotalPercent ===
+                                                      100 ? (
+                                                        <span>
+                                                            Sisa daging sudah
+                                                            habis dibagi. Sisa
+                                                            lainnya tidak perlu
+                                                            diisi.
+                                                        </span>
+                                                    ) : (
+                                                        <span>
+                                                            Sisa daging: Saksang{' '}
+                                                            {saksangPercent}%,
+                                                            Panggang{' '}
+                                                            {panggangPercent}%,
+                                                            sisa lainnya wajib
+                                                            diisi sebesar{' '}
+                                                            {100 -
+                                                                batakTotalPercent}
+                                                            %.
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {shouldShowBatakRemainderInput && (
+                                                    <div>
+                                                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                            Sisa lainnya *
+                                                        </label>
+                                                        <input
+                                                            value={
+                                                                remainderText
+                                                            }
+                                                            onChange={(event) =>
+                                                                setRemainderText(
                                                                     event.target
                                                                         .value,
-                                                                ),
+                                                                )
+                                                            }
+                                                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                            placeholder="Contoh: babi kecap"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {adatFlow === 'nias' && (
+                                            <div className="space-y-3">
+                                                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                                    Rebusan Nias
+                                                </div>
+                                                <div>
+                                                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                        Catatan tambahan
+                                                    </label>
+                                                    <input
+                                                        value={remainderText}
+                                                        onChange={(event) =>
+                                                            setRemainderText(
+                                                                event.target
+                                                                    .value,
                                                             )
                                                         }
                                                         className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                    >
-                                                        {SACRIFICE_PERCENTS.map(
-                                                            (percent) => (
-                                                                <option
-                                                                    key={
-                                                                        percent
-                                                                    }
-                                                                    value={
-                                                                        percent
-                                                                    }
-                                                                >
-                                                                    {percent}%
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
+                                                        placeholder="Contoh: rebusan nias untuk keluarga"
+                                                    />
                                                 </div>
                                             </div>
+                                        )}
 
-                                            <div className="rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-600">
-                                                Otomatis: sisa panggang
-                                                mengikuti saksang. Kalau ingin
-                                                pembagian lain seperti 25%
-                                                saksang, 50% panggang, dan
-                                                sisanya babi kecap, ubah persen
-                                                secara manual lalu tulis sisanya
-                                                di catatan.
+                                        {adatFlow === 'tanpa_adat' && (
+                                            <div className="space-y-3">
+                                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                                    Tanpa adat, sisa daging
+                                                    mengikuti catatan pesanan.
+                                                </div>
+                                                <div>
+                                                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                        Catatan sisa daging
+                                                    </label>
+                                                    <input
+                                                        value={remainderText}
+                                                        onChange={(event) =>
+                                                            setRemainderText(
+                                                                event.target
+                                                                    .value,
+                                                            )
+                                                        }
+                                                        className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
+                                                        placeholder="Contoh: semua dibagi rata"
+                                                    />
+                                                </div>
                                             </div>
+                                        )}
+                                    </section>
+                                )}
+                            </>
+                        )}
 
-                                            <div>
-                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                    Sisa lainnya
-                                                </label>
-                                                <input
-                                                    value={remainderText}
-                                                    onChange={(event) =>
-                                                        setRemainderText(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                    placeholder="Contoh: babi kecap"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {adatFlow === 'nias' && (
-                                        <div className="space-y-3">
-                                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                                                Rebusan Nias
-                                            </div>
-                                            <div>
-                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                    Catatan tambahan
-                                                </label>
-                                                <input
-                                                    value={remainderText}
-                                                    onChange={(event) =>
-                                                        setRemainderText(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                    placeholder="Contoh: rebusan nias untuk keluarga"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {adatFlow === 'tanpa_adat' && (
-                                        <div className="space-y-3">
-                                            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                                                Tanpa adat, sisa daging
-                                                mengikuti catatan pesanan.
-                                            </div>
-                                            <div>
-                                                <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                    Catatan sisa daging
-                                                </label>
-                                                <input
-                                                    value={remainderText}
-                                                    onChange={(event) =>
-                                                        setRemainderText(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                    placeholder="Contoh: semua dibagi rata"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-                        </>
-                    )}
+                    {item.menu_type === 'timbang_hidup' &&
+                        selectedTier &&
+                        !shouldShowAdatOptions && (
+                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                                <p className="text-sm font-medium text-text">
+                                    Tier {selectedTier.kode} adalah setengah
+                                    ekor, jadi opsi adat tidak ditampilkan.
+                                </p>
+                            </section>
+                        )}
 
                     {/* Eceran subtype info cards */}
                     {item.menu_type === 'eceran' &&
@@ -1244,13 +1341,12 @@ export default function AddToCartSheet({
                                 isSubmitting ||
                                 (item.menu_type === 'timbang_hidup' &&
                                     !selectedTier) ||
-                                (isSmallRangeFlow
-                                    ? adatFlow === '' ||
-                                      (adatFlow === 'batak' &&
-                                          selectedBatakParts.length === 0) ||
-                                      (adatFlow === 'nias' &&
-                                          selectedNiasParts.length === 0)
-                                    : false)
+                                Boolean(
+                                    item.menu_type === 'timbang_hidup' &&
+                                    selectedTier &&
+                                    !selectedTier.is_half &&
+                                    !isAdatSelectionComplete,
+                                )
                             }
                             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
                         >

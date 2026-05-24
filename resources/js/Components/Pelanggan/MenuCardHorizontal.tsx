@@ -27,14 +27,15 @@ function resolveImageSrc(image: string | null): string | null {
     return `/storage/${image}`;
 }
 
-function formatCurrency(value: string | number): string {
+function formatCurrency(value: string | number | null | undefined): string {
+    if (value === null || value === undefined) return 'Harga menyusul';
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         maximumFractionDigits: 0,
     }).format(Number(value));
 }
-
 export default function MenuCardHorizontal({ menu }: MenuCardHorizontalProps) {
     const imageSrc = resolveImageSrc(menu.image);
 

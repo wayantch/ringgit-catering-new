@@ -49,6 +49,8 @@ interface Order {
     notes?: string;
     subtotal: string;
     total_amount: string;
+    unique_code?: number | null;
+    dp_unique_code?: number | null;
     dp_percentage: number;
     dp_amount: string;
     remaining_amount: string;
@@ -140,6 +142,23 @@ export default function Show({ order }: Props) {
         : hasDpPayment
           ? 'dp'
           : null;
+    const totalCashback = order.total_cashback ?? 0;
+    const totalAfterCashback =
+        cashbackPaymentMethod === 'full' && totalCashback > 0
+            ? Math.max(Number(order.total_amount) - totalCashback, 0)
+            : Number(order.total_amount);
+    const paymentMethodLabel =
+        order.source === 'admin'
+            ? Number(order.dp_amount) > 0
+                ? 'DP'
+                : 'Pembayaran penuh'
+            : cashbackPaymentMethod === 'full'
+              ? 'Pembayaran penuh'
+              : cashbackPaymentMethod === 'dp'
+                ? 'DP'
+                : Number(order.dp_amount) > 0
+                  ? 'DP'
+                  : 'Pembayaran penuh';
     const pendingVerifications = verificationPayments.filter(
         (p: any) => p.status === 'pending',
     );
@@ -258,8 +277,8 @@ export default function Show({ order }: Props) {
             const params = new URLSearchParams({ status: 'dibatalkan' });
 
             if (reason) {
-params.append('reason', reason);
-}
+                params.append('reason', reason);
+            }
 
             fetch(`/admin/pesanan/${order.id}/update-status`, {
                 method: 'POST',
@@ -632,7 +651,12 @@ params.append('reason', reason);
                             </SectionCard>
 
                             <SectionCard title="Detail Pesanan">
-                                <div className="space-y-3.5">
+                                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                                    <InfoRow
+                                        label="Metode Pembayaran"
+                                        value={paymentMethodLabel}
+                                        icon={Receipt}
+                                    />
                                     <InfoRow
                                         label="Jenis"
                                         value={
@@ -674,6 +698,7 @@ params.append('reason', reason);
                                 </div>
                             </SectionCard>
                         </div>
+
                         {/* Timeline */}
                         <SectionCard>
                             <OrderTimeline
@@ -685,15 +710,33 @@ params.append('reason', reason);
 
                         {/* Item Pesanan */}
                         <SectionCard title="Item Pesanan">
-                            <OrderItemsTable items={order.items} />
-                            <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
-                                <div className="flex items-center justify-between gap-3">
-                                    <p className="text-sm font-semibold text-slate-600">
-                                        Total Pesanan
-                                    </p>
-                                    <p className="text-base font-bold text-primary">
-                                        {formatCurrency(order.total_amount)}
-                                    </p>
+                            <OrderItemsTable
+                                items={order.items}
+                                paymentMethod={cashbackPaymentMethod}
+                                subtotalAmount={Number(order.subtotal)}
+                                totalAmount={Number(order.total_amount)}
+                                uniqueCode={
+                                    cashbackPaymentMethod === 'full'
+                                        ? (order.unique_code ?? null)
+                                        : (order.dp_unique_code ?? null)
+                                }
+                                totalAfterCashback={totalAfterCashback}
+                                cashbackAmount={totalCashback}
+                            />
+                        </SectionCard>
+
+                        <SectionCard title="Catatan Pesanan">
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div>
+                                    {order.notes ? (
+                                        <p className="mt-2 rounded-2xl bg-slate-50 px-4 py-3 leading-6 whitespace-pre-wrap text-slate-700">
+                                            {order.notes}
+                                        </p>
+                                    ) : (
+                                        <p className="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-slate-400">
+                                            Tidak ada catatan pesanan.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </SectionCard>

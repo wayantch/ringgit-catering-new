@@ -4,6 +4,7 @@ interface Calculation {
     isPending: boolean;
     subtotal: number;
     uniqueCode: number;
+    cashback: number;
     total: number;
     dpUniqueCode: number;
     dpAmount: number;
@@ -77,17 +78,26 @@ export default function PaymentSection({
                 <div className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="space-y-2 text-sm text-slate-600">
                         <div className="flex items-center justify-between gap-3">
-                            <span>Subtotal</span>
+                            <span>Subtotal pesanan</span>
                             <span className="font-semibold text-text">
                                 {formatCurrency(calculation.subtotal)}
                             </span>
                         </div>
                         <div className="flex items-center justify-between gap-3">
-                            <span>Kode Unik</span>
+                            <span>Kode unik</span>
                             <span className="font-semibold text-text">
                                 + {formatCurrency(calculation.uniqueCode)}
                             </span>
                         </div>
+                        {paymentMethod === 'full' &&
+                            calculation.cashback > 0 && (
+                                <div className="flex items-center justify-between gap-3">
+                                    <span>Cashback</span>
+                                    <span className="font-semibold text-emerald-600">
+                                        - {formatCurrency(calculation.cashback)}
+                                    </span>
+                                </div>
+                            )}
                         <div className="border-t border-dashed border-slate-200 pt-2">
                             <div className="flex items-center justify-between gap-3">
                                 <span className="font-semibold text-text">

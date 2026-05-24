@@ -13,8 +13,10 @@ interface OrderSummary {
     order_type: 'takeaway' | 'delivery';
     status: 'baru' | 'diproses' | 'selesai' | 'dibatalkan';
     total_amount: number | null;
+    cashback_eligible: boolean;
+    total_after_cashback: number;
+    payment_method: 'full' | 'dp' | null;
     is_price_pending: boolean;
-    has_cashback: boolean;
     total_cashback: number;
     ongkir_subsidi_max: number | null;
     payment_status: {
@@ -64,6 +66,9 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                             </th>
                             <th className="p-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
                                 Jenis
+                            </th>
+                            <th className="p-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                                Pembayaran
                             </th>
                             <th className="p-4 text-xs font-semibold tracking-wide text-slate-400 uppercase">
                                 Status
@@ -121,25 +126,22 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                                     Harga Menyusul
                                                 </span>
                                             </div>
+                                        ) : o.payment_method === 'full' &&
+                                          o.cashback_eligible &&
+                                          o.total_cashback > 0 ? (
+                                            <div className="space-y-1">
+                                                <div className="font-semibold text-primary">
+                                                    {fmt(
+                                                        o.total_after_cashback,
+                                                    )}
+                                                </div>
+                                                <div className="text-[11px] text-slate-400 line-through">
+                                                    {fmt(o.total_amount)}
+                                                </div>
+                                            </div>
                                         ) : (
                                             <div className="font-semibold">
                                                 {fmt(o.total_amount)}
-                                            </div>
-                                        )}
-                                        {o.has_cashback && (
-                                            <div className="mt-2">
-                                                <span className="rounded-full bg-accent-2/10 px-2 py-0.5 text-[10px] font-semibold text-accent-2">
-                                                    Cashback Rp{' '}
-                                                    {fmt(o.total_cashback)}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {o.ongkir_subsidi_max != null && (
-                                            <div className="mt-2">
-                                                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
-                                                    🚚 Subsidi Ongkir s/d Rp{' '}
-                                                    {fmt(o.ongkir_subsidi_max)}
-                                                </span>
                                             </div>
                                         )}
                                     </td>
@@ -149,6 +151,17 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                                 {o.order_type === 'takeaway'
                                                     ? 'Pickup'
                                                     : 'Delivery'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 align-top">
+                                        <div className="mt-1 text-xs">
+                                            <span
+                                                className={`rounded-full px-2 py-0.5 font-semibold ${o.payment_method === 'dp' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}
+                                            >
+                                                {o.payment_method === 'dp'
+                                                    ? 'DP'
+                                                    : 'Full Payment'}
                                             </span>
                                         </div>
                                     </td>

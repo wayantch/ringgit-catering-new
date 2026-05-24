@@ -27,7 +27,9 @@ function initials(name: string): string {
         .toUpperCase();
 }
 
-function formatCurrency(value: string | number): string {
+function formatCurrency(value: string | number | null | undefined): string {
+    if (value === null || value === undefined) return 'Rp 0';
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -125,10 +127,13 @@ export default function ProfilHeader({ user, stats }: ProfilHeaderProps) {
                         <div className="mt-3">
                             <div className="mb-2 flex items-center justify-between text-[11px] text-white/65">
                                 <span>
-                                    {stats.loyalty_progress_percent ?? 0}% ke reward berikutnya
+                                    {stats.loyalty_progress_percent ?? 0}% ke
+                                    reward berikutnya
                                 </span>
                                 <span>
-                                    {stats.loyalty_is_eligible ? 'Eligible' : 'Perlu pesanan lagi'}
+                                    {stats.loyalty_is_eligible
+                                        ? 'Eligible'
+                                        : 'Perlu pesanan lagi'}
                                 </span>
                             </div>
                             <div className="h-2 overflow-hidden rounded-full bg-white/15">
@@ -158,5 +163,3 @@ export default function ProfilHeader({ user, stats }: ProfilHeaderProps) {
         </header>
     );
 }
-
-
