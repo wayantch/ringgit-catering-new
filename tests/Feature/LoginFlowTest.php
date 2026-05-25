@@ -11,13 +11,15 @@ it('redirects admin users to the admin dashboard via admin login', function (): 
         HandleInertiaRequests::class,
     ]);
 
+    $admin = User::factory()->admin()->create();
+
     Auth::partialMock()
         ->shouldReceive('attempt')
         ->once()
         ->andReturnTrue();
     Auth::partialMock()
         ->shouldReceive('user')
-        ->andReturn(User::make(['role' => 'admin']));
+        ->andReturn($admin);
 
     $response = $this->post('/admin/login', [
         'email' => 'admin@example.com',
@@ -26,6 +28,7 @@ it('redirects admin users to the admin dashboard via admin login', function (): 
     ]);
 
     $response->assertRedirect(route('admin.dashboard'));
+    expect($admin->refresh()->last_login_at)->not->toBeNull();
 });
 
 it('redirects produksi users to the production dashboard via admin login', function (): void {
@@ -34,13 +37,15 @@ it('redirects produksi users to the production dashboard via admin login', funct
         HandleInertiaRequests::class,
     ]);
 
+    $produksi = User::factory()->produksi()->create();
+
     Auth::partialMock()
         ->shouldReceive('attempt')
         ->once()
         ->andReturnTrue();
     Auth::partialMock()
         ->shouldReceive('user')
-        ->andReturn(User::make(['role' => 'produksi']));
+        ->andReturn($produksi);
 
     $response = $this->post('/admin/login', [
         'email' => 'produksi@example.com',
@@ -49,6 +54,7 @@ it('redirects produksi users to the production dashboard via admin login', funct
     ]);
 
     $response->assertRedirect(route('produksi.beranda'));
+    expect($produksi->refresh()->last_login_at)->not->toBeNull();
 });
 
 it('redirects buyers to the beranda via user login', function (): void {
@@ -57,13 +63,17 @@ it('redirects buyers to the beranda via user login', function (): void {
         HandleInertiaRequests::class,
     ]);
 
+    $buyer = User::factory()->create([
+        'role' => 'user',
+    ]);
+
     Auth::partialMock()
         ->shouldReceive('attempt')
         ->once()
         ->andReturnTrue();
     Auth::partialMock()
         ->shouldReceive('user')
-        ->andReturn(User::make(['role' => 'user']));
+        ->andReturn($buyer);
 
     $response = $this->post('/user/login', [
         'email' => 'buyer@example.com',
@@ -71,6 +81,7 @@ it('redirects buyers to the beranda via user login', function (): void {
     ]);
 
     $response->assertRedirect(route('user.beranda'));
+    expect($buyer->refresh()->last_login_at)->not->toBeNull();
 });
 
 it('blocks guests from protected admin routes', function (): void {

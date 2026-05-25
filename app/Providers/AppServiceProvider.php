@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use App\Models\PaymentVerification;
+use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +32,16 @@ class AppServiceProvider extends ServiceProvider
         // URL::forceScheme('https');
         $this->configureDefaults();
         $this->configureRouteModelBinding();
+
+        Event::listen(Login::class, function (Login $event): void {
+            if (! $event->user instanceof User) {
+                return;
+            }
+
+            $event->user->forceFill([
+                'last_login_at' => now(),
+            ])->save();
+        });
     }
 
     /**

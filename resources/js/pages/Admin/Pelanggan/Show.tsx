@@ -30,7 +30,9 @@ interface Props {
         email: string;
         phone: string | null;
         address: string | null;
+        status: 'aktif' | 'tidak_aktif';
         email_verified_at: string | null;
+        last_login_at: string | null;
         created_at: string;
         total_orders: number;
         total_spent: number;
@@ -100,6 +102,16 @@ function getOrderTypeLabel(type: Order['order_type']): string {
     return type === 'takeaway' ? 'Pickup' : 'Delivery';
 }
 
+function getLoginStatusClass(status: 'aktif' | 'tidak_aktif'): string {
+    return status === 'aktif'
+        ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+        : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200';
+}
+
+function getLoginStatusLabel(status: 'aktif' | 'tidak_aktif'): string {
+    return status === 'aktif' ? 'Aktif' : 'Tidak Aktif';
+}
+
 export default function Show({ pelanggan }: Props) {
     const rawOrders = pelanggan.orders;
     const orders: Order[] = Array.isArray(rawOrders)
@@ -138,7 +150,7 @@ export default function Show({ pelanggan }: Props) {
 
     return (
         <AdminLayout>
-            <div className="space-y-6 p-4 sm:px-8 sm:py-6">
+            <div className="space-y-6 p-4">
                 <header className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl">
                         <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
@@ -181,9 +193,13 @@ export default function Show({ pelanggan }: Props) {
                                 <h2 className="mt-1 truncate text-lg font-semibold text-text">
                                     {pelanggan.name}
                                 </h2>
-                                <p className="mt-1 text-xs text-slate-500">
-                                    Pelanggan aktif
-                                </p>
+                                <span
+                                    className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${getLoginStatusClass(
+                                        pelanggan.status,
+                                    )}`}
+                                >
+                                    {getLoginStatusLabel(pelanggan.status)}
+                                </span>
                             </div>
                         </div>
 

@@ -57,14 +57,7 @@ class PesananService
 
         return [
             'data' => collect($paginator->items())->map(function (Order $order): array {
-                $cashbackBreakdown = $this->buildCashbackBreakdown($order);
-                $totalCashback = array_reduce(
-                    $cashbackBreakdown,
-                    static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
-                    0.0,
-                );
-                $paymentMethod = $this->resolvePaymentMethod($order);
-                $shouldApplyCashback = $paymentMethod === 'full' && $totalCashback > 0;
+                $cashbackSummary = $this->getCashbackSummary($order);
 
                 return [
                     'id' => $order->hashid,
@@ -75,13 +68,9 @@ class PesananService
                     'booking_date' => $order->booking_date?->toDateString(),
                     'status' => $order->order_status,
                     'order_status' => $order->order_status,
-                    'payment_method' => $paymentMethod,
+                    'payment_method' => $cashbackSummary['payment_method'],
                     'total_amount' => $order->total_amount,
-                    'cashback_eligible' => count($cashbackBreakdown) > 0,
-                    'total_cashback' => $totalCashback,
-                    'total_after_cashback' => $shouldApplyCashback
-                        ? max(0, (float) $order->total_amount - $totalCashback)
-                        : (float) $order->total_amount,
+                    ...$cashbackSummary,
                     'is_price_pending' => $order->is_price_pending,
                 ];
             })->values()->all(),
@@ -101,6 +90,32 @@ class PesananService
             'payments.verifiedBy',
             'paymentVerifications',
         ]);
+    }
+
+    /**
+     * @return array{has_cashback: bool, cashback_eligible: bool, cashback_breakdown: array<int, array{menu_name: string, kode: string, cashback: float}>, total_cashback: float, total_after_cashback: float, payment_method: string}
+     */
+    public function getCashbackSummary(Order $order): array
+    {
+        $cashbackBreakdown = $this->buildCashbackBreakdown($order);
+        $totalCashback = array_reduce(
+            $cashbackBreakdown,
+            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
+            0.0,
+        );
+        $paymentMethod = $this->resolvePaymentMethod($order);
+        $shouldApplyCashback = $paymentMethod === 'full' && $totalCashback > 0;
+
+        return [
+            'has_cashback' => $totalCashback > 0,
+            'cashback_eligible' => count($cashbackBreakdown) > 0,
+            'cashback_breakdown' => $cashbackBreakdown,
+            'total_cashback' => $totalCashback,
+            'total_after_cashback' => $shouldApplyCashback
+                ? max(0, (float) $order->total_amount - $totalCashback)
+                : (float) $order->total_amount,
+            'payment_method' => $paymentMethod,
+        ];
     }
 
     public function createManualOrder(array $data, User $admin): Order
@@ -470,7 +485,7 @@ class PesananService
             $sequence = $lastSequence + 1;
         }
 
-        return $date . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $date.str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     private function generateUniqueCode(): int

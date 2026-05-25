@@ -10,12 +10,13 @@ it('paginates customer order history on the admin customer show page', function 
 
     $pelanggan = User::factory()->create([
         'role' => 'pembeli',
+        'last_login_at' => now()->subDays(10),
     ]);
 
     foreach (range(1, 12) as $index) {
         Order::create([
             'user_id' => $pelanggan->id,
-            'order_number' => 'ORD-' . str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+            'order_number' => 'ORD-' . uniqid() . '-' . str_pad((string) $index, 4, '0', STR_PAD_LEFT),
             'source' => 'pembeli',
             'customer_name' => $pelanggan->name,
             'customer_phone' => $pelanggan->phone,
@@ -34,12 +35,14 @@ it('paginates customer order history on the admin customer show page', function 
     $response = $this->actingAs($admin)->get(route('admin.pelanggan.show', $pelanggan));
 
     $response->assertOk();
-    $response->assertInertia(fn ($page) => $page
-        ->component('Admin/Pelanggan/Show')
-        ->where('pelanggan.total_orders', 12)
-        ->where('pelanggan.orders.current_page', 1)
-        ->where('pelanggan.orders.last_page', 2)
-        ->where('pelanggan.orders.total', 12)
-        ->has('pelanggan.orders.data', 10)
+    $response->assertInertia(
+        fn($page) => $page
+            ->component('Admin/Pelanggan/Show')
+            ->where('pelanggan.status', 'aktif')
+            ->where('pelanggan.total_orders', 12)
+            ->where('pelanggan.orders.current_page', 1)
+            ->where('pelanggan.orders.last_page', 2)
+            ->where('pelanggan.orders.total', 12)
+            ->has('pelanggan.orders.data', 10)
     );
 });

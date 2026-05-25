@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminLoginRequest;
 use App\Http\Requests\UserLoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,7 @@ class LoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $this->touchLastLoginAt();
 
         return redirect()->route('user.beranda');
     }
@@ -59,6 +61,7 @@ class LoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $this->touchLastLoginAt();
 
         $user = Auth::user();
 
@@ -67,6 +70,19 @@ class LoginController extends Controller
             'produksi' => redirect()->route('produksi.beranda'),
             default => redirect()->route('home'),
         };
+    }
+
+    private function touchLastLoginAt(): void
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            return;
+        }
+
+        $user->forceFill([
+            'last_login_at' => now(),
+        ])->save();
     }
 
     public function logout(Request $request): RedirectResponse

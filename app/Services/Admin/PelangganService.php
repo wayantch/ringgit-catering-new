@@ -36,9 +36,13 @@ class PelangganService
         // Filter by status
         if (! empty($filters['status']) && $filters['status'] !== 'semua') {
             if ($filters['status'] === 'aktif') {
-                $query->whereNotNull('email_verified_at');
-            } elseif ($filters['status'] === 'belum_login') {
-                $query->whereNull('email_verified_at');
+                $query->whereNotNull('last_login_at')
+                    ->where('last_login_at', '>=', now()->subMonth());
+            } elseif (in_array($filters['status'], ['tidak_aktif', 'belum_login'], true)) {
+                $query->where(function ($builder): void {
+                    $builder->whereNull('last_login_at')
+                        ->orWhere('last_login_at', '<', now()->subMonth());
+                });
             }
         }
 
@@ -75,12 +79,14 @@ class PelangganService
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'email_verified_at' => $user->email_verified_at,
+                    'last_login_at' => $user->last_login_at,
                     'orders_count' => $user->orders_count,
                     'total_orders' => $user->total_orders,
                     'orders_sum_total_amount' => $user->orders_sum_total_amount,
                     'tier' => $this->loyaltyService->getTier($orderCount),
                     'is_eligible' => $activeConfig ? $orderCount >= $activeConfig->min_orders : false,
                     'has_redeemed' => $hasRedeemed,
+                    'status' => $this->resolvePelangganStatus($user),
                     'created_at' => $user->created_at,
                 ];
             });
@@ -93,10 +99,14 @@ class PelangganService
     {
         $totalPelanggan = User::where('role', 'pembeli')->count();
         $aktifBulanIni = User::where('role', 'pembeli')
-            ->where('email_verified_at', '>=', now()->subDays(30))
+            ->whereNotNull('last_login_at')
+            ->where('last_login_at', '>=', now()->subMonth())
             ->count();
-        $belumLogin = User::where('role', 'pembeli')
-            ->whereNull('email_verified_at')
+        $tidakAktif = User::where('role', 'pembeli')
+            ->where(function ($builder): void {
+                $builder->whereNull('last_login_at')
+                    ->orWhere('last_login_at', '<', now()->subMonth());
+            })
             ->count();
 
         $totalRevenue = Order::where('order_status', 'selesai')
@@ -106,7 +116,8 @@ class PelangganService
         return [
             'total_pelanggan' => $totalPelanggan,
             'aktif_bulan_ini' => $aktifBulanIni,
-            'belum_login' => $belumLogin,
+            'tidak_aktif' => $tidakAktif,
+            'belum_login' => $tidakAktif,
             'total_revenue' => $totalRevenue,
         ];
     }
@@ -155,8 +166,8 @@ class PelangganService
         $completedOrderCount = $user->orders()->where('order_status', 'selesai')->count();
         $hasRedeemed = $activeConfig !== null
             ? $user->loyaltyRedemptions()
-                ->where('loyalty_config_id', $activeConfig->id)
-                ->exists()
+            ->where('loyalty_config_id', $activeConfig->id)
+            ->exists()
             : false;
 
         return [
@@ -166,6 +177,7 @@ class PelangganService
             'phone' => $user->phone,
             'address' => $user->address,
             'email_verified_at' => $user->email_verified_at,
+            'last_login_at' => $user->last_login_at,
             'created_at' => $user->created_at,
             'total_orders' => $user->orders()->count(),
             'total_spent' => $user->orders()->where('order_status', 'selesai')->sum('total_amount'),
@@ -177,6 +189,7 @@ class PelangganService
                 : null,
             'is_eligible' => $activeConfig ? $completedOrderCount >= $activeConfig->min_orders : false,
             'has_redeemed' => $hasRedeemed,
+            'status' => $this->resolvePelangganStatus($user),
             'orders' => $user->orders()
                 ->latest('booking_date')
                 ->latest('id')
@@ -194,5 +207,16 @@ class PelangganService
                     ];
                 }),
         ];
+    }
+
+    private function resolvePelangganStatus(User $user): string
+    {
+        return $this->isActivePelanggan($user) ? 'aktif' : 'tidak_aktif';
+    }
+
+    private function isActivePelanggan(User $user): bool
+    {
+        return $user->last_login_at !== null
+            && $user->last_login_at->greaterThanOrEqualTo(now()->subMonth());
     }
 }

@@ -19,7 +19,9 @@ interface Pelanggan {
     name: string;
     email: string;
     phone: string | null;
+    status: 'aktif' | 'tidak_aktif';
     email_verified_at: string | null;
+    last_login_at: string | null;
     orders_count: number;
     orders_sum_total_amount: number | null;
     tier: 'bronze' | 'silver' | 'gold' | 'platinum';
@@ -31,7 +33,7 @@ interface Pelanggan {
 interface Stats {
     total_pelanggan: number;
     aktif_bulan_ini: number;
-    belum_login: number;
+    tidak_aktif: number;
     total_revenue: number;
 }
 
@@ -85,8 +87,8 @@ export default function Index({
 
     const formatCurrency = (amount: number | null) => {
         if (!amount) {
-return 'Rp 0';
-}
+            return 'Rp 0';
+        }
 
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -202,14 +204,14 @@ return 'Rp 0';
                             color: 'bg-blue-50 text-blue-600',
                         },
                         {
-                            label: 'Aktif Bulan Ini',
+                            label: 'Aktif',
                             value: stats.aktif_bulan_ini,
                             icon: TrendingUp,
                             color: 'bg-emerald-50 text-emerald-600',
                         },
                         {
-                            label: 'Belum Login',
-                            value: stats.belum_login,
+                            label: 'Tidak Aktif',
+                            value: stats.tidak_aktif,
                             icon: AlertCircle,
                             color: 'bg-amber-50 text-amber-600',
                         },
@@ -267,7 +269,7 @@ return 'Rp 0';
                     </div>
 
                     <div className="flex gap-2">
-                        {['semua', 'aktif', 'belum_login'].map((status) => (
+                        {['semua', 'aktif', 'tidak_aktif'].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => handleStatusFilter(status)}
@@ -281,7 +283,7 @@ return 'Rp 0';
                                     ? 'Semua'
                                     : status === 'aktif'
                                       ? 'Aktif'
-                                      : 'Belum Login'}
+                                      : 'Tidak Aktif'}
                             </button>
                         ))}
                     </div>
@@ -316,7 +318,10 @@ return 'Rp 0';
                             <tbody className="divide-y divide-slate-50">
                                 {pelanggan.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="py-8 text-center text-slate-500">
+                                        <td
+                                            colSpan={6}
+                                            className="py-8 text-center text-slate-500"
+                                        >
                                             Tidak ada pelanggan ditemukan
                                         </td>
                                     </tr>
@@ -343,6 +348,19 @@ return 'Rp 0';
                                                         <p className="text-xs text-slate-500">
                                                             {p.email}
                                                         </p>
+                                                        <span
+                                                            className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                                                                p.status ===
+                                                                'aktif'
+                                                                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                                                                    : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'
+                                                            }`}
+                                                        >
+                                                            {p.status ===
+                                                            'aktif'
+                                                                ? 'Aktif'
+                                                                : 'Tidak Aktif'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -387,14 +405,14 @@ return 'Rp 0';
                                                     )}
 
                                                     {p.has_redeemed && (
-                                                        <span className="inline-flex self-start items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700 ring-1 ring-emerald-200">
+                                                        <span className="inline-flex items-center gap-1 self-start rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700 ring-1 ring-emerald-200">
                                                             <ShieldCheck className="h-3 w-3" />
                                                             Sudah redeem
                                                         </span>
                                                     )}
                                                     {p.is_eligible &&
                                                         !p.has_redeemed && (
-                                                            <span className="inline-flex self-start items-center rounded-full bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
+                                                            <span className="inline-flex items-center self-start rounded-full bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 ring-1 ring-amber-200">
                                                                 ★ Eligible
                                                                 diskon
                                                             </span>
