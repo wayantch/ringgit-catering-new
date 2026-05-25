@@ -60,7 +60,7 @@ class PesananService
                 $cashbackBreakdown = $this->buildCashbackBreakdown($order);
                 $totalCashback = array_reduce(
                     $cashbackBreakdown,
-                    static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
+                    static fn(float $carry, array $item): float => $carry + (float) $item['cashback'],
                     0.0,
                 );
                 $paymentMethod = $this->resolvePaymentMethod($order);
@@ -101,39 +101,6 @@ class PesananService
             'payments.verifiedBy',
             'paymentVerifications',
         ]);
-    }
-
-    /**
-     * @return array{
-     *     cashback_breakdown: array<int, array{menu_name: string, kode: string, cashback: float}>,
-     *     cashback_eligible: bool,
-     *     has_cashback: bool,
-     *     total_cashback: float,
-     *     payment_method: string,
-     *     total_after_cashback: float,
-     * }
-     */
-    public function getCashbackSummary(Order $order): array
-    {
-        $cashbackBreakdown = $this->buildCashbackBreakdown($order);
-        $totalCashback = array_reduce(
-            $cashbackBreakdown,
-            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
-            0.0,
-        );
-        $paymentMethod = $this->resolvePaymentMethod($order);
-        $shouldApplyCashback = $paymentMethod === 'full' && $totalCashback > 0;
-
-        return [
-            'cashback_breakdown' => $cashbackBreakdown,
-            'cashback_eligible' => count($cashbackBreakdown) > 0,
-            'has_cashback' => count($cashbackBreakdown) > 0,
-            'total_cashback' => $totalCashback,
-            'payment_method' => $paymentMethod,
-            'total_after_cashback' => $shouldApplyCashback
-                ? max(0, (float) $order->total_amount - $totalCashback)
-                : (float) $order->total_amount,
-        ];
     }
 
     public function createManualOrder(array $data, User $admin): Order
@@ -503,7 +470,7 @@ class PesananService
             $sequence = $lastSequence + 1;
         }
 
-        return $date.str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $date . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     private function generateUniqueCode(): int

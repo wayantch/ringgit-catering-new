@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @mixin Model
+ *
  * @property-read string $hashid
+ *
  * @method static \Illuminate\Database\Eloquent\Builder query()
  */
 trait HasHashid
@@ -60,7 +62,7 @@ trait HasHashid
 
     public function getRouteKeyName(): string
     {
-        return 'hashid';
+        return $this->getKeyName();
     }
 
     public function resolveRouteBinding($value, $field = null)
@@ -72,6 +74,17 @@ trait HasHashid
         }
 
         return static::query()->where($this->getKeyName(), $id)->first();
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $id = self::decodeHashid((string) $value);
+
+        if ($id) {
+            return $query->where($this->getKeyName(), $id);
+        }
+
+        return $query->where($this->getKeyName(), 0);
     }
 
     public function initializeHasHashid(): void

@@ -83,18 +83,18 @@ function InfoRow({
     icon?: any;
 }) {
     return (
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
             {Icon && (
                 <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/8">
                     <Icon className="size-3.5 text-primary" />
                 </div>
             )}
-            <div>
+            <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
                     {label}
                 </p>
-                <p className="mt-0.5 text-sm font-medium text-slate-800">
-                    {value}
+                <p className="mt-0.5 text-sm font-medium break-words text-slate-800">
+                    <span className="whitespace-pre-wrap">{value}</span>
                 </p>
             </div>
         </div>
@@ -615,7 +615,7 @@ export default function Show({ order }: Props) {
                         )}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <SectionCard title="Informasi Pelanggan">
-                                <div className="space-y-3.5">
+                                <div className="min-w-0 space-y-3.5">
                                     <InfoRow
                                         label="Nama"
                                         value={order.customer_name}
@@ -637,7 +637,7 @@ export default function Show({ order }: Props) {
                             </SectionCard>
 
                             <SectionCard title="Detail Pesanan">
-                                <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+                                <div className="grid min-w-0 grid-cols-1 gap-3.5 md:grid-cols-2 [&>*]:min-w-0">
                                     <InfoRow
                                         label="Metode Pembayaran"
                                         value={paymentMethodLabel}

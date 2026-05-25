@@ -1,13 +1,13 @@
 <?php
 
-use App\Models\User;
 use App\Http\Requests\Pelanggan\StoreCartItemRequest;
+use App\Models\User;
 
 test('exposes hashid route key behavior on models', function (): void {
     $user = User::make();
     $user->setRawAttributes(['id' => 123], true);
 
-    expect($user->getRouteKeyName())->toBe('hashid');
+    expect($user->getRouteKeyName())->toBe('id');
     expect($user->getRouteKey())->toBe($user->hashid);
     expect(User::decodeHashid($user->hashid))->toBe(123);
     expect($user->hashid)->not->toBe((string) $user->id);

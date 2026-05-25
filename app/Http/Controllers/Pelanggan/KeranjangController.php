@@ -37,9 +37,11 @@ class KeranjangController extends Controller
         return back()->with('success', 'Item ditambahkan ke keranjang');
     }
 
-    public function update(Request $request, Cart $cart, KeranjangService $service): RedirectResponse
+    public function update(Request $request, string $cart, KeranjangService $service): RedirectResponse
     {
-        $this->authorize('update', $cart);
+        $cartModel = Cart::findByHashid($cart);
+
+        $this->authorize('update', $cartModel);
 
         $validated = $request->validate([
             'quantity' => 'required|numeric|min:0.5',
@@ -48,16 +50,18 @@ class KeranjangController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $service->updateItem($cart, $validated);
+        $service->updateItem($cartModel, $validated);
 
         return back()->with('success', 'Keranjang diperbarui');
     }
 
-    public function destroy(Request $request, Cart $cart, KeranjangService $service): RedirectResponse
+    public function destroy(Request $request, string $cart, KeranjangService $service): RedirectResponse
     {
-        $this->authorize('delete', $cart);
+        $cartModel = Cart::findByHashid($cart);
 
-        $service->removeItem($cart);
+        $this->authorize('delete', $cartModel);
+
+        $service->removeItem($cartModel);
 
         return back()->with('success', 'Item dihapus dari keranjang');
     }

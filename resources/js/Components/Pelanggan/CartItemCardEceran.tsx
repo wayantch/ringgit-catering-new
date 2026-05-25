@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { alertError, alertSukses } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import keranjang from '@/routes/user/keranjang';
 import type { CartItemEceran } from './CartItemCard';
 
@@ -64,7 +64,6 @@ function getNextSubtotal(item: CartItemEceran, nextQty: number): number | null {
 
 export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
     const [qty, setQty] = useState<number>(Math.max(1, Number(item.qty)));
-    const [confirmingDelete, setConfirmingDelete] = useState(false);
     const imageSrc = resolveImageSrc(item.menu_item.image);
 
     useEffect(() => {
@@ -133,13 +132,11 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
     }, [item.id, item.notes, item.qty, qty]);
 
     const remove = (): void => {
-        router.delete(keranjang.destroy({ cart: item.id }), {
+        router.delete(keranjang.destroy.url({ cart: item.id }), {
             preserveScroll: true,
-            onSuccess: () => {
-                alertSukses('Item dihapus dari keranjang', 'Berhasil');
-            },
             onError: () => {
                 alertError('Gagal menghapus item', 'Error');
+                router.reload({ only: ['cartItems', 'summary'] });
             },
         });
     };
@@ -181,37 +178,14 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                             </div>
 
                             <div className="relative">
-                                {!confirmingDelete ? (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setConfirmingDelete(true)
-                                        }
-                                        className="rounded-full p-2 text-red-500 transition hover:bg-red-50"
-                                    >
-                                        <Trash2 className="size-4" />
-                                    </button>
-                                ) : (
-                                    <div className="flex flex-wrap items-center gap-2 rounded-full bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700">
-                                        <span>Yakin hapus?</span>
-                                        <button
-                                            type="button"
-                                            onClick={remove}
-                                            className="rounded-full bg-red-600 px-2.5 py-1 text-white transition hover:bg-red-700"
-                                        >
-                                            Ya
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setConfirmingDelete(false)
-                                            }
-                                            className="rounded-full bg-white px-2.5 py-1 text-red-700 transition hover:bg-red-100"
-                                        >
-                                            Batal
-                                        </button>
-                                    </div>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={remove}
+                                    className="rounded-full p-2 text-red-500 transition hover:bg-red-50"
+                                    aria-label="Hapus item"
+                                >
+                                    <Trash2 className="size-4" />
+                                </button>
                             </div>
                         </div>
 
