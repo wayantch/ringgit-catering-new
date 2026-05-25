@@ -60,8 +60,11 @@ interface Order {
     items: any[];
     payments: any[];
     has_cashback?: boolean;
+    cashback_eligible?: boolean;
     cashback_breakdown?: any[];
     total_cashback?: number;
+    total_after_cashback?: number;
+    payment_method?: 'full' | 'dp';
     created_by?: { id: number; name: string };
     user?: { id: number; name: string };
 }
@@ -128,37 +131,20 @@ export default function Show({ order }: Props) {
     const verificationPayments = order.payments.filter(
         (p: any) => p.is_verification,
     );
-    const hasDpPayment = verificationPayments.some(
-        (payment: any) =>
-            payment.payment_type === 'dp' || payment.type === 'dp',
-    );
-    const hasFullPayment = verificationPayments.some(
-        (payment: any) =>
-            payment.payment_type === 'pelunasan' ||
-            payment.type === 'pelunasan',
-    );
-    const cashbackPaymentMethod = hasFullPayment
-        ? 'full'
-        : hasDpPayment
-          ? 'dp'
-          : null;
+    const paymentMethod = order.payment_method ?? null;
+    const hasCashback =
+        order.has_cashback ?? order.cashback_eligible ?? false;
     const totalCashback = order.total_cashback ?? 0;
     const totalAfterCashback =
-        cashbackPaymentMethod === 'full' && totalCashback > 0
-            ? Math.max(Number(order.total_amount) - totalCashback, 0)
-            : Number(order.total_amount);
+        order.total_after_cashback ?? Number(order.total_amount);
     const paymentMethodLabel =
-        order.source === 'admin'
-            ? Number(order.dp_amount) > 0
+        paymentMethod === 'full'
+            ? 'Pembayaran penuh'
+            : paymentMethod === 'dp'
+              ? 'DP'
+              : Number(order.dp_amount) > 0
                 ? 'DP'
-                : 'Pembayaran penuh'
-            : cashbackPaymentMethod === 'full'
-              ? 'Pembayaran penuh'
-              : cashbackPaymentMethod === 'dp'
-                ? 'DP'
-                : Number(order.dp_amount) > 0
-                  ? 'DP'
-                  : 'Pembayaran penuh';
+                : 'Pembayaran penuh';
     const pendingVerifications = verificationPayments.filter(
         (p: any) => p.status === 'pending',
     );
@@ -712,11 +698,11 @@ export default function Show({ order }: Props) {
                         <SectionCard title="Item Pesanan">
                             <OrderItemsTable
                                 items={order.items}
-                                paymentMethod={cashbackPaymentMethod}
+                                paymentMethod={paymentMethod}
                                 subtotalAmount={Number(order.subtotal)}
                                 totalAmount={Number(order.total_amount)}
                                 uniqueCode={
-                                    cashbackPaymentMethod === 'full'
+                                    paymentMethod === 'full'
                                         ? (order.unique_code ?? null)
                                         : (order.dp_unique_code ?? null)
                                 }
@@ -743,10 +729,10 @@ export default function Show({ order }: Props) {
 
                         {/* Cashback (moved from sidebar) */}
                         <CashbackCard
-                            has_cashback={!!order.has_cashback}
+                            has_cashback={hasCashback}
                             cashback_breakdown={order.cashback_breakdown ?? []}
-                            total_cashback={order.total_cashback ?? 0}
-                            payment_method={cashbackPaymentMethod}
+                            total_cashback={totalCashback}
+                            payment_method={paymentMethod}
                         />
                     </div>
                 </div>

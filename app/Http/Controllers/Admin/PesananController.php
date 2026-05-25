@@ -276,40 +276,7 @@ class PesananController extends Controller
             ];
         })->values()->toArray();
 
-        $cashbackBreakdown = [];
-
-        foreach ($order->items as $item) {
-            $menuItem = $item->menuItem;
-
-            if (! $menuItem || $menuItem->menu_type !== 'timbang_hidup') {
-                continue;
-            }
-
-            $quantity = (float) $item->quantity;
-            $tiers = $menuItem->relationLoaded('tiers')
-                ? $menuItem->tiers
-                : $menuItem->tiers()->orderBy('sort_order')->get();
-
-            $tier = $tiers->first(static function ($tier) use ($quantity): bool {
-                return $tier->matchesBerat($quantity);
-            });
-
-            if (! $tier || (float) $tier->cashback <= 0) {
-                continue;
-            }
-
-            $cashbackBreakdown[] = [
-                'menu_name' => $item->menu_name,
-                'kode' => $tier->kode,
-                'cashback' => (float) $tier->cashback,
-            ];
-        }
-
-        $totalCashback = array_reduce(
-            $cashbackBreakdown,
-            static fn (float $carry, array $item): float => $carry + (float) $item['cashback'],
-            0.0,
-        );
+        $cashbackSummary = $this->service->getCashbackSummary($order);
 
         $payments = $order->payments->map(static function ($payment): array {
             return [
@@ -365,10 +332,7 @@ class PesananController extends Controller
             'dp_percentage' => $order->dp_percentage,
             'dp_amount' => $order->dp_amount,
             'remaining_amount' => $order->remaining_amount,
-            'cashback_eligible' => count($cashbackBreakdown) > 0,
-            'cashback_breakdown' => $cashbackBreakdown,
-            'total_cashback' => $totalCashback,
-            'total_after_cashback' => max(0, (float) $order->total_amount - $totalCashback),
+            ...$cashbackSummary,
             'is_price_pending' => $order->is_price_pending,
             'editable_until' => $order->editable_until,
             'isEditable' => $order->isEditable(),

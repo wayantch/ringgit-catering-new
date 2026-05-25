@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\PesananController;
+use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\MenuItem;
 use App\Models\Payment;
 use App\Models\PaymentVerification;
 use App\Models\User;
@@ -100,5 +101,87 @@ it('formats admin order detail payload with hashids and item quantities', functi
         ->and($formatted['items'])->toHaveCount(1)
         ->and($formatted['items'][0]['qty'])->toBe(3.0)
         ->and($formatted['payments'])->toHaveCount(2)
-        ->and($formatted['payments'][1]['is_verification'])->toBeTrue();
+        ->and($formatted['payments'][1]['is_verification'])->toBeTrue()
+        ->and($formatted['payment_method'])->toBe('dp')
+        ->and($formatted['has_cashback'])->toBeFalse()
+        ->and($formatted['total_after_cashback'])->toBe(150000.0);
+});
+
+it('applies cashback to admin detail total only for full payment orders', function (): void {
+    $order = Order::make();
+    $order->setRawAttributes([
+        'id' => 1002,
+        'order_number' => 'ORD-20260524-DETAIL-001',
+        'source' => 'admin',
+        'customer_name' => 'Pelanggan Full',
+        'customer_phone' => '08123456781',
+        'order_type' => 'takeaway',
+        'booking_date' => '2026-05-24',
+        'order_status' => 'diproses',
+        'subtotal' => 500000,
+        'unique_code' => 123,
+        'total_amount' => 100123,
+        'dp_amount' => 0,
+        'remaining_amount' => 0,
+        'is_price_pending' => false,
+    ], true);
+
+    $tier = MenuItemPriceTier::make();
+    $tier->setRawAttributes([
+        'id' => 1,
+        'menu_item_id' => 3002,
+        'kode' => 'A',
+        'is_half' => false,
+        'berat_min' => 1,
+        'berat_max' => 10,
+        'harga_mentah' => 100000,
+        'harga_matang' => 110000,
+        'cashback' => 25000,
+        'sort_order' => 1,
+    ], true);
+
+    $menuItem = MenuItem::make();
+    $menuItem->setRawAttributes([
+        'id' => 3002,
+        'name' => 'Babi Detail Cashback',
+        'menu_type' => 'timbang_hidup',
+    ], true);
+    $menuItem->setRelation('tiers', collect([$tier]));
+
+    $item = OrderItem::make();
+    $item->setRawAttributes([
+        'id' => 2002,
+        'order_id' => 1002,
+        'menu_item_id' => 3002,
+        'menu_name' => 'Babi Detail Cashback',
+        'menu_category_type' => 'timbang_hidup',
+        'kondisi_produk' => 'mentah',
+        'quantity' => 5,
+        'unit_price' => 100000,
+        'subtotal' => 500000,
+    ], true);
+    $item->setRelation('menuItem', $menuItem);
+    $item->setRelation('order', $order);
+
+    $order->setRelation('items', collect([$item]));
+    $order->setRelation('payments', collect());
+    $order->setRelation('paymentVerifications', collect());
+
+    $controller = new PesananController(
+        app(PesananService::class),
+        app(KasirService::class),
+    );
+
+    $reflection = new ReflectionClass($controller);
+    $method = $reflection->getMethod('formatOrderForFrontend');
+    $method->setAccessible(true);
+
+    $formatted = $method->invoke($controller, $order);
+
+    expect($formatted['payment_method'])->toBe('full')
+        ->and($formatted['has_cashback'])->toBeTrue()
+        ->and($formatted['total_cashback'])->toBe(25000.0)
+        ->and($formatted['total_after_cashback'])->toBe(75123.0)
+        ->and($formatted['cashback_breakdown'])->toHaveCount(1)
+        ->and($formatted['cashback_breakdown'][0]['kode'])->toBe('A');
 });

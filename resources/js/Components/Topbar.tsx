@@ -24,7 +24,7 @@ function ProfileDropdown({ user }) {
     const isProductionUser = user?.role === 'produksi';
 
     const profileHref = isProductionUser
-        ? produksi.pelanggan.url()
+        ? produksi.beranda.url()
         : admin.pelanggan.index.url();
     const settingHref = isProductionUser
         ? produksi.beranda.url()

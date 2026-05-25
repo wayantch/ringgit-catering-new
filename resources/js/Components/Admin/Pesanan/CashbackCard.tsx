@@ -28,33 +28,13 @@ export default function CashbackCard({
     total_cashback,
     payment_method,
 }: Props) {
-    if (!has_cashback) {
-return null;
-}
-
-    const statusChip = () => {
-        if (payment_method === 'full') {
-return (
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                    ✓ Cashback Diberikan
-                </span>
-            );
-}
-
-        if (payment_method === 'dp') {
-return (
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                    — Tidak Berlaku (DP)
-                </span>
-            );
-}
-
-        return (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                ⏳ Menunggu Metode Pembayaran
-            </span>
-        );
-    };
+    if (
+        !has_cashback ||
+        total_cashback <= 0 ||
+        payment_method !== 'full'
+    ) {
+        return null;
+    }
 
     return (
         <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
@@ -63,7 +43,9 @@ return (
                     <span className="text-xl">🎁</span>
                     <span>Cashback Full Payment</span>
                 </div>
-                {statusChip()}
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                    ✓ Cashback Diberikan
+                </span>
             </div>
 
             <div className="mt-4 space-y-2 text-sm text-slate-700">
