@@ -6,7 +6,7 @@ import SectionDivider from '@/Components/Pelanggan/SectionDivider';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 import CartEmpty from '../../Components/Pelanggan/CartEmpty';
 import CartItemCard from '../../Components/Pelanggan/CartItemCard';
-import type {CartItem} from '../../Components/Pelanggan/CartItemCard';
+import type { CartItem } from '../../Components/Pelanggan/CartItemCard';
 import OrderSummaryCard from '../../Components/Pelanggan/OrderSummaryCard';
 
 interface Summary {
@@ -48,7 +48,7 @@ function KeranjangHeader({
     totalBerat: number;
 }) {
     return (
-        <header className="relative overflow-hidden bg-primary pb-14 text-white">
+        <header className="relative overflow-hidden bg-primary pb-12 text-white sm:pb-14">
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-40"
@@ -66,16 +66,16 @@ function KeranjangHeader({
                 className="pointer-events-none absolute -bottom-14 -left-10 h-44 w-44 rounded-full bg-white/10 blur-2xl"
             />
 
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 sm:px-8 sm:pt-10">
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-7 sm:px-8 sm:pt-10">
                 <div className="flex items-start justify-between gap-5">
                     <div className="max-w-3xl">
-                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold tracking-[0.16em] text-white/85 uppercase backdrop-blur-sm sm:text-[11px] sm:tracking-[0.24em]">
                             Ringgit Catering System
                         </span>
-                        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                        <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-4xl">
                             Keranjang Belanja
                         </h1>
-                        <p className="mt-2 text-sm leading-6 text-white/80 sm:text-base">
+                        <p className="mt-2 text-sm leading-6 text-white/85 sm:text-base">
                             {count} item · {formatKg(totalBerat)} timbang hidup
                         </p>
                     </div>
@@ -117,12 +117,12 @@ export default function KeranjangPage({ cartItems, summary }: Props) {
 
             <KeranjangHeader count={cartItems.length} totalBerat={totalBerat} />
 
-            <div className="relative mt-6 sm:mt-8">
+            <div className="relative mt-4 sm:mt-8">
                 <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-8">
                     {isEmpty ? (
                         <CartEmpty />
                     ) : (
-                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px] lg:items-start">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
                             <div className="space-y-5">
                                 {timbangItems.length > 0 && (
                                     <div className="space-y-3">

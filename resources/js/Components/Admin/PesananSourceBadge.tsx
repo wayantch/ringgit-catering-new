@@ -22,7 +22,7 @@ export default function PesananSourceBadge({
 
     return (
         <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${config.bg} ${config.text}`}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ring-1 ${config.bg} ${config.text} ${source === 'pembeli' ? 'ring-purple-100' : 'ring-indigo-100'}`}
         >
             {config.label}
         </span>

@@ -24,7 +24,7 @@ export default function PesananStatusBadge({
 
     return (
         <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${config.bg} ${config.text}`}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ring-1 ${config.bg} ${config.text} ${status === 'baru' ? 'ring-blue-100' : status === 'diproses' ? 'ring-amber-100' : status === 'selesai' ? 'ring-emerald-100' : 'ring-red-100'}`}
         >
             {config.label}
         </span>

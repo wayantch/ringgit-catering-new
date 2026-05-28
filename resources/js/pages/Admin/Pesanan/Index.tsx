@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import type { PageProps } from '@inertiajs/react';
+import type { PageProps } from '@inertiajs/core';
 import { Plus, Printer } from 'lucide-react';
 import React, { useEffect } from 'react';
 import PesananTable from '@/Components/Admin/Pesanan/PesananTable';
@@ -7,20 +7,9 @@ import PesananFilterBar from '@/Components/Admin/PesananFilterBar';
 import PaginationControls from '@/Components/PaginationControls';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-interface Order {
-    id: number;
-    order_number: string;
-    source: 'pembeli' | 'admin';
-    customer_name: string;
-    customer_phone: string;
-    booking_date: string;
-    order_status: 'baru' | 'diproses' | 'selesai' | 'dibatalkan';
-    total_amount: string;
-}
-
 interface Props extends PageProps {
     orders: {
-        data: Order[];
+        data: React.ComponentProps<typeof PesananTable>['orders'];
         current_page: number;
         last_page: number;
         total: number;
@@ -40,7 +29,6 @@ export default function Index({ orders, filters }: Props) {
         const refreshOrders = (): void => {
             router.reload({
                 only: ['orders'],
-                preserveScroll: true,
             });
         };
 
@@ -78,24 +66,25 @@ export default function Index({ orders, filters }: Props) {
 
     return (
         <AdminLayout>
-            <div className="p-4">
+            <div className="space-y-6 p-4">
                 {/* Header */}
-                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
                             Manajemen Pesanan
                         </p>
                         <h1 className="mt-2 text-3xl font-bold text-slate-900 lg:text-4xl">
-                            Manajemen Pesanan
+                            Pesanan
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                            Kelola pesanan yang masuk.
+                            Kelola pesanan yang masuk dengan tampilan yang lebih
+                            bersih, modern, dan mudah dipindai.
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3">
                         <Link
                             href="/admin/print"
-                            className="inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] outline-1 outline-slate-200 transition hover:bg-primary-600 hover:text-white"
+                            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                         >
                             <Printer className="size-4" />
                             <span className="text-sm font-medium">
@@ -112,12 +101,12 @@ export default function Index({ orders, filters }: Props) {
                 </div>
 
                 {/* Filter Bar */}
-                <div className="mb-6">
+                <div>
                     <PesananFilterBar currentFilters={filters} />
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
                     <PesananTable orders={orders.data} />
                 </div>
 

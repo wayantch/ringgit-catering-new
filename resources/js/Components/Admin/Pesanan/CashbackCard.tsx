@@ -1,3 +1,4 @@
+import { Gift } from 'lucide-react';
 import React from 'react';
 
 interface BreakdownItem {
@@ -40,7 +41,9 @@ export default function CashbackCard({
         <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-semibold">
-                    <span className="text-xl">🎁</span>
+                    <span className="text-xl">
+                        <Gift className="h-5 w-5 text-slate-400" />
+                    </span>
                     <span>Cashback Full Payment</span>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">

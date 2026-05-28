@@ -24,19 +24,19 @@ function TypeCard({
         <button
             type="button"
             onClick={onClick}
-            className={`group rounded-2xl border p-5 text-left transition-all duration-200 ${active ? 'border-primary bg-primary/5 shadow-sm' : 'border-slate-200 bg-white hover:border-primary/40 hover:bg-primary/5'}`}
+            className={`group rounded-2xl border p-5 text-left transition-all duration-200 ${active ? 'border-primary/30 bg-primary/5 shadow-sm ring-1 ring-primary/10' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
         >
             <div className="flex items-start gap-4">
-                <div className="flex size-14 items-center justify-center rounded-2xl bg-secondary text-2xl shadow-inner ring-1 ring-black/5">
+                <div className="flex size-14 items-center justify-center rounded-2xl bg-slate-50 text-2xl ring-1 ring-slate-100">
                     {emoji}
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-text">
+                        <h3 className="text-base font-semibold text-slate-900">
                             {title}
                         </h3>
                         {active && (
-                            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white uppercase">
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase ring-1 ring-primary/10">
                                 Dipilih
                             </span>
                         )}
@@ -52,7 +52,7 @@ function TypeCard({
 
 export default function TypeSelector({ value, onSelect }: TypeSelectorProps) {
     return (
-        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="mb-5">
                 <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
                     Langkah 1

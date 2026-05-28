@@ -3,8 +3,8 @@ import {
     useMemo,
     useEffect,
     useRef
-    
-    
+
+
 } from 'react';
 import type {ReactNode, ElementType} from 'react';
 import { useSelect } from '@/hooks/useSelect';
@@ -267,7 +267,7 @@ return true;
                                 </p>
                             </div>
                         ) : (
-                            <div className="py-1">
+                            <div className="py-2">
                                 {options.map((opt, groupIndex) => {
                                     if (isOptionGroup(opt)) {
                                         return (
@@ -323,12 +323,12 @@ return true;
                                                                     item.disabled
                                                                 }
                                                                 className={cn(
-                                                                    'w-full px-4 py-2 text-left text-sm transition-colors duration-100',
+                                                                        'mx-2 my-1 w-[calc(100%-1rem)] rounded-xl px-4 py-2 text-left text-sm transition-colors duration-100',
                                                                     isSelected &&
-                                                                        'rounded-lg bg-primary text-white font-medium',
+                                                                            'bg-primary/10 text-primary font-medium ring-1 ring-primary/10',
                                                                     isHighlighted &&
                                                                         !isSelected &&
-                                                                        'bg-secondary/60',
+                                                                            'bg-slate-50',
                                                                     item.disabled &&
                                                                         'text-slate-300 cursor-not-allowed opacity-50',
                                                                 )}
@@ -388,12 +388,12 @@ return true;
                                             }}
                                             disabled={opt.disabled}
                                             className={cn(
-                                                'w-full px-4 py-2 text-left text-sm transition-colors duration-100',
+                                                'mx-2 my-1 w-[calc(100%-1rem)] rounded-xl px-4 py-2 text-left text-sm transition-colors duration-100',
                                                 isSelected &&
-                                                    'rounded-lg bg-primary text-white font-medium',
+                                                    'bg-primary/10 text-primary font-medium ring-1 ring-primary/10',
                                                 isHighlighted &&
                                                     !isSelected &&
-                                                    'bg-secondary/60',
+                                                    'bg-slate-50',
                                                 opt.disabled &&
                                                     'text-slate-300 cursor-not-allowed opacity-50',
                                             )}

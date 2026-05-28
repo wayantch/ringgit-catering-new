@@ -62,26 +62,26 @@ function TierGroup({
                 )}
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                    <thead className="bg-slate-50">
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+                    <thead className="bg-slate-50/70">
                         <tr>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Kode
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Range Berat
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Harga Mentah
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Harga Matang
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Cashback
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Setengah
                             </th>
                         </tr>
@@ -99,7 +99,7 @@ function TierGroup({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                     >
                                         <option value="A">A</option>
                                         <option value="B">B</option>
@@ -121,7 +121,7 @@ function TierGroup({
                                                         event.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                                 placeholder="Min"
                                             />
                                             <TierCellError
@@ -145,7 +145,7 @@ function TierGroup({
                                                         event.target.value,
                                                     )
                                                 }
-                                                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                                 placeholder="Maks"
                                             />
                                             <TierCellError
@@ -174,7 +174,7 @@ function TierGroup({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                         placeholder="0"
                                     />
                                     <TierCellError
@@ -198,7 +198,7 @@ function TierGroup({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                         placeholder="0"
                                     />
                                     <TierCellError

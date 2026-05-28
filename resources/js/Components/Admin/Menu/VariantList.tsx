@@ -45,24 +45,24 @@ export default function VariantList({
                 <button
                     type="button"
                     onClick={onAdd}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-600"
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-600"
                 >
                     <Plus className="size-4" />
                     Tambah Varian
                 </button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                    <thead className="bg-slate-50">
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+                    <thead className="bg-slate-50/70">
                         <tr>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Label/Ukuran
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Harga
                             </th>
-                            <th className="px-4 py-3 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Aksi
                             </th>
                         </tr>
@@ -81,7 +81,7 @@ export default function VariantList({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                         placeholder={
                                             showPriceOnly ? 'Pass 1' : '500ml'
                                         }
@@ -105,7 +105,7 @@ export default function VariantList({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
                                         placeholder="0"
                                     />
                                     <VariantError
@@ -119,7 +119,7 @@ export default function VariantList({
                                         type="button"
                                         onClick={() => onRemove(index)}
                                         disabled={variants.length === 1}
-                                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-rose-600 transition hover:border-rose-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
                                     >
                                         <Trash2 className="size-4" />
                                         Hapus

@@ -137,7 +137,7 @@ export default function BottomNavbar() {
             {/* Profile Modal/Sheet */}
             {profileOpen && (
                 <div className="fixed inset-0 z-50 flex items-end bg-black/30 p-4 sm:items-center sm:justify-center">
-                    <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-black/5">
+                    <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-slate-100">
                         <div className="flex items-center justify-between">
                             <h2 className="text-sm font-bold text-text">
                                 Profil Produksi

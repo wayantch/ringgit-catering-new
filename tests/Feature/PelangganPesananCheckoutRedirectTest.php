@@ -69,7 +69,7 @@ it('redirects checkout submission to the upload page with an inertia location re
         ->post(route('user.pesanan.store'), [
             'order_type' => 'takeaway',
             'booking_date' => now()->toDateString(),
-            'booking_time' => '10:00',
+            'pickup_time' => '10:00',
             'delivery_address' => null,
             'notes' => 'Test checkout',
             'phone' => '081234567890',
@@ -133,11 +133,80 @@ it('creates the order only after the draft payment proof is uploaded', function 
     $draft = app(PesananService::class)->buildCheckoutDraft($customer, [
         'order_type' => 'takeaway',
         'booking_date' => now()->toDateString(),
-        'booking_time' => '10:00',
+        'pickup_time' => '10:00',
         'delivery_address' => null,
         'notes' => 'Test checkout',
         'phone' => '081234567890',
         'use_loyalty_discount' => false,
+    ]);
+
+    it('rejects checkout times outside the allowed range', function (string $field, string $time, string $orderType): void {
+        $customer = User::factory()->create([
+            'role' => 'pembeli',
+        ]);
+
+        $menuItem = MenuItem::create([
+            'category_id' => null,
+            'name' => 'Babi Timbang',
+            'description' => 'Menu timbang hidup',
+            'image' => null,
+            'base_price' => null,
+            'unit' => 'kg',
+            'menu_type' => 'timbang_hidup',
+            'sub_type' => null,
+            'is_bundle' => false,
+            'bundle_desc' => null,
+            'free_ongkir_km' => null,
+            'ongkir_subsidi' => null,
+            'is_available' => true,
+            'sort_order' => 0,
+        ]);
+
+        MenuItemPriceTier::create([
+            'menu_item_id' => $menuItem->id,
+            'kode' => 'A',
+            'is_half' => false,
+            'berat_min' => 20,
+            'berat_max' => 29,
+            'harga_mentah' => 100000,
+            'harga_matang' => 110000,
+            'cashback' => 0,
+            'sort_order' => 1,
+        ]);
+
+        Cart::create([
+            'user_id' => $customer->id,
+            'menu_item_id' => $menuItem->id,
+            'kondisi_produk' => 'mateng',
+            'adat_type' => 'batak',
+            'quantity' => 25,
+            'notes' => 'Test checkout',
+        ]);
+
+        $payload = [
+            'order_type' => $orderType,
+            'booking_date' => now()->toDateString(),
+            'delivery_address' => $orderType === 'delivery' ? 'Jl. Contoh No. 1' : null,
+            'notes' => 'Test checkout',
+            'phone' => '081234567890',
+            'use_loyalty_discount' => false,
+            $field => $time,
+        ];
+
+        $response = $this->actingAs($customer)
+            ->withHeaders([
+                'X-Inertia' => 'true',
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Accept' => 'text/html, application/xhtml+xml',
+            ])
+            ->post(route('user.pesanan.store'), $payload);
+
+        $response->assertSessionHasErrors($field);
+        expect(Order::query()->where('user_id', $customer->id)->count())->toBe(0);
+    })->with([
+        ['pickup_time', '04:30', 'takeaway'],
+        ['pickup_time', '05:15', 'takeaway'],
+        ['delivery_time', '18:30', 'delivery'],
     ]);
 
     $response = $this->actingAs($customer)
@@ -161,3 +230,72 @@ it('creates the order only after the draft payment proof is uploaded', function 
         ->and(round((float) $order->dp_amount, 2))->toBe(round((float) $draft['summary']['dp_total'], 2))
         ->and(round((float) $order->remaining_amount, 2))->toBe(round((float) $draft['summary']['remaining_amount'], 2));
 });
+
+it('rejects checkout times outside the allowed range', function (string $field, string $time, string $orderType): void {
+    $customer = User::factory()->create([
+        'role' => 'pembeli',
+    ]);
+
+    $menuItem = MenuItem::create([
+        'category_id' => null,
+        'name' => 'Babi Timbang',
+        'description' => 'Menu timbang hidup',
+        'image' => null,
+        'base_price' => null,
+        'unit' => 'kg',
+        'menu_type' => 'timbang_hidup',
+        'sub_type' => null,
+        'is_bundle' => false,
+        'bundle_desc' => null,
+        'free_ongkir_km' => null,
+        'ongkir_subsidi' => null,
+        'is_available' => true,
+        'sort_order' => 0,
+    ]);
+
+    MenuItemPriceTier::create([
+        'menu_item_id' => $menuItem->id,
+        'kode' => 'A',
+        'is_half' => false,
+        'berat_min' => 20,
+        'berat_max' => 29,
+        'harga_mentah' => 100000,
+        'harga_matang' => 110000,
+        'cashback' => 0,
+        'sort_order' => 1,
+    ]);
+
+    Cart::create([
+        'user_id' => $customer->id,
+        'menu_item_id' => $menuItem->id,
+        'kondisi_produk' => 'mateng',
+        'adat_type' => 'batak',
+        'quantity' => 25,
+        'notes' => 'Test checkout',
+    ]);
+
+    $payload = [
+        'order_type' => $orderType,
+        'booking_date' => now()->toDateString(),
+        'delivery_address' => $orderType === 'delivery' ? 'Jl. Contoh No. 1' : null,
+        'notes' => 'Test checkout',
+        'phone' => '081234567890',
+        'use_loyalty_discount' => false,
+        $field => $time,
+    ];
+
+    $response = $this->actingAs($customer)
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'text/html, application/xhtml+xml',
+        ])
+        ->post(route('user.pesanan.store'), $payload);
+
+    $response->assertSessionHasErrors($field);
+    expect(Order::query()->where('user_id', $customer->id)->count())->toBe(0);
+})->with([
+    ['pickup_time', '04:30', 'takeaway'],
+    ['pickup_time', '05:15', 'takeaway'],
+    ['delivery_time', '18:30', 'delivery'],
+]);

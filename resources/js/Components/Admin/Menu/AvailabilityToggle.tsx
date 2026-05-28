@@ -33,13 +33,13 @@ export default function AvailabilityToggle({
         <button
             type="button"
             onClick={onToggle}
-            className="inline-flex items-center gap-2 text-xs font-medium"
+            className="inline-flex items-center gap-2 text-xs font-medium transition"
         >
             <span
-                className={`relative h-5 w-9 rounded-full transition-colors ${enabled ? 'bg-primary' : 'bg-slate-200'}`}
+                className={`relative h-5 w-9 rounded-full ring-1 ring-black/5 transition-colors ${enabled ? 'bg-primary' : 'bg-slate-200'}`}
             >
                 <span
-                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${enabled ? 'left-4.5' : 'left-0.5'}`}
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${enabled ? 'left-[1.15rem]' : 'left-0.5'}`}
                 />
             </span>
             <span className={enabled ? 'text-primary' : 'text-slate-500'}>

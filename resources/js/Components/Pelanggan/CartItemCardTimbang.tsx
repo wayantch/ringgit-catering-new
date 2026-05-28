@@ -149,10 +149,10 @@ export default function CartItemCardTimbang({
                     <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <h3 className="truncate text-sm font-semibold text-text sm:text-base">
+                                <h3 className="truncate text-base leading-6 font-semibold text-text sm:text-base">
                                     {item.menu_item.name}
                                 </h3>
-                                <p className="mt-1 text-[11px] text-slate-500">
+                                <p className="mt-1 text-xs leading-5 text-slate-600 sm:text-[11px]">
                                     Untuk ubah berat, hapus dan tambah ulang.
                                 </p>
                             </div>
@@ -192,11 +192,11 @@ export default function CartItemCardTimbang({
                         </div>
 
                         <div className="mt-3 rounded-xl bg-[#fbfaf6] p-3 text-sm text-slate-600">
-                            <p className="font-medium text-text">
+                            <p className="text-sm leading-6 font-medium text-text">
                                 {formatAdat(item)}
                             </p>
                             {item.adat_notes && (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs leading-5 text-slate-600">
                                     Sisa daging: {item.adat_notes}
                                 </p>
                             )}
@@ -205,28 +205,28 @@ export default function CartItemCardTimbang({
                 </div>
 
                 <div className="mt-4 border-t border-dashed border-slate-200 pt-4">
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-3 grid-cols-2 md:grid-cols-3">
                         <div>
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                            <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
                                 Berat
                             </p>
-                            <p className="mt-1 text-sm font-semibold text-text">
+                            <p className="mt-1 text-base font-semibold text-text sm:text-sm">
                                 {formatKg(item.berat)}
                             </p>
                         </div>
                         <div>
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                            <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
                                 Harga/kg
                             </p>
-                            <p className="mt-1 text-sm font-semibold text-text">
+                            <p className="mt-1 text-base font-semibold text-text sm:text-sm">
                                 {formatCurrency(item.harga_per_kg)}
                             </p>
                         </div>
                         <div>
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                            <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
                                 Subtotal
                             </p>
-                            <p className="mt-1 text-sm font-bold text-primary">
+                            <p className="mt-1 text-base font-bold text-primary sm:text-sm">
                                 {formatCurrency(item.subtotal)}
                             </p>
                         </div>
@@ -237,12 +237,12 @@ export default function CartItemCardTimbang({
                             <Check className="size-3.5" />
                             Cashback Rp{' '}
                             {new Intl.NumberFormat('id-ID').format(cashback)}
-                            jika bayar penuh
+                            {' '}jika bayar penuh
                         </div>
                     )}
 
                     {item.notes && (
-                        <p className="mt-3 text-xs leading-6 text-slate-500 italic">
+                        <p className="mt-3 text-sm leading-6 text-slate-600 italic sm:text-xs sm:text-slate-500">
                             Catatan: {item.notes}
                         </p>
                     )}

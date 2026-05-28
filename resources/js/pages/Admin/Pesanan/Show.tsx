@@ -93,7 +93,7 @@ function InfoRow({
                 <p className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
                     {label}
                 </p>
-                <p className="mt-0.5 text-sm font-medium break-words text-slate-800">
+                <p className="mt-0.5 text-sm font-medium wrap-break-word text-slate-800">
                     <span className="whitespace-pre-wrap">{value}</span>
                 </p>
             </div>
@@ -132,8 +132,7 @@ export default function Show({ order }: Props) {
         (p: any) => p.is_verification,
     );
     const paymentMethod = order.payment_method ?? null;
-    const hasCashback =
-        order.has_cashback ?? order.cashback_eligible ?? false;
+    const hasCashback = order.has_cashback ?? order.cashback_eligible ?? false;
     const totalCashback = order.total_cashback ?? 0;
     const totalAfterCashback =
         order.total_after_cashback ?? Number(order.total_amount);
@@ -447,18 +446,18 @@ export default function Show({ order }: Props) {
 
     return (
         <AdminLayout>
-            <div className="p-4">
+            <div className="space-y-4 p-4">
                 {/* ── PAGE HEADER ── */}
-                <div className="mb-4 flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
                     <div>
                         <button
                             onClick={() => window.history.back()}
-                            className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-primary"
+                            className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition hover:text-primary"
                         >
                             <ArrowLeft className="size-3.5" /> Kembali
                         </button>
                         <div className="flex items-center gap-3">
-                            <h1 className="font-mono text-2xl font-bold tracking-tight text-slate-800">
+                            <h1 className="font-mono text-2xl font-bold tracking-tight text-slate-900">
                                 {order.order_number}
                             </h1>
                             <PesananStatusBadge status={order.order_status} />
@@ -475,7 +474,7 @@ export default function Show({ order }: Props) {
                     {order.source === 'admin' && order.isEditable && (
                         <Link
                             href={`/admin/pesanan/${order.id}/edit`}
-                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90"
+                            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary/90"
                         >
                             Edit Pesanan <ChevronRight className="size-4" />
                         </Link>
@@ -615,16 +614,11 @@ export default function Show({ order }: Props) {
                         )}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <SectionCard title="Informasi Pelanggan">
-                                <div className="min-w-0 space-y-3.5">
+                                <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0 md:grid-cols-2">
                                     <InfoRow
                                         label="Nama"
                                         value={order.customer_name}
                                         icon={User}
-                                    />
-                                    <InfoRow
-                                        label="No. HP"
-                                        value={order.customer_phone}
-                                        icon={Phone}
                                     />
                                     {order.customer_email && (
                                         <InfoRow
@@ -633,11 +627,16 @@ export default function Show({ order }: Props) {
                                             icon={Mail}
                                         />
                                     )}
+                                    <InfoRow
+                                        label="No. HP"
+                                        value={order.customer_phone}
+                                        icon={Phone}
+                                    />
                                 </div>
                             </SectionCard>
 
                             <SectionCard title="Detail Pesanan">
-                                <div className="grid min-w-0 grid-cols-1 gap-3.5 md:grid-cols-2 [&>*]:min-w-0">
+                                <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0 md:grid-cols-2">
                                     <InfoRow
                                         label="Metode Pembayaran"
                                         value={paymentMethodLabel}

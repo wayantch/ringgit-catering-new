@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pelanggan;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pelanggan\StoreCheckoutRequest;
 use App\Models\Order;
 use App\Services\Pelanggan\PesananService;
 use Illuminate\Http\RedirectResponse;
@@ -29,17 +30,11 @@ class PesananController extends Controller
         ]);
     }
 
-    public function store(Request $request, PesananService $service): SymfonyResponse|RedirectResponse
+    public function store(StoreCheckoutRequest $request, PesananService $service): SymfonyResponse|RedirectResponse
     {
-        $validated = $request->validate([
-            'order_type' => 'required|in:takeaway,delivery',
-            'booking_date' => 'required|date|after_or_equal:today',
-            'booking_time' => 'required|date_format:H:i',
-            'delivery_address' => 'required_if:order_type,delivery|nullable|string',
-            'notes' => 'nullable|string',
-            'phone' => 'required|string',
-            'use_loyalty_discount' => 'sometimes|boolean',
-        ]);
+        $validated = $request->validated();
+        $validated['booking_time'] = $validated['pickup_time']
+            ?? $validated['delivery_time'];
 
         try {
             $draft = $service->buildCheckoutDraft($request->user(), $validated);

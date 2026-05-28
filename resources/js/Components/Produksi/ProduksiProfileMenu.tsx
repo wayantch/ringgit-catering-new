@@ -44,7 +44,7 @@ export default function ProduksiProfileMenu() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="fixed top-4 right-4 z-40 flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 text-slate-700 shadow-md ring-1 ring-black/5 backdrop-blur-sm transition hover:bg-white"
+                className="fixed top-4 right-4 z-40 flex items-center gap-2 rounded-2xl bg-white/90 px-3 py-2 text-slate-700 shadow-md ring-1 ring-slate-100 backdrop-blur-sm transition hover:bg-white"
             >
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-xs font-bold text-primary">
                     {initials}
@@ -56,7 +56,7 @@ export default function ProduksiProfileMenu() {
 
             {open && (
                 <div className="fixed inset-0 z-50 flex items-end bg-black/30 p-4 sm:items-center sm:justify-end">
-                    <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-black/5">
+                    <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl ring-1 ring-slate-100">
                         <div className="flex items-center justify-between">
                             <h2 className="text-sm font-bold text-text">
                                 Profil Produksi

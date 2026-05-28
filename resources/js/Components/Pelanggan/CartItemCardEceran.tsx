@@ -67,10 +67,6 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
     const imageSrc = resolveImageSrc(item.menu_item.image);
 
     useEffect(() => {
-        setQty(Math.max(1, Number(item.qty)));
-    }, [item.qty, item.id]);
-
-    useEffect(() => {
         const timer = window.setTimeout(() => {
             if (qty === Number(item.qty)) {
                 return;
@@ -129,7 +125,7 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
         return () => {
             window.clearTimeout(timer);
         };
-    }, [item.id, item.notes, item.qty, qty]);
+    }, [item, item.id, item.notes, item.qty, qty]);
 
     const remove = (): void => {
         router.delete(keranjang.destroy.url({ cart: item.id }), {
@@ -164,11 +160,11 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                     <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <h3 className="truncate text-sm font-semibold text-text sm:text-base">
+                                <h3 className="truncate text-base leading-6 font-semibold text-text sm:text-base">
                                     {item.menu_item.name}
                                 </h3>
                                 {item.menu_item.is_bundle && (
-                                    <p className="mt-1 text-[11px] text-slate-500">
+                                    <p className="mt-1 text-xs leading-5 text-slate-600 sm:text-[11px]">
                                         Bundling dengan free ongkir{' '}
                                         {item.menu_item.free_ongkir_km !== null
                                             ? `${item.menu_item.free_ongkir_km} km`
@@ -208,13 +204,13 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                         </div>
 
                         {item.menu_item.bundle_desc && (
-                            <p className="mt-3 text-xs leading-6 text-slate-500 italic">
+                            <p className="mt-3 text-sm leading-6 text-slate-600 italic sm:text-xs sm:text-slate-500">
                                 {item.menu_item.bundle_desc}
                             </p>
                         )}
 
                         {item.notes && (
-                            <p className="mt-2 text-xs leading-6 text-slate-500 italic">
+                            <p className="mt-2 text-sm leading-6 text-slate-600 italic sm:text-xs sm:text-slate-500">
                                 Catatan: {item.notes}
                             </p>
                         )}
@@ -223,6 +219,18 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
 
                 <div className="mt-4 border-t border-dashed border-slate-200 pt-4">
                     <div className="flex items-end justify-between gap-3">
+                            <div className="text-left">
+                                <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
+                                    Harga/item
+                                </p>
+                                <p className="mt-1 text-base font-semibold text-text sm:text-sm">
+                                    {formatCurrency(
+                                        item.variant?.harga ??
+                                            item.subtotal ??
+                                            null,
+                                    )}
+                                </p>
+                            </div>
                         <div className="inline-flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
                             <button
                                 type="button"
@@ -245,24 +253,11 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                                 +
                             </button>
                         </div>
-
-                        <div className="text-right">
-                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                Harga/item
-                            </p>
-                            <p className="mt-1 text-sm font-semibold text-text">
-                                {formatCurrency(
-                                    item.variant?.harga ??
-                                        item.subtotal ??
-                                        null,
-                                )}
-                            </p>
-                        </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-[#fbfaf6] px-3 py-2 text-sm">
-                        <span className="text-slate-500">Subtotal</span>
-                        <span className="font-bold text-primary">
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-[#fbfaf6] px-3 py-2.5 text-sm">
+                        <span className="text-sm text-slate-600">Subtotal</span>
+                        <span className="text-base font-bold text-primary sm:text-sm">
                             {formatCurrency(item.subtotal)}
                         </span>
                     </div>

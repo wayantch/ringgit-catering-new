@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { LayoutGrid, ReceiptText, ShoppingBag } from 'lucide-react';
+import { LayoutGrid, ShoppingBag } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { CustomerSummary } from '@/Components/Admin/Pesanan/Kasir/CustomerSection';
 import ItemDetailSheet from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
@@ -10,7 +10,7 @@ import type { MenuPickerCardItem } from '@/Components/Admin/Pesanan/Kasir/MenuPi
 import type { OrderItemRowData } from '@/Components/Admin/Pesanan/Kasir/OrderItemRow';
 import OrderSummaryPanel from '@/Components/Admin/Pesanan/Kasir/OrderSummaryPanel';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertSukses, alertError } from '@/lib/alert';
+import { alertError, alertSukses } from '@/lib/alert';
 import admin from '@/routes/admin';
 
 interface Props {
@@ -112,7 +112,7 @@ export default function Create({ menuItems, customers }: Props) {
     const [customerType, setCustomerType] = useState<CustomerType>('walkin');
     const [selectedCustomer, setSelectedCustomer] =
         useState<CustomerSummary | null>(null);
-    const [walkInName, setWalkInName] = useState('Pelanggan Walk-in');
+    const [walkInName, setWalkInName] = useState('');
     const [walkInPhone, setWalkInPhone] = useState('');
     const [walkInEmail, setWalkInEmail] = useState('');
     const [orderType, setOrderType] = useState<OrderType>('takeaway');
@@ -134,13 +134,11 @@ export default function Create({ menuItems, customers }: Props) {
 
     const calculation = useMemo(() => {
         if (orderItems.some((item) => item.price === null)) {
-            const cashback = 0;
-
             return {
                 isPending: true,
                 subtotal: 0,
                 uniqueCode: 123,
-                cashback,
+                cashback: 0,
                 total: 0,
                 dpUniqueCode: 456,
                 dpAmount: 0,
@@ -266,6 +264,7 @@ export default function Create({ menuItems, customers }: Props) {
                     existing.qty + payload.qty,
                     existing.quantityBounds,
                 );
+
                 updated[existingIndex] = {
                     ...existing,
                     ...nextItem,
@@ -467,13 +466,13 @@ export default function Create({ menuItems, customers }: Props) {
         <AdminLayout>
             <Head title="Input Pesanan Kasir" />
 
-            <div className="flex-col gap-4 p-4 lg:p-6">
+            <div className="space-y-4 p-4 lg:p-6">
                 <div className="lg:hidden">
-                    <div className="mb-5 flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-black/5">
+                    <div className="mb-5 flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-100">
                         <button
                             type="button"
                             onClick={() => setMobileTab('menu')}
-                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${mobileTab === 'menu' ? 'bg-primary text-white' : 'text-text'}`}
+                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${mobileTab === 'menu' ? 'bg-primary text-white shadow-sm' : 'text-slate-700'}`}
                         >
                             <ShoppingBag className="size-4" />
                             Pilih Menu
@@ -481,7 +480,7 @@ export default function Create({ menuItems, customers }: Props) {
                         <button
                             type="button"
                             onClick={() => setMobileTab('summary')}
-                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${mobileTab === 'summary' ? 'bg-primary text-white' : 'text-text'}`}
+                            className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${mobileTab === 'summary' ? 'bg-primary text-white shadow-sm' : 'text-slate-700'}`}
                         >
                             <LayoutGrid className="size-4" />
                             Ringkasan ({orderItems.length})

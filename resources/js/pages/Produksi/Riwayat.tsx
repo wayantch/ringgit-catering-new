@@ -21,8 +21,8 @@ interface RiwayatItem {
 
 const fmt = (n: number | null): string => {
     if (n === null) {
-return '-';
-}
+        return '-';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -116,9 +116,9 @@ export default function Riwayat({ riwayat, filters }: Props) {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 mx-auto -mt-6 max-w-7xl px-4 sm:px-8 mb-10">
+            <div className="relative z-10 mx-auto -mt-6 mb-10 max-w-7xl px-4 sm:px-8">
                 {/* Filter Bar */}
-                <div className="sticky top-0 z-20 -mx-4 space-y-3 rounded-2xl bg-white p-4 px-4 shadow-sm ring-1 ring-black/5 sm:-mx-8 sm:px-8">
+                <div className="sticky top-0 z-20 -mx-4 space-y-3 rounded-2xl bg-white p-4 px-4 shadow-sm ring-1 ring-slate-100 sm:-mx-8 sm:px-8">
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <input
                             type="text"
@@ -153,7 +153,7 @@ export default function Riwayat({ riwayat, filters }: Props) {
                 </div>
 
                 {/* Table -> Modern responsive cards */}
-                <div className="rounded-b-2xl bg-white shadow-sm ring-1 ring-black/5">
+                <div className="mt-5 rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
                     {riwayat.data.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
                             <History
@@ -166,77 +166,113 @@ export default function Riwayat({ riwayat, filters }: Props) {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {riwayat.data.map((order) => (
-                                <div
-                                    key={order.id}
-                                    className="flex h-full flex-col justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:shadow-lg"
-                                >
-                                    <div>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-mono text-sm font-semibold text-primary">
+                        <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
+                            {riwayat.data.map((order) => {
+                                const isCompleted = order.status === 'selesai';
+                                const accentClass = isCompleted
+                                    ? 'bg-emerald-500'
+                                    : 'bg-rose-500';
+                                const statusChipClass = isCompleted
+                                    ? 'bg-emerald-50 text-emerald-600'
+                                    : 'bg-rose-50 text-rose-600';
+
+                                return (
+                                    <div
+                                        key={order.id}
+                                        className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md"
+                                    >
+                                        <div
+                                            className={`absolute inset-y-0 left-0 w-1.5 ${accentClass}`}
+                                        />
+
+                                        <div className="flex h-full flex-col gap-4 p-4 pl-5">
+                                            <div className="flex items-start justify-between gap-3 ">
+                                                <div className="min-w-0">
+                                                    <p className="font-mono text-sm font-semibold text-primary">
                                                         {order.order_number}
+                                                    </p>
+                                                    <h3 className="mt-1 truncate text-base font-semibold text-slate-900">
+                                                        {order.customer_name}
+                                                    </h3>
+                                                </div>
+
+                                                <div className="text-right ">
+                                                    <span
+                                                        className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusChipClass}`}
+                                                    >
+                                                        {isCompleted
+                                                            ? 'Selesai'
+                                                            : 'Dibatalkan'}
                                                     </span>
-                                                    <span className="text-xs text-slate-400">
-                                                        •
-                                                    </span>
-                                                    <span className="text-xs text-slate-500">
+                                                    <p className="mt-1 text-xs text-slate-500">
                                                         {fmtDate(
                                                             order.booking_date,
                                                         )}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-2 rounded-2xl bg-slate-50 p-3">
+                                                <div className="flex items-center justify-between gap-3 text-sm">
+                                                    <span className="text-slate-500">
+                                                        Tipe
+                                                    </span>
+                                                    <span className="font-medium text-slate-900">
+                                                        {displayType(
+                                                            order.order_type,
+                                                        )}
                                                     </span>
                                                 </div>
-                                                <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                                                    {order.customer_name}
-                                                </h3>
-                                                <p className="mt-1 text-xs text-slate-500">
-                                                    {order.items_count} menu •{' '}
-                                                    {displayType(
-                                                        order.order_type,
-                                                    )}
-                                                </p>
+                                                <div className="flex items-center justify-between gap-3 text-sm">
+                                                    <span className="text-slate-500">
+                                                        Item
+                                                    </span>
+                                                    <span className="font-medium text-slate-900">
+                                                        {order.items_count} menu
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-3 text-sm">
+                                                    <span className="text-slate-500">
+                                                        Total
+                                                    </span>
+                                                    <span className="text-base font-bold text-slate-900">
+                                                        {order.is_price_pending ? (
+                                                            <span className="inline-flex items-center rounded-full bg-accent-2/10 px-2 py-1 text-xs font-medium text-accent-2">
+                                                                Harga Menyusul
+                                                            </span>
+                                                        ) : (
+                                                            fmt(
+                                                                order.total_amount,
+                                                            )
+                                                        )}
+                                                    </span>
+                                                </div>
                                             </div>
 
-                                            <div className="flex flex-col items-end gap-2">
-                                                <span
-                                                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${order.status === 'selesai' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
+                                            <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
+                                                <Link
+                                                    href={`/produksi/pesanan/${order.id}`}
+                                                    className="text-sm font-semibold text-primary hover:underline"
                                                 >
-                                                    {order.status === 'selesai'
-                                                        ? 'Selesai'
-                                                        : 'Dibatalkan'}
-                                                </span>
-                                                <span className="text-sm font-semibold text-slate-900">
-                                                    {order.is_price_pending ? (
-                                                        <span className="inline-flex items-center rounded-full bg-accent-2/10 px-2 py-1 text-xs font-medium text-accent-2">
-                                                            Harga Menyusul
-                                                        </span>
-                                                    ) : (
-                                                        fmt(order.total_amount)
-                                                    )}
-                                                </span>
+                                                    Detail
+                                                </Link>
+                                                <div className="text-right text-xs text-slate-400">
+                                                    <span className="block text-[11px] tracking-wide text-slate-300 uppercase">
+                                                        Selesai pada
+                                                    </span>
+                                                    {order.selesai_at
+                                                        ? new Date(
+                                                              order.selesai_at,
+                                                          ).toLocaleString(
+                                                              'id-ID',
+                                                          )
+                                                        : '-'}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div className="mt-4 flex items-center justify-between">
-                                        <Link
-                                            href={`/produksi/pesanan/${order.id}`}
-                                            className="text-xs font-medium text-primary hover:underline"
-                                        >
-                                            Detail
-                                        </Link>
-                                        <div className="text-xs text-slate-400">
-                                            {order.selesai_at
-                                                ? new Date(
-                                                      order.selesai_at,
-                                                  ).toLocaleString('id-ID')
-                                                : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

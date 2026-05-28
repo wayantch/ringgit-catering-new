@@ -2,119 +2,196 @@
 
 namespace App\Services\Admin;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Order;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class PrintService
 {
-    /**
-     * Get grouped print data for production recap.
-     *
-     * @param string|null $tanggalDari
-     * @param string|null $tanggalSampai
-     * @param string|null $tanggalSpesifik
-     * @return array
-     */
-    public function getDataPrint(
-        ?string $tanggalDari = null,
-        ?string $tanggalSampai = null,
-        ?string $tanggalSpesifik = null,
-    ): array {
-        $query = DB::table('order_items')
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->select([
-                'orders.booking_date',
-                'orders.order_number',
-                'orders.customer_name',
-                'orders.order_type',
-                'orders.pickup_time',
-                'orders.delivery_time',
-                'order_items.menu_name',
-                'order_items.menu_category_type',
-                'order_items.menu_unit',
-                'order_items.quantity',
-                'order_items.kondisi_produk',
-                'order_items.adat_type',
-                'order_items.notes',
-            ])
-            ->orderBy('orders.booking_date', 'asc')
-            ->orderByRaw("FIELD(order_items.kondisi_produk,
-                'adat','panggang','saksang','sop',
-                'mateng','mentah','satuan')")
-            ->orderByRaw("COALESCE(orders.pickup_time, orders.delivery_time) ASC");
-
-        if ($tanggalSpesifik) {
-            $query->whereDate('orders.booking_date', $tanggalSpesifik);
-        } elseif ($tanggalDari && $tanggalSampai) {
-            $query->whereBetween('orders.booking_date', [$tanggalDari, $tanggalSampai]);
-        }
-
-        $rows = $query->get();
-
-        // Group by customer_name
-        $grouped = $rows->groupBy('customer_name');
-
-        $result = [];
-
-        foreach ($grouped as $customerName => $items) {
-            $result[] = [
-                'customer_name' => $customerName,
-                'total_order'   => $items->pluck('order_number')->unique()->count(),
-                'total_items'   => $items->count(),
-                'items'         => $items->map(fn($i) => [
-                    'menu_name'          => $i->menu_name,
-                    'menu_category_type' => $i->menu_category_type,
-                    'qty'                => $i->quantity,
-                    'unit'               => $i->menu_unit,
-                    'kondisi_produk'     => $i->kondisi_produk,
-                    'adat_type'          => $i->adat_type,
-                    'keterangan'         => $this->formatKeterangan($i->kondisi_produk, $i->adat_type),
-                    'order_number'       => $i->order_number,
-                    'booking_date'       => Carbon::parse($i->booking_date)->format('d/m/Y'),
-                    'order_type'         => $i->order_type,
-                    'jam'                => $i->order_type === 'takeaway'
-                        ? ($i->pickup_time ? Carbon::parse($i->pickup_time)->format('H:i') : '—')
-                        : ($i->delivery_time ? Carbon::parse($i->delivery_time)->format('H:i') : '—'),
-                    'notes'              => $i->notes,
-                ])->values()->toArray(),
+    public function getPrintData(?string $tanggal = null, ?string $dari = null, ?string $sampai = null): array
+    {
+        if (! $this->hasFilter($tanggal, $dari, $sampai)) {
+            return [
+                'groups' => [],
+                'grand_total' => 0,
+                'has_filters' => false,
+                'range_exceeded' => false,
             ];
         }
 
-        return $result;
+        if ($this->isRangeTooLong($dari, $sampai)) {
+            return [
+                'groups' => [],
+                'grand_total' => 0,
+                'has_filters' => true,
+                'range_exceeded' => true,
+            ];
+        }
+
+        $query = Order::query()
+            ->with([
+                'items' => static fn($query) => $query->orderBy('id'),
+                'payments',
+            ])
+            ->where('order_status', 'diproses');
+
+        if ($tanggal) {
+            $query->whereDate('booking_date', $tanggal);
+        } elseif ($dari && $sampai) {
+            $query->whereBetween('booking_date', [
+                Carbon::parse($dari)->toDateString(),
+                Carbon::parse($sampai)->toDateString(),
+            ]);
+        }
+
+        $orders = $query
+            ->orderBy('booking_date')
+            ->orderByRaw('COALESCE(pickup_time, delivery_time) ASC')
+            ->get();
+
+        $groups = $orders
+            ->groupBy(static fn(Order $order): string => $order->booking_date?->toDateString() ?? 'unknown')
+            ->map(function (Collection $orders, string $bookingDate): array {
+                $rows = $orders->flatMap(function (Order $order): array {
+                    $scheduledTime = $order->pickup_time ?? $order->delivery_time;
+                    $paymentSummary = $this->resolvePaymentSummary($order);
+
+                    return $order->items->map(function ($item) use ($order, $scheduledTime, $paymentSummary): array {
+                        $subtotal = (float) ($item->subtotal ?? 0);
+                        $detailLabel = $item->menu_name . ' — ' . $this->formatKeterangan($item->kondisi_produk, $item->adat_type);
+
+                        return [
+                            'order_id' => $order->id,
+                            'customer_name' => $order->customer_name,
+                            'name' => $item->menu_name,
+                            'qty' => (float) $item->quantity,
+                            'qty_label' => $this->formatQuantity(
+                                quantity: $item->quantity,
+                                categoryType: $item->menu_category_type,
+                            ),
+                            'price' => $subtotal,
+                            'keterangan' => $this->formatKeterangan($item->kondisi_produk, $item->adat_type),
+                            'detail_label' => $detailLabel,
+                            'payment_method' => $paymentSummary['method'],
+                            'payment_date' => $paymentSummary['date_label'],
+                            'jam' => $scheduledTime ? Carbon::parse($scheduledTime)->format('H:i') : '—',
+                            'pickup_delivery' => $order->order_type === 'delivery' ? 'Delivery' : 'Pickup',
+                        ];
+                    })->values()->all();
+                })->values()->all();
+
+                $grandTotal = collect($rows)->sum('price');
+
+                return [
+                    'booking_date' => $bookingDate,
+                    'booking_date_label' => Carbon::parse($bookingDate)->format('d/m/Y'),
+                    'rows' => $rows,
+                    'row_count' => count($rows),
+                    'grand_total' => $grandTotal,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [
+            'groups' => $groups,
+            'grand_total' => collect($groups)->sum('grand_total'),
+            'has_filters' => true,
+            'range_exceeded' => false,
+        ];
     }
 
-    /**
-     * Format keterangan text from kondisi and adat_type
-     *
-     * @param string $kondisi
-     * @param string|null $adatType
-     * @return string
-     */
+    private function hasFilter(?string $tanggal, ?string $dari, ?string $sampai): bool
+    {
+        return $tanggal !== null || ($dari !== null && $sampai !== null);
+    }
+
+    private function isRangeTooLong(?string $dari, ?string $sampai): bool
+    {
+        if (! $dari || ! $sampai) {
+            return false;
+        }
+
+        $start = Carbon::parse($dari)->startOfDay();
+        $end = Carbon::parse($sampai)->startOfDay();
+
+        return $start->diffInDays($end) + 1 > 7;
+    }
+
+    private function formatQuantity(float|string $quantity, ?string $categoryType): string
+    {
+        $formattedQuantity = rtrim(rtrim(number_format((float) $quantity, 2, '.', ''), '0'), '.');
+
+        if ($categoryType === 'timbang_hidup') {
+            return $formattedQuantity . ' Kg';
+        }
+
+        return $formattedQuantity;
+    }
+
     private function formatKeterangan(string $kondisi, ?string $adatType): string
     {
         if ($kondisi !== 'adat') {
             return match ($kondisi) {
                 'panggang' => 'Panggang',
-                'saksang'  => 'Saksang',
-                'sop'      => 'Sop',
-                'mateng'   => 'Mateng',
-                'mentah'   => 'Mentah',
-                'satuan'   => 'Eceran Satuan',
-                default    => ucfirst($kondisi),
+                'saksang' => 'Saksang',
+                'sop' => 'Sop',
+                'mateng' => 'Mateng',
+                'mentah' => 'Mentah',
+                'satuan' => 'Satuan',
+                default => ucfirst($kondisi),
             };
         }
 
-        return match ($adatType) {
-            'batak_lengkap'    => 'Adat Batak — Lengkap',
-            'batak_kepala'     => 'Adat Batak — Kepala',
-            'batak_aliang'     => 'Adat Batak — Aliang',
-            'batak_somba'      => 'Adat Batak — Somba',
-            'batak_soit'       => 'Adat Batak — Soit',
-            'batak_ekor'       => 'Adat Batak — Ekor',
-            'batak_jeroan'     => 'Adat Batak — Jeroan',
-            'nias_simbi_simbi' => 'Adat Nias — Simbi-Simbi',
-            'lainnya'          => 'Adat — Lainnya',
-            default            => 'Adat',
-        };
+        if (! $adatType) {
+            return 'Adat';
+        }
+
+        $adatParts = collect(explode(',', $adatType))
+            ->map(static fn(string $part): string => trim($part))
+            ->filter();
+
+        $labels = $adatParts->map(fn(string $part): string => match ($part) {
+            'batak_lengkap' => 'Lengkap',
+            'batak_kepala' => 'Kepala',
+            'batak_aliang' => 'Aliang',
+            'batak_somba' => 'Somba',
+            'batak_soit' => 'Soit',
+            'batak_ekor' => 'Ekor',
+            'batak_jeroan' => 'Jeroan',
+            'nias_simbi_simbi' => 'Simbi-Simbi',
+            'lainnya' => 'Lainnya',
+            default => ucfirst(str_replace('_', ' ', $part)),
+        });
+
+        if ($adatParts->every(static fn(string $part): bool => str_starts_with($part, 'batak_'))) {
+            return 'Adat Batak — ' . $labels->implode(', ');
+        }
+
+        if ($adatParts->contains('nias_simbi_simbi')) {
+            return 'Adat Nias — ' . $labels->implode(', ');
+        }
+
+        if ($adatParts->contains('lainnya')) {
+            return 'Adat — ' . $labels->implode(', ');
+        }
+
+        return 'Adat — ' . $labels->implode(', ');
+    }
+
+    private function resolvePaymentSummary(Order $order): array
+    {
+        $paymentLabel = (float) $order->dp_amount > 0 ? 'dp' : 'pembayaran penuh';
+        $paymentLookupType = (float) $order->dp_amount > 0 ? 'dp' : 'pelunasan';
+        $payment = $order->payments->firstWhere('type', $paymentLookupType)
+            ?? $order->payments->firstWhere('type', 'pelunasan')
+            ?? $order->payments->firstWhere('type', 'dp');
+
+        $paymentDate = $payment?->verified_at?->format('d/m/Y') ?? '—';
+
+        return [
+            'method' => $paymentLabel,
+            'date_label' => $paymentDate,
+        ];
     }
 }

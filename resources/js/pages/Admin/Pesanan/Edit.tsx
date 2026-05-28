@@ -69,7 +69,7 @@ export default function Edit({ order, menuItems }: Props) {
         return (
             <AdminLayout>
                 <div className="mx-auto max-w-4xl px-4 py-8">
-                    <div className="rounded-2xl bg-white p-6 shadow-sm">
+                    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
                         <div className="text-center">
                             <h2 className="mb-2 text-2xl font-bold text-primary">
                                 Tidak Dapat Diubah
@@ -80,7 +80,7 @@ export default function Edit({ order, menuItems }: Props) {
                             </p>
                             <Link
                                 href="/admin/pesanan"
-                                className="inline-block rounded-xl bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary/90"
+                                className="inline-block rounded-full bg-primary px-6 py-3 font-semibold text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary/90"
                             >
                                 Kembali ke Pesanan
                             </Link>
@@ -112,19 +112,19 @@ export default function Edit({ order, menuItems }: Props) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-4xl px-4 py-8">
+            <div className="mx-auto max-w-4xl space-y-4 px-4 py-8">
                 {/* Header */}
-                <div className="mb-8">
+                <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
                     <Link
                         href={`/admin/pesanan/${order.id}`}
-                        className="mb-2 inline-block text-sm font-medium text-primary hover:text-primary/80"
+                        className="mb-2 inline-block text-sm font-medium text-primary transition hover:text-primary-600"
                     >
                         ← Kembali
                     </Link>
-                    <h1 className="text-4xl font-bold text-primary">
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                         Edit Pesanan
                     </h1>
-                    <p className="mt-2 text-primary/60">
+                    <p className="mt-2 text-slate-500">
                         Perbarui detail pesanan
                     </p>
                 </div>

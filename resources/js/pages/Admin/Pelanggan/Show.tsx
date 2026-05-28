@@ -151,13 +151,13 @@ export default function Show({ pelanggan }: Props) {
     return (
         <AdminLayout>
             <div className="space-y-6 p-4">
-                <header className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:flex-row lg:items-end lg:justify-between">
+                <header className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
                             <Sparkles className="h-3.5 w-3.5" />
                             Detail Pelanggan
                         </span>
-                        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+                        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                             {pelanggan.name}
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
@@ -168,7 +168,7 @@ export default function Show({ pelanggan }: Props) {
 
                     <Link
                         href="/admin/pelanggan"
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Kembali
@@ -176,9 +176,9 @@ export default function Show({ pelanggan }: Props) {
                 </header>
 
                 <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-                    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+                    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary ring-1 ring-primary/10">
                                 {pelanggan.name
                                     .split(' ')
                                     .map((n) => n[0])
@@ -190,11 +190,11 @@ export default function Show({ pelanggan }: Props) {
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                     Informasi
                                 </p>
-                                <h2 className="mt-1 truncate text-lg font-semibold text-text">
+                                <h2 className=" truncate text-lg font-semibold text-slate-900">
                                     {pelanggan.name}
                                 </h2>
                                 <span
-                                    className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${getLoginStatusClass(
+                                    className={` inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${getLoginStatusClass(
                                         pelanggan.status,
                                     )}`}
                                 >
@@ -203,12 +203,12 @@ export default function Show({ pelanggan }: Props) {
                             </div>
                         </div>
 
-                        <div className="mt-5 space-y-3 border-t border-black/5 pt-5">
-                            <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                        <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
+                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     Email
                                 </p>
-                                <div className="mt-2 flex items-center gap-2 text-sm text-text">
+                                <div className="mt-2 flex items-center gap-2 text-sm text-slate-900">
                                     <Mail className="h-4 w-4 text-primary" />
                                     <span className="break-all">
                                         {pelanggan.email}
@@ -217,28 +217,28 @@ export default function Show({ pelanggan }: Props) {
                             </div>
 
                             {pelanggan.phone && (
-                                <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Nomor HP
                                     </p>
-                                    <div className="mt-2 flex items-center gap-2 text-sm text-text">
+                                    <div className="mt-2 flex items-center gap-2 text-sm text-slate-900">
                                         <Phone className="h-4 w-4 text-primary" />
                                         <span>{pelanggan.phone}</span>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     TGL Bergabung
                                 </p>
-                                <p className="mt-2 text-sm font-medium text-text">
+                                <p className="mt-2 text-sm font-medium text-slate-900">
                                     {formatDate(pelanggan.created_at)}
                                 </p>
                             </div>
 
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                                <div className="rounded-xl bg-secondary/70 p-3 ring-1 ring-black/5">
+                                <div className="rounded-2xl bg-white p-3.5 ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Loyalti
                                     </p>
@@ -252,37 +252,39 @@ export default function Show({ pelanggan }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Status Loyalti
                                     </p>
                                     <div className="mt-2 flex flex-wrap gap-2">
                                         {pelanggan.is_eligible && (
-                                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-100">
                                                 Eligible
                                             </span>
                                         )}
                                         {pelanggan.has_redeemed && (
-                                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
                                                 Sudah redeem
                                             </span>
+                                        ) || (
+                                            <p className="text-sm font-medium text-slate-500">Belum redeem</p>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     Alamat
                                 </p>
-                                <p className="mt-2 text-sm leading-6 font-medium text-text">
+                                <p className="mt-2 text-sm leading-6 font-medium text-slate-900">
                                     {pelanggan.address?.trim() ||
                                         'Alamat belum diisi'}
                                 </p>
                             </div>
 
                             {pelanggan.loyalty_min_orders !== null && (
-                                <div className="rounded-xl bg-[#fbfaf6] p-3 ring-1 ring-black/5">
+                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                                     <div className="mb-2 flex items-center justify-between text-[11px] font-medium text-slate-500">
                                         <span>
                                             {pelanggan.loyalty_completed_orders}{' '}
@@ -308,26 +310,26 @@ export default function Show({ pelanggan }: Props) {
                         </div>
                     </section>
 
-                    <section className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-                        <div className="flex items-center justify-between gap-3 border-b border-black/5 px-5 py-4">
+                    <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+                        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                             <div>
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                     Aktivitas
                                 </p>
-                                <h2 className="mt-1 text-lg font-semibold text-text">
+                                <h2 className="mt-1 text-lg font-semibold text-slate-900">
                                     Riwayat Pesanan
                                 </h2>
                             </div>
-                            <div className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-primary">
+                            <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                                 {metaTotal} pesanan
                             </div>
                         </div>
 
                         <div className="p-5">
                             {orders.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-200 bg-[#fbfaf6] p-8 text-center text-slate-500">
+                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
                                     <ShoppingBag className="mx-auto h-8 w-8 text-slate-300" />
-                                    <p className="mt-3 text-sm font-semibold text-text">
+                                    <p className="mt-3 text-sm font-semibold text-slate-900">
                                         Belum ada pesanan
                                     </p>
                                     <p className="mt-1 text-xs leading-6 text-slate-500">
@@ -336,9 +338,9 @@ export default function Show({ pelanggan }: Props) {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto rounded-2xl ring-1 ring-black/5">
+                                <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-100">
                                     <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-                                        <thead className="bg-[#fbfaf6]">
+                                        <thead className="bg-slate-50/70">
                                             <tr>
                                                 <th className="px-4 py-3 text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
                                                     No. Pesanan
@@ -367,7 +369,7 @@ export default function Show({ pelanggan }: Props) {
                                             {orders.map((order) => (
                                                 <tr
                                                     key={order.id}
-                                                    className="transition hover:bg-slate-50"
+                                                    className="transition-colors hover:bg-slate-50/70"
                                                 >
                                                     <td className="px-4 py-3 font-mono font-semibold text-primary">
                                                         {order.order_number}
@@ -378,7 +380,7 @@ export default function Show({ pelanggan }: Props) {
                                                         )}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">
+                                                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/10">
                                                             {getOrderTypeLabel(
                                                                 order.order_type,
                                                             )}
@@ -387,7 +389,7 @@ export default function Show({ pelanggan }: Props) {
                                                     <td className="px-4 py-3 text-slate-600">
                                                         {order.items_count} item
                                                     </td>
-                                                    <td className="px-4 py-3 font-semibold text-text">
+                                                    <td className="px-4 py-3 font-semibold text-slate-900">
                                                         {order.is_price_pending
                                                             ? 'Harga Menyusul'
                                                             : formatCurrency(
@@ -406,7 +408,7 @@ export default function Show({ pelanggan }: Props) {
                                                     <td className="px-4 py-3">
                                                         <Link
                                                             href={`/admin/pesanan/${order.id}`}
-                                                            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
+                                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
                                                         >
                                                             Lihat
                                                         </Link>

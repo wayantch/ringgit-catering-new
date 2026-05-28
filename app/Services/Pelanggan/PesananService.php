@@ -105,12 +105,17 @@ class PesananService
     public function create(User $user, array $data): Order
     {
         ['cartItems' => $cartItems, 'cartSummary' => $cartSummary] = $this->getCheckoutCartData($user, $data);
+        $bookingTime = $this->resolveBookingTime($data);
+
+        if ($bookingTime === null) {
+            throw new \Exception('Jam booking wajib diisi.');
+        }
 
         // Generate order number
         $lastOrder = Order::latest('id')->first();
         $orderNumber = 'ORD-'.now()->format('Ymd').'-'.str_pad(($lastOrder?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
 
-        $order = DB::transaction(function () use ($user, $data, $cartItems, $cartSummary, $orderNumber) {
+        $order = DB::transaction(function () use ($user, $data, $cartItems, $cartSummary, $orderNumber, $bookingTime) {
             $orderData = [
                 'user_id' => $user->id,
                 'order_number' => $orderNumber,
@@ -120,7 +125,7 @@ class PesananService
                 'customer_email' => $user->email,
                 'order_type' => $data['order_type'],
                 'booking_date' => $data['booking_date'],
-                'booking_time' => $data['booking_time'],
+                'booking_time' => $bookingTime,
                 'delivery_address' => $data['delivery_address'] ?? null,
                 'order_status' => 'baru',
                 'subtotal' => $cartSummary['subtotal'],
@@ -134,9 +139,9 @@ class PesananService
 
             // Set pickup_time or delivery_time based on order type
             if ($data['order_type'] === 'takeaway') {
-                $orderData['pickup_time'] = $data['booking_time'];
+                $orderData['pickup_time'] = $bookingTime;
             } else {
-                $orderData['delivery_time'] = $data['booking_time'];
+                $orderData['delivery_time'] = $bookingTime;
             }
 
             $order = Order::create($orderData);
@@ -235,6 +240,14 @@ class PesananService
             'cartItems' => $cartItems,
             'cartSummary' => $keranjangService->getCartSummary($user),
         ];
+    }
+
+    private function resolveBookingTime(array $data): ?string
+    {
+        return $data['booking_time']
+            ?? $data['pickup_time']
+            ?? $data['delivery_time']
+            ?? null;
     }
 
     /**

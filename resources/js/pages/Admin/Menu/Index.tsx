@@ -14,7 +14,14 @@ interface MenuItem {
     description: string | null;
     image: string | null;
     menu_type: 'timbang_hidup' | 'eceran';
-    sub_type: 'saksang' | 'panggang' | 'sop_tulang' | 'paket_pass' | null;
+    sub_type:
+        | 'saksang'
+        | 'panggang'
+        | 'sop_tulang'
+        | 'paket_pass'
+        | 'paket_nasi_box'
+        | 'babi_adat'
+        | null;
     min_price: string | number | null;
     is_available: boolean;
     variants?: Array<{ harga: string | number | null }>;
@@ -72,8 +79,8 @@ export default function Index({ items, filters }: Props) {
                                 Menu Catering
                             </h1>
                             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                                Kelola data menu dan pantau aktivitas
-                                mereka.
+                                Kelola data menu dengan tampilan yang rapi,
+                                clean, dan mudah dipindai.
                             </p>
                         </div>
                         <Link

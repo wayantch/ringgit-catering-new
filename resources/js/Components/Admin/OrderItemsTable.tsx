@@ -307,6 +307,8 @@ export default function OrderItemsTable({
                 </div>
             )}
 
+
+
             {/* ── Total Summary ── */}
             {(subtotalAmount !== undefined || totalAmount !== undefined) && (
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-linear-to-br from-slate-50 to-slate-100 px-4 py-4">
@@ -399,11 +401,11 @@ function ItemRow({
                         </p>
 
                         {/* Kategori badge — tampil sub_type jika ada, fallback ke category */}
-                        {subStyle ? (
+                        {/* {subStyle ? (
                             <Chip label={subStyle.label} cls={subStyle.cls} />
                         ) : (
                             <Chip label={catStyle.label} cls={catStyle.cls} />
-                        )}
+                        )} */}
 
                         {/* Kondisi */}
                         {showKondisi && (

@@ -176,7 +176,7 @@ export default function Sidebar() {
                 </nav>
 
                 {/* Logout Button */}
-                <div className="mt-auto border-t border-slate-200 pt-4">
+                {/* <div className="mt-auto border-t border-slate-200 pt-4">
                     <button
                         onClick={() => setShowLogoutModal(true)}
                         className={`mt-4 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 transition-all duration-200 ease-in-out hover:scale-105 hover:bg-red-50 hover:text-red-700 active:scale-95`}
@@ -186,7 +186,7 @@ export default function Sidebar() {
                         </span>
                         <span className="font-medium">Logout</span>
                     </button>
-                </div>
+                </div> */}
             </aside>
 
             {/* Logout Confirmation Modal */}

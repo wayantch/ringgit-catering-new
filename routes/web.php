@@ -3,9 +3,11 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\PelangganController;
+use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\PengaturanLoyaltiController;
 use App\Http\Controllers\Admin\PesananController;
 use App\Http\Controllers\Admin\PrintController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LoginController;
@@ -47,6 +49,10 @@ Route::middleware(['auth', 'role:admin'])
     ->name('admin.')
     ->group(function (): void {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profil', [ProfileController::class, 'index'])->name('profil.index');
+        Route::patch('/profil', [ProfileController::class, 'update'])->name('profil.update');
+        Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::patch('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
         // Custom pesanan routes must come before resource routes
         Route::post('pesanan/{order}/verify-payment/{payment}', [PesananController::class, 'verifyPayment'])->name('pesanan.verifyPayment');

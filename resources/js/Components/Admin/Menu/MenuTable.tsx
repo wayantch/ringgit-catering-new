@@ -118,7 +118,7 @@ function HargaDisplay({ item }: { item: MenuItem }) {
 export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
     if (items.length === 0) {
         return (
-            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-black/5">
+            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-100">
                 <svg
                     viewBox="0 0 120 120"
                     className="mx-auto size-20 text-slate-300"
@@ -161,25 +161,25 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
     return (
         <div className="overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_-15px_rgba(46,46,46,0.1)] ring-1 ring-black/5">
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-black/5 text-left text-sm">
+                <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
                     <thead>
-                        <tr>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                        <tr className="bg-slate-50/70">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Gambar
                             </th>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Nama
                             </th>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Tipe
                             </th>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Harga
                             </th>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Status
                             </th>
-                            <th className="p-5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                            <th className="p-5 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                 Aksi
                             </th>
                         </tr>
@@ -188,7 +188,7 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                         {items.map((item) => (
                             <tr
                                 key={item.id}
-                                className="border-b border-slate-100/50 transition-all duration-200 hover:bg-primary/5"
+                                className="border-b border-slate-100 transition-colors duration-200 hover:bg-slate-50/70"
                             >
                                 <td className="px-4 py-3">
                                     <div className="size-12 overflow-hidden rounded-xl bg-slate-100">
@@ -219,11 +219,11 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                 <td className="px-4 py-3">
                                     {item.menu_type === 'eceran' &&
                                     item.sub_type ? (
-                                        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                                        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
                                             {SUB_TYPE_LABEL[item.sub_type]}
                                         </span>
                                     ) : (
-                                        <span className="inline-flex rounded-full bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                                        <span className="inline-flex rounded-full bg-primary/10 border border-primary/20 px-2 py-1 text-xs font-semibold text-primary ring-1 ring-primary/10">
                                             Timbang Hidup
                                         </span>
                                     )}
@@ -231,7 +231,7 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                 <td className="px-4 py-3">
                                     {item.min_price === null &&
                                     item.menu_type === 'timbang_hidup' ? (
-                                        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+                                        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-100">
                                             Harga Belum Diatur
                                         </span>
                                     ) : (
@@ -250,14 +250,14 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                     <div className="flex items-center gap-2">
                                         <Link
                                             href={menu.edit(item.id)}
-                                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700 hover:bg-slate-50"
+                                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                         >
                                             <Pencil className="size-4" />
                                         </Link>
                                         <button
                                             type="button"
                                             onClick={() => onDeleteClick(item)}
-                                            className="rounded-xl border border-slate-200 bg-white p-2 text-rose-600 hover:bg-rose-50"
+                                            className="rounded-xl border border-slate-200 bg-white p-2 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
                                         >
                                             <Trash2 className="size-4" />
                                         </button>

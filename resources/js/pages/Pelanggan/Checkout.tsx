@@ -2,7 +2,6 @@ import type { PageProps } from '@inertiajs/core';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import {
     CalendarDays,
-    Clock,
     FileText,
     Gift,
     MapPin,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { FormEvent, ReactNode } from 'react';
+import Select from '@/Components/UI/Select';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 import { konfirmasi, alertError } from '@/lib/alert';
 import pesanan from '@/routes/user/pesanan';
@@ -69,6 +69,30 @@ interface SharedProps extends PageProps {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function generateTimeOptions(): Array<{ value: string; label: string }> {
+    const options: Array<{ value: string; label: string }> = [];
+
+    for (let hour = 5; hour <= 18; hour++) {
+        for (const minute of [0, 30]) {
+            if (hour === 18 && minute === 30) {
+                break;
+            }
+
+            const h = String(hour).padStart(2, '0');
+            const m = String(minute).padStart(2, '0');
+
+            options.push({
+                value: `${h}:${m}`,
+                label: `${h}.${m}`,
+            });
+        }
+    }
+
+    return options;
+}
+
+const timeOptions = generateTimeOptions();
 
 function toDateInput(date: Date): string {
     return date.toISOString().split('T')[0];
@@ -175,7 +199,8 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
     const form = useForm({
         order_type: 'takeaway' as 'takeaway' | 'delivery',
         booking_date: toDateInput(new Date()),
-        booking_time: '',
+        pickup_time: '',
+        delivery_time: '',
         delivery_address: user.address ?? '',
         notes: '',
         phone: user.phone ?? '',
@@ -184,6 +209,10 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
     const isSubmittingRef = useRef(false);
     const isDelivery = form.data.order_type === 'delivery';
+    const timeField = isDelivery ? 'delivery_time' : 'pickup_time';
+    const selectedTime = isDelivery
+        ? form.data.delivery_time
+        : form.data.pickup_time;
     const flashError = props.flash?.error;
 
     // Temporary rule: olahan/eceran items can only be booked starting H+1.
@@ -219,8 +248,8 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
         form.clearErrors();
 
-        if (!form.data.booking_time) {
-            form.setError('booking_time', 'Jam booking wajib diisi.');
+        if (!selectedTime) {
+            form.setError(timeField, 'Jam booking wajib diisi.');
 
             return;
         }
@@ -459,36 +488,23 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
                                     {/* Jam */}
                                     <div>
-                                        <FieldLabel
-                                            htmlFor="booking_time"
+                                        <Select
+                                            id={timeField}
+                                            name={timeField}
+                                            label={
+                                                isDelivery
+                                                    ? 'Kirim dari outlet jam'
+                                                    : 'Ambil di outlet pukul'
+                                            }
+                                            value={selectedTime}
+                                            onChange={(value) =>
+                                                form.setData(timeField, value)
+                                            }
+                                            options={timeOptions}
+                                            placeholder="Pilih jam"
+                                            error={form.errors[timeField]}
                                             required
-                                        >
-                                            {isDelivery
-                                                ? 'Jam Kirim dari outlet'
-                                                : 'Jam Ambil di outlet'}
-                                        </FieldLabel>
-                                        <div className="relative">
-                                            <Clock className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                            <input
-                                                id="booking_time"
-                                                type="time"
-                                                value={form.data.booking_time}
-                                                onChange={(e) =>
-                                                    form.setData(
-                                                        'booking_time',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                className={
-                                                    inputCls(
-                                                        !!form.errors
-                                                            .booking_time,
-                                                    ) + ' pl-10'
-                                                }
-                                            />
-                                        </div>
-                                        <FieldError
-                                            message={form.errors.booking_time}
+                                            size="lg"
                                         />
                                     </div>
                                 </div>

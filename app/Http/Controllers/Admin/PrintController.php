@@ -12,20 +12,17 @@ class PrintController extends Controller
 {
     public function __construct(private PrintService $printService) {}
 
-    /**
-     * Show print preview page with filters.
-     */
     public function index(Request $request): Response
     {
-        $data = $this->printService->getDataPrint(
-            tanggalDari: $request->get('dari'),
-            tanggalSampai: $request->get('sampai'),
-            tanggalSpesifik: $request->get('tanggal'),
+        $printData = $this->printService->getPrintData(
+            tanggal: $request->string('tanggal')->toString() ?: null,
+            dari: $request->string('dari')->toString() ?: null,
+            sampai: $request->string('sampai')->toString() ?: null,
         );
 
-        return Inertia::render('Admin/Print/Index', [ 
-            'printData' => $data,
-            'filters'   => $request->only(['dari', 'sampai', 'tanggal']),
+        return Inertia::render('Admin/Print/Index', [
+            'printData' => $printData,
+            'filters' => $request->only(['dari', 'sampai', 'tanggal']),
         ]);
     }
 }

@@ -262,7 +262,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+        <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="mb-5">
                 <h3 className="text-base font-semibold text-text">{title}</h3>
                 {description && (
@@ -354,7 +354,6 @@ export default function MenuForm({
 
     const isCreate = mode === 'create';
     const activeMenuType = menuType || item?.menu_type || '';
-    const isCreateEceran = isCreate && activeMenuType === 'eceran';
     const isFixedPricePackage =
         activeMenuType === 'eceran' &&
         FIXED_PRICE_SUB_TYPES.includes(
@@ -484,11 +483,7 @@ export default function MenuForm({
         );
         appendValue(formData, 'description', description);
         appendValue(formData, 'is_available', isAvailable ? '1' : '0');
-        appendValue(
-            formData,
-            'sort_order',
-            isCreateEceran ? '0' : sortOrder || '0',
-        );
+        appendValue(formData, 'sort_order', sortOrder || '0');
         appendValue(formData, 'is_bundle', isFixedPricePackage ? '1' : '0');
         appendValue(
             formData,
@@ -600,7 +595,7 @@ export default function MenuForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
@@ -629,7 +624,7 @@ export default function MenuForm({
                 description="Isi data inti menu. Menu sekarang diatur lewat tipe dan sub-tipe, tanpa kategori."
             >
                 <div className="grid gap-5 md:grid-cols-2">
-                    <div className="md:col-span-2">
+                    <div>
                         <FieldLabel htmlFor="name" required>
                             Nama Menu
                         </FieldLabel>
@@ -647,30 +642,71 @@ export default function MenuForm({
                         <FieldError message={errors.name} />
                     </div>
 
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 md:col-span-2">
-                        Menu sekarang tidak memakai kategori. Pilih tipe menu
-                        dan sub-tipe yang sesuai untuk mengatur alur harga.
-                    </div>
-
-                    {!isCreateEceran && (
+                    {activeMenuType === 'eceran' && (
                         <div>
-                            <FieldLabel htmlFor="sort_order">
-                                Sort Order
+                            <FieldLabel htmlFor="sub_type" required>
+                                Sub-tipe
                             </FieldLabel>
-                            <Input
-                                id="sort_order"
-                                type="number"
-                                min="0"
-                                value={sortOrder}
-                                onChange={(event) =>
-                                    setSortOrder(event.target.value)
+                            <Select
+                                id="sub_type"
+                                value={subType}
+                                onChange={(value) =>
+                                    setSubType(value as SubType)
                                 }
-                                placeholder="0"
-                                error={errors.sort_order}
+                                options={SUB_TYPE_OPTIONS}
                             />
-                            <FieldError message={errors.sort_order} />
+                            <FieldError message={errors.sub_type} />
                         </div>
                     )}
+
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 md:col-span-2">
+                        {activeMenuType === 'eceran'
+                            ? ' Pilih sub-tipe di atas untuk menentukan alur harga eceran.'
+                            : ' Gunakan range tier untuk menentukan alur harga timbang hidup.'}
+                    </div>
+
+                    <div>
+                        <FieldLabel htmlFor="sort_order">Sort Order</FieldLabel>
+                        <Input
+                            id="sort_order"
+                            type="number"
+                            min="0"
+                            value={sortOrder}
+                            onChange={(event) =>
+                                setSortOrder(event.target.value)
+                            }
+                            placeholder="0"
+                            error={errors.sort_order}
+                        />
+                        <FieldError message={errors.sort_order} />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-6">
+                        <label className="relative inline-flex cursor-pointer items-center">
+                            <input
+                                type="checkbox"
+                                checked={isAvailable}
+                                onChange={(event) =>
+                                    setIsAvailable(event.target.checked)
+                                }
+                                className="sr-only"
+                            />
+                            <span
+                                className={`h-6 w-11 rounded-full transition ${isAvailable ? 'bg-primary' : 'bg-slate-200'}`}
+                            />
+                            <span
+                                className={`absolute left-1 h-4 w-4 rounded-full bg-white shadow transition ${isAvailable ? 'translate-x-5' : 'translate-x-0'}`}
+                            />
+                        </label>
+                        <div>
+                            <p className="text-sm font-medium text-text">
+                                Status Aktif
+                            </p>
+                            <p className="text-xs text-slate-500">
+                                Menu akan tampil di katalog jika aktif.
+                            </p>
+                        </div>
+                    </div>
 
                     <div className="md:col-span-2">
                         <FieldLabel htmlFor="description">Deskripsi</FieldLabel>
@@ -691,7 +727,7 @@ export default function MenuForm({
                         <FieldError message={errors.description} />
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                         <FieldLabel htmlFor="image">Gambar</FieldLabel>
                         <div className="mt-2 space-y-3">
                             <input
@@ -759,32 +795,24 @@ export default function MenuForm({
                         <FieldError message={errors.image} />
                     </div>
 
-                    <div className="flex items-center gap-3 pt-6">
-                        <label className="relative inline-flex cursor-pointer items-center">
-                            <input
-                                type="checkbox"
-                                checked={isAvailable}
-                                onChange={(event) =>
-                                    setIsAvailable(event.target.checked)
-                                }
-                                className="sr-only"
-                            />
-                            <span
-                                className={`h-6 w-11 rounded-full transition ${isAvailable ? 'bg-primary' : 'bg-slate-200'}`}
-                            />
-                            <span
-                                className={`absolute left-1 h-4 w-4 rounded-full bg-white shadow transition ${isAvailable ? 'translate-x-5' : 'translate-x-0'}`}
-                            />
-                        </label>
-                        <div>
-                            <p className="text-sm font-medium text-text">
-                                Status Aktif
+                    {activeMenuType === 'eceran' && (
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:col-span-2">
+                            <p className="font-semibold text-text">
+                                {isFixedPricePackage
+                                    ? subType === 'paket_nasi_box'
+                                        ? 'Paket Napass'
+                                        : subType === 'babi_adat'
+                                          ? 'Babi Adat'
+                                          : 'Paket Pass'
+                                    : 'Varian Harga'}
                             </p>
-                            <p className="text-xs text-slate-500">
-                                Menu akan tampil di katalog jika aktif.
+                            <p className="mt-1 leading-6">
+                                {isFixedPricePackage
+                                    ? 'Sistem akan menyimpan harga ini sebagai satu varian tunggal, tanpa daftar varian harga.'
+                                    : 'Cocok untuk menu eceran dengan beberapa ukuran atau kemasan per porsi.'}
                             </p>
                         </div>
-                    </div>
+                    )}
                 </div>
             </Section>
 
@@ -938,57 +966,6 @@ export default function MenuForm({
                                 >
                                     Tambah Range
                                 </button>
-                            </div>
-                        )}
-                    </div>
-                </Section>
-            )}
-
-            {activeMenuType === 'eceran' && (
-                <Section
-                    title="Tipe Eceran"
-                    description="Pilih sub-tipe menu sebelum mengatur varian atau paket bundling."
-                >
-                    <div className="grid gap-5 md:grid-cols-2">
-                        <div>
-                            <FieldLabel htmlFor="sub_type" required>
-                                Sub-tipe
-                            </FieldLabel>
-                            <Select
-                                id="sub_type"
-                                value={subType}
-                                onChange={(value) =>
-                                    setSubType(value as SubType)
-                                }
-                                options={SUB_TYPE_OPTIONS}
-                            />
-                            <FieldError message={errors.sub_type} />
-                        </div>
-
-                        {isFixedPricePackage ? (
-                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                                <p className="font-semibold text-text">
-                                    {subType === 'paket_nasi_box'
-                                        ? 'Paket Napass'
-                                        : subType === 'babi_adat'
-                                          ? 'Babi Adat'
-                                          : 'Paket Pass'}
-                                </p>
-                                <p className="mt-1 leading-6">
-                                    Sistem akan menyimpan harga ini sebagai satu
-                                    varian tunggal, tanpa daftar varian harga.
-                                    Isi paket dan free ongkir mengikuti pola
-                                    yang sama seperti Paket PASS.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                                <p className="font-semibold text-text">
-                                    Varian Harga
-                                </p>
-                                <p className="mt-1 leading-6">
-                                    Cocok untuk varian eceran per porsi.
-                                </p>
                             </div>
                         )}
                     </div>

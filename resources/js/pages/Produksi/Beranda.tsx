@@ -1,5 +1,5 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CheckCircle2,
@@ -11,7 +11,9 @@ import {
 import EmptyState from '@/Components/Produksi/EmptyState';
 import PesananCard from '@/Components/Produksi/PesananCard';
 import ProduksiLayout from '@/Layouts/ProduksiLayout';
+import StatCard from '@/Components/Produksi/StatCard';
 import pesanan from '@/routes/produksi/pesanan';
+import { useEffect, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,32 +38,6 @@ interface Props extends PageProps {
         menunggu_besok: number;
     };
     pesanan_aktif: PesananAktif[];
-}
-
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-function StatCard({
-    icon: Icon,
-    label,
-    value,
-    valueColor = 'text-text',
-}: {
-    icon: React.ElementType;
-    label: string;
-    value: number;
-    valueColor?: string;
-}) {
-    return (
-        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary">
-                <Icon className="h-4 w-4 text-primary" />
-            </div>
-            <p className={`mt-3 text-2xl font-bold tabular-nums ${valueColor}`}>
-                {value}
-            </p>
-            <p className="mt-0.5 text-xs font-medium text-slate-500">{label}</p>
-        </div>
-    );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -91,6 +67,22 @@ export default function Beranda({ user, stats, pesanan_aktif }: Props) {
         totalSelesai + totalAktif > 0
             ? Math.round((totalSelesai / (totalSelesai + totalAktif)) * 100)
             : 0;
+
+    const [autoRefresh, setAutoRefresh] = useState(false);
+
+    useEffect(() => {
+        if (!autoRefresh) return;
+
+        const id = setInterval(() => {
+            router.get(
+                pesanan.index.url(),
+                {},
+                { preserveState: true, preserveScroll: true },
+            );
+        }, 10000);
+
+        return () => clearInterval(id);
+    }, [autoRefresh]);
 
     return (
         <ProduksiLayout>
@@ -204,7 +196,7 @@ export default function Beranda({ user, stats, pesanan_aktif }: Props) {
 
                     {/* ── Status ringkasan ── */}
                     {totalAktif > 0 && (
-                        <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-black/5">
+                        <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
                             <div className="flex flex-1 flex-wrap items-center gap-1.5 text-xs">
                                 <span className="font-semibold text-text">
                                     {totalAktif} pesanan aktif
@@ -272,10 +264,26 @@ export default function Beranda({ user, stats, pesanan_aktif }: Props) {
                                 />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {pesanan_aktif.map((item) => (
-                                    <PesananCard key={item.id} {...item} />
-                                ))}
+                            <div>
+                                <div className="mb-2 flex items-center justify-end">
+                                    <label className="flex items-center gap-2 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={autoRefresh}
+                                            onChange={(e) =>
+                                                setAutoRefresh(e.target.checked)
+                                            }
+                                            className="h-4 w-4"
+                                        />
+                                        Auto-refresh (10s)
+                                    </label>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    {pesanan_aktif.map((item) => (
+                                        <PesananCard key={item.id} {...item} />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </section>

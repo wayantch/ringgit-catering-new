@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Bell,
     Settings,
@@ -9,31 +9,48 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
 import admin from '@/routes/admin';
+import { logout } from '@/routes';
 import produksi from '@/routes/produksi';
+
+type TopbarUser = {
+    name?: string;
+    email?: string;
+    role?: string;
+} | null;
 
 // ─── Profile Dropdown ─────────────────────────────────────────────────────────
 
-function ProfileDropdown({ user }) {
+function ProfileDropdown({ user }: { user?: TopbarUser }) {
     const [open, setOpen] = useState(false);
-    const ref = useRef(null);
-    const portalRef = useRef(null);
-    const [dropdownStyle, setDropdownStyle] = useState({});
-    const isProductionUser = user?.role === 'produksi';
+    const ref = useRef<HTMLDivElement | null>(null);
+    const portalRef = useRef<HTMLDivElement | null>(null);
+    const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
+    const page = usePage();
+    const currentUser = (user ??
+        (page.props.auth?.user as TopbarUser) ??
+        null) as TopbarUser;
+    const isProductionUser = currentUser?.role === 'produksi';
 
     const profileHref = isProductionUser
         ? produksi.beranda.url()
-        : admin.pelanggan.index.url();
+        : admin.profil.index.url();
     const settingHref = isProductionUser
         ? produksi.beranda.url()
-        : admin.dashboard.url();
+        : admin.pengaturan.index.url();
 
     // Tutup saat klik di luar
     useEffect(() => {
-        const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) {
+        const handler = (event: MouseEvent) => {
+            if (
+                ref.current &&
+                event.target instanceof Node &&
+                !ref.current.contains(event.target) &&
+                !(portalRef.current && portalRef.current.contains(event.target))
+            ) {
                 setOpen(false);
             }
         };
@@ -59,13 +76,13 @@ function ProfileDropdown({ user }) {
     // Position dropdown when opened or on resize/scroll
     useEffect(() => {
         if (!open) {
-return;
-}
+            return;
+        }
 
         const update = () => {
             if (!ref.current) {
-return;
-}
+                return;
+            }
 
             const rect = ref.current.getBoundingClientRect();
             const dropdownWidth = 208; // w-52 = 13rem = 208px
@@ -90,13 +107,13 @@ return;
     }, [open]);
 
     const handleLogout = () => {
-        router.post('/logout');
+        router.post(logout.url());
     };
 
-    const initials = user?.name
-        ? user.name
+    const initials = currentUser?.name
+        ? currentUser.name
               .split(' ')
-              .map((n) => n[0])
+              .map((part: string) => part[0])
               .slice(0, 2)
               .join('')
               .toUpperCase()
@@ -114,10 +131,10 @@ return;
                 </div>
                 <div className="hidden text-left lg:block">
                     <p className="text-[13px] leading-none font-semibold text-text">
-                        {user?.name ?? 'Admin'}
+                        {currentUser?.name ?? 'Admin'}
                     </p>
                     <p className="mt-0.5 text-[11px] leading-none text-slate-400 capitalize">
-                        {user?.role ?? 'admin'}
+                        {currentUser?.role ?? 'admin'}
                     </p>
                 </div>
                 <ChevronDown
@@ -136,10 +153,10 @@ return;
                         {/* User info header */}
                         <div className="border-b border-slate-100 bg-secondary/40 px-4 py-3">
                             <p className="text-[13px] font-semibold text-text">
-                                {user?.name ?? 'Admin'}
+                                {currentUser?.name ?? 'Admin'}
                             </p>
                             <p className="mt-0.5 truncate text-[11px] text-slate-400">
-                                {user?.email ?? 'admin@ringgit.id'}
+                                {currentUser?.email ?? 'admin@ringgit.id'}
                             </p>
                         </div>
 
@@ -151,7 +168,7 @@ return;
                                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 transition-colors hover:bg-secondary/60 hover:text-text"
                             >
                                 <User className="h-4 w-4 text-slate-400" />
-                                Profil Saya
+                                Profil
                             </Link>
                             <Link
                                 href={settingHref}
@@ -182,7 +199,7 @@ return;
 
 // ─── Topbar ───────────────────────────────────────────────────────────────────
 
-export default function Topbar({ user }) {
+export default function Topbar({ user }: { user?: TopbarUser }) {
     const { toggle } = useSidebar();
 
     return (
