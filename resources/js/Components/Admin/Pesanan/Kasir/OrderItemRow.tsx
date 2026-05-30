@@ -173,9 +173,9 @@ export default function OrderItemRow({
 
                         {item.menu_category_type === 'timbang_hidup' && (
                             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                <span>{item.menu_unit}</span>
+                                <span>{formatQty(item.qty)} </span>
                                 <span>•</span>
-                                <span>{formatQty(item.qty)} qty</span>
+                                <span>{item.menu_unit}</span>
                             </div>
                         )}
 

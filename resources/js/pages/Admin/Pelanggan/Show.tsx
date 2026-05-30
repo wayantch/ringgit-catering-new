@@ -1,15 +1,8 @@
 import { Link, router } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    CalendarDays,
-    Mail,
-    Phone,
-    ShoppingBag,
-    Sparkles,
-} from 'lucide-react';
+import { ArrowLeft, Mail, Phone, ShoppingBag, Sparkles } from 'lucide-react';
 import React from 'react';
-import PaginationControls from '@/Components/PaginationControls';
 import TierBadge from '@/Components/Admin/Pelanggan/TierBadge';
+import PaginationControls from '@/Components/PaginationControls';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 interface Order {
@@ -150,33 +143,37 @@ export default function Show({ pelanggan }: Props) {
 
     return (
         <AdminLayout>
-            <div className="space-y-6 p-4">
-                <header className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:flex-row lg:items-end lg:justify-between">
-                    <div className="max-w-2xl">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            Detail Pelanggan
-                        </span>
-                        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                            {pelanggan.name}
-                        </h1>
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                            Ringkasan identitas, loyalti, dan riwayat pesanan
-                            pelanggan dalam satu tampilan.
-                        </p>
-                    </div>
+            <div className="space-y-6 p-4 lg:p-6">
+                <header className="relative overflow-hidden rounded-[32px] border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.14),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
+                    <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase ring-1 ring-primary/10">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Detail Pelanggan
+                            </span>
+                            <h1 className="mt-3 text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                                {pelanggan.name}
+                            </h1>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                                Ringkasan identitas, loyalti, dan riwayat
+                                pesanan pelanggan dalam satu tampilan yang lebih
+                                bersih.
+                            </p>
+                        </div>
 
-                    <Link
-                        href="/admin/pelanggan"
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Kembali
-                    </Link>
+                        <Link
+                            href="/admin/pelanggan"
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Kembali
+                        </Link>
+                    </div>
                 </header>
 
                 <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-                    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                    <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur">
                         <div className="flex items-center gap-3">
                             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary ring-1 ring-primary/10">
                                 {pelanggan.name
@@ -190,11 +187,11 @@ export default function Show({ pelanggan }: Props) {
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                     Informasi
                                 </p>
-                                <h2 className=" truncate text-lg font-semibold text-slate-900">
+                                <h2 className="truncate text-lg font-semibold text-slate-900">
                                     {pelanggan.name}
                                 </h2>
                                 <span
-                                    className={` inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${getLoginStatusClass(
+                                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold ${getLoginStatusClass(
                                         pelanggan.status,
                                     )}`}
                                 >
@@ -204,7 +201,7 @@ export default function Show({ pelanggan }: Props) {
                         </div>
 
                         <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
-                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                            <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     Email
                                 </p>
@@ -217,7 +214,7 @@ export default function Show({ pelanggan }: Props) {
                             </div>
 
                             {pelanggan.phone && (
-                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                                <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Nomor HP
                                     </p>
@@ -228,7 +225,7 @@ export default function Show({ pelanggan }: Props) {
                                 </div>
                             )}
 
-                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                            <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     TGL Bergabung
                                 </p>
@@ -238,7 +235,7 @@ export default function Show({ pelanggan }: Props) {
                             </div>
 
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                                <div className="rounded-2xl bg-white p-3.5 ring-1 ring-slate-100">
+                                <div className="rounded-2xl bg-white p-3.5 shadow-sm ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Loyalti
                                     </p>
@@ -252,7 +249,7 @@ export default function Show({ pelanggan }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                                <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                         Status Loyalti
                                     </p>
@@ -262,18 +259,20 @@ export default function Show({ pelanggan }: Props) {
                                                 Eligible
                                             </span>
                                         )}
-                                        {pelanggan.has_redeemed && (
+                                        {(pelanggan.has_redeemed && (
                                             <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
                                                 Sudah redeem
                                             </span>
-                                        ) || (
-                                            <p className="text-sm font-medium text-slate-500">Belum redeem</p>
+                                        )) || (
+                                            <p className="text-sm font-medium text-slate-500">
+                                                Belum redeem
+                                            </p>
                                         )}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                            <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                 <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                                     Alamat
                                 </p>
@@ -284,7 +283,7 @@ export default function Show({ pelanggan }: Props) {
                             </div>
 
                             {pelanggan.loyalty_min_orders !== null && (
-                                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                                <div className="rounded-2xl bg-slate-50/80 p-3.5 ring-1 ring-slate-100">
                                     <div className="mb-2 flex items-center justify-between text-[11px] font-medium text-slate-500">
                                         <span>
                                             {pelanggan.loyalty_completed_orders}{' '}
@@ -310,8 +309,8 @@ export default function Show({ pelanggan }: Props) {
                         </div>
                     </section>
 
-                    <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-                        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                    <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur">
+                        <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-linear-to-r from-slate-50 to-white px-5 py-4">
                             <div>
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                     Aktivitas
@@ -327,7 +326,7 @@ export default function Show({ pelanggan }: Props) {
 
                         <div className="p-5">
                             {orders.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+                                <div className="rounded-[28px] border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center text-slate-500">
                                     <ShoppingBag className="mx-auto h-8 w-8 text-slate-300" />
                                     <p className="mt-3 text-sm font-semibold text-slate-900">
                                         Belum ada pesanan
@@ -338,9 +337,9 @@ export default function Show({ pelanggan }: Props) {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-100">
+                                <div className="overflow-x-auto rounded-[24px] ring-1 ring-slate-100">
                                     <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-                                        <thead className="bg-slate-50/70">
+                                        <thead className="bg-linear-to-r from-slate-50 to-white">
                                             <tr>
                                                 <th className="px-4 py-3 text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
                                                     No. Pesanan

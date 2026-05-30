@@ -33,7 +33,7 @@ export default function AvailabilityToggle({
         <button
             type="button"
             onClick={onToggle}
-            className="inline-flex items-center gap-2 text-xs font-medium transition"
+            className="inline-flex items-center gap-2 text-xs font-semibold transition"
         >
             <span
                 className={`relative h-5 w-9 rounded-full ring-1 ring-black/5 transition-colors ${enabled ? 'bg-primary' : 'bg-slate-200'}`}

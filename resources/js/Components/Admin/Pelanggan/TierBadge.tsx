@@ -34,7 +34,7 @@ export default function TierBadge({
 
     return (
         <span
-            className={`inline-flex w-fit items-center gap-1 self-start rounded-full px-2 py-0.5 text-[11px] font-semibold ${cfg.cls}`}
+            className={`inline-flex w-fit items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${cfg.cls}`}
         >
             <span>{cfg.icon}</span>
             {cfg.label}

@@ -5,37 +5,11 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { alertSukses, alertError } from '@/lib/alert';
 import menu from '@/routes/admin/menu';
 
-interface MenuItem {
+type MenuFormItem = NonNullable<Parameters<typeof MenuForm>[0]['item']>;
+
+interface MenuItem extends MenuFormItem {
     id: string;
     hashid: string;
-    name: string;
-    description: string | null;
-    image: string | null;
-    menu_type: 'timbang_hidup' | 'eceran';
-    sub_type: 'saksang' | 'panggang' | 'sop_tulang' | 'paket_pass' | null;
-    is_bundle: boolean;
-    bundle_desc: string | null;
-    free_ongkir_km: number | null;
-    ongkir_subsidi: Array<{
-        min_kg: string | number | null;
-        max_kg: string | number | null;
-        max_subsidi: string | number | null;
-    }> | null;
-    is_available: boolean;
-    sort_order: number;
-    tiers?: Array<{
-        kode: 'A' | 'B' | 'C';
-        is_half: boolean;
-        berat_min: string | number | null;
-        berat_max: string | number | null;
-        harga_mentah: string | number | null;
-        harga_matang: string | number | null;
-        cashback: string | number | null;
-    }>;
-    variants?: Array<{
-        label: string;
-        harga: string | number | null;
-    }>;
 }
 
 interface SharedProps {
@@ -56,7 +30,22 @@ export default function Edit({ menu: item }: Props) {
         <>
             <Head title={`Edit Menu: ${item.name}`} />
             <AdminLayout>
-                <div className="space-y-6 p-4">
+                <div className="space-y-6 p-4 ">
+                    <section className="overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_30px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                        <div className="max-w-3xl space-y-3">
+                            <p className="text-[11px] font-semibold tracking-[0.28em] text-primary uppercase">
+                                Perbarui Menu
+                            </p>
+                            <h1 className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                                Edit Menu
+                            </h1>
+                            <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                                Perbaiki gambar, harga, atau tipe menu dengan
+                                tampilan form yang tetap bersih dan fokus.
+                            </p>
+                        </div>
+                    </section>
+
                     <MenuForm
                         mode="edit"
                         item={item}
@@ -65,23 +54,27 @@ export default function Edit({ menu: item }: Props) {
                         onCancel={() => router.visit(menu.index())}
                         onSubmit={(data) => {
                             data.append('_method', 'PUT');
-                            router.post(menu.update(item.hashid), data, {
-                                forceFormData: true,
-                                onStart: () => setProcessing(true),
-                                onSuccess: () => {
-                                    alertSukses(
-                                        'Menu berhasil diperbarui',
-                                        'Berhasil',
-                                    );
+                            router.post(
+                                menu.update.url({ menu: item.hashid } as never),
+                                data,
+                                {
+                                    forceFormData: true,
+                                    onStart: () => setProcessing(true),
+                                    onSuccess: () => {
+                                        alertSukses(
+                                            'Menu berhasil diperbarui',
+                                            'Berhasil',
+                                        );
+                                    },
+                                    onError: () => {
+                                        alertError(
+                                            'Gagal memperbarui menu',
+                                            'Error',
+                                        );
+                                    },
+                                    onFinish: () => setProcessing(false),
                                 },
-                                onError: () => {
-                                    alertError(
-                                        'Gagal memperbarui menu',
-                                        'Error',
-                                    );
-                                },
-                                onFinish: () => setProcessing(false),
-                            });
+                            );
                         }}
                     />
                 </div>

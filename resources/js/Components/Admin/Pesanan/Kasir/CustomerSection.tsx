@@ -60,13 +60,6 @@ export default function CustomerSection({
             document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        if (customerType === 'walkin') {
-            setQuery('');
-            setOpen(false);
-        }
-    }, [customerType]);
-
     const filteredCustomers = useMemo(() => {
         const normalized = query.trim().toLowerCase();
 
@@ -88,37 +81,55 @@ export default function CustomerSection({
         setOpen(false);
     };
 
+    const handleChangeCustomerType = (value: 'terdaftar' | 'walkin'): void => {
+        if (value === 'walkin') {
+            setQuery('');
+            setOpen(false);
+        }
+
+        onCustomerTypeChange(value);
+    };
+
     return (
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-                <div>
-                    <p className="text-[11px] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-                        Customer
-                    </p>
-                    <h3 className="mt-1 text-lg font-semibold text-text">
-                        Informasi Pelanggan
-                    </h3>
-                </div>
-                <div className="flex rounded-full bg-secondary/70 p-1">
-                    <button
-                        type="button"
-                        onClick={() => onCustomerTypeChange('terdaftar')}
-                        className={`rounded-full px-3 py-2 text-xs font-semibold transition ${customerType === 'terdaftar' ? 'bg-primary text-white' : 'text-text'}`}
-                    >
-                        Pelanggan Terdaftar
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => onCustomerTypeChange('walkin')}
-                        className={`rounded-full px-3 py-2 text-xs font-semibold transition ${customerType === 'walkin' ? 'bg-primary text-white' : 'text-text'}`}
-                    >
-                        Walk-in
-                    </button>
+        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
+            <div className="border-b border-slate-100 bg-linear-to-br from-white via-[#fcfcfa] to-primary/5 px-4 py-4 sm:px-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                        <p className="text-[11px] font-semibold tracking-[0.24em] text-slate-400 uppercase">
+                            Customer
+                        </p>
+                        <h3 className="text-lg font-semibold tracking-tight text-text sm:text-xl">
+                            Informasi Pelanggan
+                        </h3>
+                        <p className="text-sm leading-6 text-slate-500">
+                            Pilih pelanggan terdaftar atau isi data walk-in di
+                            bawah.
+                        </p>
+                    </div>
+
+                    <div className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-100">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleChangeCustomerType('terdaftar')
+                            }
+                            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${customerType === 'terdaftar' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:text-text'}`}
+                        >
+                            Pelanggan Terdaftar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleChangeCustomerType('walkin')}
+                            className={`rounded-full px-4 py-2 text-xs font-semibold transition ${customerType === 'walkin' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:text-text'}`}
+                        >
+                            Walk-in
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {customerType === 'terdaftar' ? (
-                <div ref={wrapperRef} className="mt-4 space-y-3">
+                <div ref={wrapperRef} className="space-y-4 px-4 py-4 sm:px-5">
                     <label className="block">
                         <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
                             Cari Pelanggan
@@ -139,7 +150,7 @@ export default function CustomerSection({
                                     setOpen(true);
                                 }}
                                 placeholder="Cari nama atau email"
-                                className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-10 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pr-10 pl-10 text-sm text-text shadow-sm transition outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                             />
                             {selectedCustomer ? (
                                 <button
@@ -158,22 +169,22 @@ export default function CustomerSection({
                     {open &&
                         filteredCustomers.length > 0 &&
                         !selectedCustomer && (
-                            <div className="max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                            <div className="max-h-64 overflow-auto rounded-2xl border border-slate-200 bg-white shadow-[0_16px_32px_-20px_rgba(15,23,42,0.45)]">
                                 {filteredCustomers.map((customer) => (
                                     <button
                                         key={customer.id}
                                         type="button"
                                         onClick={() => handleSelect(customer)}
-                                        className="flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-b-0 hover:bg-secondary/50"
+                                        className="flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3.5 text-left transition last:border-b-0 hover:bg-secondary/50"
                                     >
-                                        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                                             <Check className="size-4" />
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-sm font-semibold text-text">
                                                 {customer.name}
                                             </p>
-                                            <div className="mt-1 space-y-1 text-xs text-slate-500">
+                                            <div className="mt-1.5 space-y-1 text-xs text-slate-500">
                                                 <p className="flex items-center gap-1.5">
                                                     <Mail className="size-3.5" />
                                                     {customer.email}
@@ -190,7 +201,7 @@ export default function CustomerSection({
                         )}
 
                     {selectedCustomer && (
-                        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                        <div className="rounded-2xl border border-primary/15 bg-[linear-gradient(180deg,#f7fbf3_0%,#f3f7ef_100%)] p-4 shadow-sm">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <p className="text-sm font-semibold text-text">
@@ -210,7 +221,7 @@ export default function CustomerSection({
                                 <button
                                     type="button"
                                     onClick={onClearCustomer}
-                                    className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 transition hover:text-text"
+                                    className="rounded-full border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:text-text"
                                 >
                                     <X className="size-4" />
                                 </button>
@@ -219,7 +230,7 @@ export default function CustomerSection({
                     )}
                 </div>
             ) : (
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
                     <label className="block">
                         <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
                             Nama Pelanggan
@@ -231,7 +242,7 @@ export default function CustomerSection({
                                 onWalkInNameChange(event.target.value)
                             }
                             placeholder="Nama pelanggan"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                     </label>
 
@@ -247,13 +258,13 @@ export default function CustomerSection({
                                 onWalkInPhoneChange(event.target.value)
                             }
                             placeholder="08xxxxxxxxxx"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                     </label>
 
                     <label className="block sm:col-span-2">
                         <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                            Email (akan otomatis daftar akun pelanggan)
+                            Email (otomatis terdaftar)
                         </span>
                         <input
                             type="email"
@@ -262,17 +273,22 @@ export default function CustomerSection({
                                 onWalkInEmailChange(event.target.value)
                             }
                             placeholder="contoh: pelanggan@email.com"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
-                        <p className="mt-1.5 text-xs text-slate-500">
-                            Pelanggan bisa login langsung dengan email ini
-                            menggunakan OTP
+                        <p className="mt-2 text-xs leading-5 text-slate-500">
+                            Pastikan email yang dimasukkan valid, karena akan
+                            digunakan untuk membuat akun pelanggan secara
+                            otomatis.
                         </p>
                     </label>
                 </div>
             )}
 
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && (
+                <p className="border-t border-red-100 bg-red-50/80 px-4 py-3 text-sm text-red-600 sm:px-5">
+                    {error}
+                </p>
+            )}
         </section>
     );
 }

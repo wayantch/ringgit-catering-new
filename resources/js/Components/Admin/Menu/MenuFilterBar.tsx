@@ -25,8 +25,6 @@ export default function MenuFilterBar({ filters }: MenuFilterBarProps) {
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
-            // Use Wayfinder route helper for admin menu index
-            // import is done lazily to avoid top-level circular imports in some setups
             import('@/routes/admin/menu').then(({ default: menu }) => {
                 router.get(menu.index(), query, {
                     preserveState: true,
@@ -44,9 +42,34 @@ export default function MenuFilterBar({ filters }: MenuFilterBarProps) {
     const hasActiveFilters = Boolean(search || isAvailable);
 
     return (
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-            <div className="grid gap-3 md:grid-cols-3">
-                <label className="relative md:col-span-2">
+        <div className="relative z-30 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
+                        Filter Menu
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Cari nama menu atau batasi berdasarkan status aktif.
+                    </p>
+                </div>
+
+                {hasActiveFilters && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSearch('');
+                            setIsAvailable('');
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                        <X className="size-3" />
+                        Reset
+                    </button>
+                )}
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+                <label className="relative">
                     <div className="pointer-events-none absolute top-1/2 left-3 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-slate-400">
                         <Search className="size-4" />
                     </div>
@@ -69,20 +92,6 @@ export default function MenuFilterBar({ filters }: MenuFilterBarProps) {
                     ]}
                 />
             </div>
-
-            {hasActiveFilters && (
-                <button
-                    type="button"
-                    onClick={() => {
-                        setSearch('');
-                        setIsAvailable('');
-                    }}
-                    className="mt-3 inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                >
-                    <X className="size-3" />
-                    Reset
-                </button>
-            )}
         </div>
     );
 }

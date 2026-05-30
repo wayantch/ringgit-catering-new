@@ -97,43 +97,41 @@ export default function Index({
         }).format(amount);
     };
 
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
-
     return (
         <AdminLayout>
-            <div className="space-y-6 p-4">
-                {/* Header */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                        <p className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
-                            Manajemen Pelanggan
-                        </p>
-                        <h1 className="mt-2 text-3xl font-bold text-slate-900 lg:text-4xl">
-                            Pelanggan
-                        </h1>
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                            Kelola data pelanggan dan pantau aktivitas mereka.
-                        </p>
+            <div className="space-y-6 p-4 lg:p-6">
+                <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.14),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
+                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl space-y-3">
+                            <p className="text-[11px] font-semibold tracking-[0.28em] text-primary uppercase">
+                                Manajemen Pelanggan
+                            </p>
+                            <h1 className="text-3xl font-bold tracking-tight text-text sm:text-4xl lg:text-5xl">
+                                Pelanggan
+                            </h1>
+                            <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                                Kelola data pelanggan, pantau loyalti, dan lihat
+                                aktivitas mereka dalam tampilan yang lebih
+                                bersih.
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/admin/pelanggan/create"
+                            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_-18px_rgba(122,143,107,0.9)] transition hover:-translate-y-0.5 hover:bg-primary-600"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Tambah Pelanggan
+                        </Link>
                     </div>
-                    <Link
-                        href="/admin/pelanggan/create"
-                        className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary-600"
-                    >
-                        <Plus className="h-4 w-4" /> Tambah Pelanggan
-                    </Link>
-                </div>
+                </section>
 
                 {loyaltyStats.program_active && (
-                    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+                    <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur">
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div className="flex items-start gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/10">
                                     <Gift className="h-5 w-5" />
                                 </div>
                                 <div>
@@ -177,7 +175,7 @@ export default function Index({
                                 ].map((item) => (
                                     <div
                                         key={item.label}
-                                        className={`rounded-2xl px-4 py-3 ${item.color}`}
+                                        className={`rounded-2xl px-4 py-3 shadow-sm ring-1 ring-black/5 ${item.color}`}
                                     >
                                         <p className="text-[10px] font-semibold tracking-[0.2em] uppercase opacity-70">
                                             {item.label}
@@ -228,7 +226,7 @@ export default function Index({
                         return (
                             <div
                                 key={idx}
-                                className="group rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                className="group rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -254,7 +252,7 @@ export default function Index({
                 </div>
 
                 {/* Filter Bar */}
-                <div className="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:flex-row lg:items-end lg:justify-between">
+                <div className="flex flex-col gap-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur lg:flex-row lg:items-end lg:justify-between">
                     <div className="flex-1">
                         <label className="mb-2 block text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
                             Cari Pelanggan
@@ -299,14 +297,14 @@ export default function Index({
                     {/* Card list for small screens */}
                     <div className="space-y-3 lg:hidden">
                         {pelanggan.data.length === 0 ? (
-                            <div className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm ring-1 ring-slate-100">
+                            <div className="rounded-[28px] border border-dashed border-slate-200 bg-white/90 p-6 text-center text-slate-500 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.35)] ring-1 ring-black/5">
                                 Tidak ada pelanggan ditemukan
                             </div>
                         ) : (
                             pelanggan.data.map((p) => (
                                 <div
                                     key={p.id}
-                                    className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md"
+                                    className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition hover:-translate-y-0.5 hover:shadow-md"
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex min-w-0 items-center gap-3">
@@ -359,7 +357,7 @@ export default function Index({
                                         <div className="flex items-center gap-2">
                                             <Link
                                                 href={`/admin/pelanggan/${p.id}`}
-                                                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                             >
                                                 Detail
                                             </Link>
@@ -371,11 +369,11 @@ export default function Index({
                     </div>
 
                     {/* Table for large screens */}
-                    <div className="hidden overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 lg:block">
+                    <div className="hidden overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 lg:block">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
                                 <thead>
-                                    <tr className="bg-slate-50/70">
+                                    <tr className="bg-linear-to-r from-slate-50 to-white">
                                         <th className="px-6 py-4 text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                                             Pelanggan
                                         </th>
@@ -499,7 +497,7 @@ export default function Index({
                                                     <div className="flex items-center gap-2">
                                                         <Link
                                                             href={`/admin/pelanggan/${p.id}`}
-                                                            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                                            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                                         >
                                                             Detail
                                                         </Link>

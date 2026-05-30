@@ -1,4 +1,4 @@
-import { ArrowRight, Package, Plus, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 type CategoryType = 'timbang_hidup' | 'olahan' | 'eceran';
@@ -49,15 +49,7 @@ interface Props {
     item: MenuPickerCardItem;
     quantity: number;
     onAdd: (item: MenuPickerCardItem) => void;
-    onIncrement: (item: MenuPickerCardItem) => void;
-    onDecrement: (item: MenuPickerCardItem) => void;
 }
-
-const CATEGORY_BADGE: Record<CategoryType, string> = {
-    timbang_hidup: 'bg-amber-50 text-amber-700',
-    olahan: 'bg-emerald-50 text-emerald-700',
-    eceran: 'bg-blue-50 text-blue-700',
-};
 
 const formatCurrency = (value: number | null): string => {
     if (value === null) {
@@ -116,19 +108,13 @@ function resolveDisplayPrice(item: MenuPickerCardItem): number | null {
     }, null);
 }
 
-export default function MenuPickerCard({
-    item,
-    quantity,
-    onAdd,
-    onIncrement,
-    onDecrement,
-}: Props) {
+export default function MenuPickerCard({ item, quantity, onAdd }: Props) {
     const isActive = quantity > 0;
     const displayPrice = resolveDisplayPrice(item);
 
     return (
-        <article className="group relative overflow-hidden rounded-[28px] border border-black/5 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5">
-            <div className="relative aspect-video overflow-hidden bg-slate-100">
+        <article className="group overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_-28px_rgba(15,23,42,0.4)]">
+            <div className="relative aspect-4/3 overflow-hidden bg-slate-100">
                 {item.image ? (
                     <img
                         src={
@@ -144,27 +130,19 @@ export default function MenuPickerCard({
                     <MenuImageFallback item={item} />
                 )}
 
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(17,24,39,0.14),transparent_42%)]" />
-
                 {!item.is_available && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/45">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
                             Tidak tersedia
                         </span>
                     </div>
                 )}
-
-                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
-                        {item.category.name}
-                    </span>
-                </div>
             </div>
 
-            <div className="space-y-2 p-5">
-                <div>
+            <div className="space-y-4 p-4 sm:p-5">
+                <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
-                        <h3 className="line-clamp-2 text-base leading-6 font-semibold text-text">
+                        <h3 className="line-clamp-2 text-sm leading-6 font-semibold text-text sm:text-base">
                             {item.name}
                         </h3>
                         {isActive && (
@@ -173,29 +151,19 @@ export default function MenuPickerCard({
                             </span>
                         )}
                     </div>
-                    {/* <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
-                        {item.bundle_desc ||
-                            item.category.name ||
-                            'Menu pilihan'}
-                    </p> */}
+                    <p className="text-xs text-slate-500">
+                        {item.category.name}
+                    </p>
                 </div>
 
-                {/* <div className="text-[11px] text-slate-500">
-                    {item.bundle_desc && (
-                        <span className="line-clamp-1 rounded-lg bg-slate-100 px-2.5 py-1 font-medium">
-                            {item.bundle_desc}
-                        </span>
-                    )}
-                </div> */}
+                <div className="h-px bg-linear-to-r from-transparent via-slate-200 to-transparent" />
 
-                <hr className="my-4 border-slate-200" />
-
-                <div className="flex items-end justify-between gap-3">
-                    <div>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
                         <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-400 uppercase">
-                            Mulai dari
+                            Harga
                         </p>
-                        <p className="mt-1 text-sm font-semibold text-primary">
+                        <p className="mt-1 text-sm font-semibold text-primary sm:text-base">
                             {formatCurrency(displayPrice)}
                         </p>
                     </div>
@@ -204,12 +172,12 @@ export default function MenuPickerCard({
                         <button
                             type="button"
                             disabled
-                            className="inline-flex h-10 items-center gap-2 rounded-full bg-slate-200 px-4 text-sm font-semibold text-slate-500"
+                            className="inline-flex h-10 w-full items-center justify-center rounded-full bg-slate-200 px-4 text-sm font-semibold text-slate-500"
                         >
                             Tidak Tersedia
                         </button>
                     ) : isActive ? (
-                        <div className="inline-flex h-10 items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 text-sm font-semibold text-primary">
+                        <div className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 text-sm font-semibold text-primary">
                             Sudah dipilih
                             <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-text shadow-sm ring-1 ring-black/5">
                                 {quantity}
@@ -219,11 +187,10 @@ export default function MenuPickerCard({
                         <button
                             type="button"
                             onClick={() => onAdd(item)}
-                            className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
                         >
                             <ShoppingCart className="h-4 w-4" />
                             Tambah
-                            <ArrowRight className="h-4 w-4" />
                         </button>
                     )}
                 </div>

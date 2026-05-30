@@ -1,7 +1,7 @@
 import { Check, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import TierPicker from '@/Components/Pelanggan/TierPicker';
-import { ADAT_OPTIONS, KONDISI_OPTIONS } from '@/constants/kondisiProduk';
+import { KONDISI_OPTIONS } from '@/constants/kondisiProduk';
 import type { CategoryType, KondisiValue } from '@/constants/kondisiProduk';
 import type { MenuPickerCardItem } from './MenuPickerCard';
 
@@ -447,9 +447,14 @@ export default function ItemDetailSheet({
     const isTimbangHidup = item?.menu_type === 'timbang_hidup';
     const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
     const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-        null,
+        () =>
+            item?.menu_type === 'eceran'
+                ? (item.variants[0]?.id ?? null)
+                : null,
     );
-    const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>('');
+    const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>(() =>
+        getDefaultKondisiProduk(item),
+    );
     const [adatFlow, setAdatFlow] = useState<TimbangAdatFlow>('');
     const [selectedBatakParts, setSelectedBatakParts] = useState<BatakPart[]>(
         [],
@@ -459,29 +464,7 @@ export default function ItemDetailSheet({
     const [panggangPercent, setPanggangPercent] = useState<number>(75);
     const [remainderText, setRemainderText] = useState<string>('');
     const [qty, setQty] = useState(1);
-    const [priceInput, setPriceInput] = useState('');
     const [notes, setNotes] = useState('');
-
-    useEffect(() => {
-        if (!isOpen || !item) {
-            return;
-        }
-
-        setKondisiProduk(getDefaultKondisiProduk(item));
-        setSelectedTierId(null);
-        setSelectedVariantId(
-            item.menu_type === 'eceran' ? (item.variants[0]?.id ?? null) : null,
-        );
-        setAdatFlow('');
-        setSelectedBatakParts([]);
-        setSelectedNiasPart('');
-        setSaksangPercent(25);
-        setPanggangPercent(75);
-        setRemainderText('');
-        setQty(1);
-        setPriceInput('');
-        setNotes('');
-    }, [isOpen, item, isTimbangHidup]);
 
     const kategori = (item?.category.type ?? 'olahan') as CategoryType;
     const kondisiOptions = isTimbangHidup
@@ -521,21 +504,6 @@ export default function ItemDetailSheet({
             null
         );
     }, [item, selectedVariantId]);
-
-    useEffect(() => {
-        if (!isTimbangHidup || !selectedTier) {
-            return;
-        }
-
-        if (selectedTierQuantityBounds) {
-            setQty(Math.max(1, selectedTierQuantityBounds.min));
-        }
-
-        setAdatFlow('');
-        setSelectedBatakParts([]);
-        setSelectedNiasPart('');
-        setRemainderText('');
-    }, [isTimbangHidup, selectedTier, selectedTierQuantityBounds]);
 
     const displayedEceranPrice = useMemo(() => {
         if (!item || item.menu_type !== 'eceran') {
@@ -659,57 +627,55 @@ export default function ItemDetailSheet({
         return null;
     }
 
-    let selectedSummaryLabel = 'Pilih varian';
-
-    if (isTimbangHidup && !selectedTier) {
-        selectedSummaryLabel = 'Pilih range dulu';
-    } else if (isTimbangHidup) {
-        selectedSummaryLabel =
-            kondisiProduk === 'mateng'
-                ? 'Mateng'
-                : kondisiProduk === 'mentah'
-                  ? 'Mentah'
-                  : 'Pilih kondisi';
-    } else if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
-        selectedSummaryLabel =
-            kondisiProduk === 'mateng'
-                ? 'Mateng'
-                : kondisiProduk === 'mentah'
-                  ? 'Mentah'
-                  : 'Pilih kondisi';
-    } else if (selectedVariant) {
-        selectedSummaryLabel = selectedVariant.label;
-    }
-
     return (
         <div className="fixed inset-0 z-60">
             <button
                 type="button"
                 aria-label="Tutup"
-                className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1px]"
+                className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
                 onClick={onClose}
             />
 
-            <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-2xl rounded-t-[28px] border border-black/5 bg-white shadow-[0_-24px_80px_rgba(15,23,42,0.2)]">
-                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
-                    <div>
-                        <p className="text-[11px] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-                            Detail Item
-                        </p>
-                        <h3 className="mt-1 text-lg font-semibold text-text sm:text-xl">
-                            {item.name}
-                        </h3>
+            <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-3xl overflow-hidden rounded-t-[30px] border border-black/5 bg-white shadow-[0_-28px_90px_rgba(15,23,42,0.24)]">
+                <div className="border-b border-slate-100 bg-linear-to-br from-white via-[#fcfcfa] to-primary/5 px-4 py-4 sm:px-6">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 space-y-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
+                                    Detail Item
+                                </span>
+                                <span className="rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold text-slate-600">
+                                    {item.category.name}
+                                </span>
+                                {!item.is_available && (
+                                    <span className="rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-600">
+                                        Tidak tersedia
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <h3 className="truncate text-lg font-semibold tracking-tight text-text sm:text-2xl">
+                                    {item.name}
+                                </h3>
+                                <p className="text-sm leading-6 text-slate-500">
+                                    Pilih kondisi, varian, adat, dan catatan
+                                    sebelum menambahkan item ke pesanan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-text"
+                        >
+                            <X className="size-4" />
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:text-text"
-                    >
-                        <X className="size-4" />
-                    </button>
                 </div>
 
-                <div className="max-h-[calc(80vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
+                <div className="max-h-[calc(80vh-128px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
                     {isTimbangHidup ? (
                         <>
                             <OptionChips
@@ -740,11 +706,38 @@ export default function ItemDetailSheet({
                                     meta: tier.is_half ? 'Setengah' : 'Utuh',
                                 }))}
                                 value={selectedTierId}
-                                onChange={setSelectedTierId}
+                                onChange={(value) => {
+                                    setSelectedTierId(value);
+
+                                    if (!value || !item) {
+                                        return;
+                                    }
+
+                                    const nextTier =
+                                        item.tiers.find(
+                                            (tier) => tier.id === value,
+                                        ) ?? null;
+
+                                    if (!nextTier) {
+                                        return;
+                                    }
+
+                                    const nextBounds =
+                                        getTierQuantityBounds(nextTier);
+
+                                    if (nextBounds) {
+                                        setQty(Math.max(1, nextBounds.min));
+                                    }
+
+                                    setAdatFlow('');
+                                    setSelectedBatakParts([]);
+                                    setSelectedNiasPart('');
+                                    setRemainderText('');
+                                }}
                             />
 
                             {selectedTier && (
-                                <div className="space-y-3">
+                                <div className="space-y-3 rounded-2xl border border-primary/10 bg-primary/5 p-3 sm:p-4">
                                     <WeightAdjuster
                                         value={qty}
                                         minValue={
@@ -773,17 +766,17 @@ export default function ItemDetailSheet({
                             )}
 
                             {!selectedTier && (
-                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                                    <p className="text-sm font-medium text-text">
+                                <section className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600 shadow-sm">
+                                    <p className="font-medium text-text">
                                         Pilih range terlebih dahulu untuk
                                         melanjutkan pengaturan pesanan.
                                     </p>
                                 </section>
                             )}
 
-                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-                                <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr] sm:items-start">
-                                    <div>
+                            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div className="grid gap-0 sm:grid-cols-[1.2fr_0.8fr] sm:items-stretch">
+                                    <div className="p-4 sm:p-5">
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             Ringkasan menu
                                         </p>
@@ -794,7 +787,7 @@ export default function ItemDetailSheet({
                                         </p>
                                     </div>
 
-                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                    <div className="border-t border-slate-100 bg-[linear-gradient(180deg,#fbfaf6_0%,#f7f8f5_100%)] p-4 sm:border-t-0 sm:border-l sm:border-slate-100 sm:p-5">
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             {isTimbangHidup && selectedTier
                                                 ? 'Estimasi harga'
@@ -1158,7 +1151,7 @@ export default function ItemDetailSheet({
                     ) : (
                         <>
                             {item.sub_type === 'babi_adat' && (
-                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <div className="mb-3">
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             Kondisi produk
@@ -1219,7 +1212,7 @@ export default function ItemDetailSheet({
 
                             {item.sub_type !== 'babi_adat' &&
                                 item.variants.length > 0 && (
-                                    <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                         <div className="mb-3">
                                             <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                                 Pilih varian
@@ -1264,7 +1257,7 @@ export default function ItemDetailSheet({
                                 )}
 
                             {item.sub_type === 'paket_pass' && (
-                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <div className="mb-2">
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             Isi Paket
@@ -1283,7 +1276,7 @@ export default function ItemDetailSheet({
                             )}
 
                             {item.sub_type === 'paket_nasi_box' && (
-                                <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                                <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                     <div className="mb-2">
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             Isi Paket
@@ -1301,7 +1294,7 @@ export default function ItemDetailSheet({
                                 </section>
                             )}
 
-                            <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+                            <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
                                         <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
@@ -1372,12 +1365,12 @@ export default function ItemDetailSheet({
                     </section>
                 </div>
 
-                <div className="border-t border-slate-100 bg-white px-4 py-4 sm:px-6">
+                <div className="border-t border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf7_100%)] px-4 py-4 sm:px-6">
                     <button
                         type="button"
                         onClick={handleSave}
                         disabled={!canSave}
-                        className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                        className="flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(122,143,107,0.6)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                     >
                         Tambah ke Pesanan
                     </button>

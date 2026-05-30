@@ -1,11 +1,12 @@
-import React from 'react';
 import { Package, Weight, ChevronRight } from 'lucide-react';
+import React from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OrderItem {
     id: number;
     menu_name: string;
+    menu_image?: string | null;
     menu_category_type: 'timbang_hidup' | 'olahan' | 'eceran';
     menu_sub_type?:
         | 'babi_adat'
@@ -60,15 +61,6 @@ const ADAT_LABEL: Record<string, string> = {
     nias_simbi_simbi: 'Simbi-Simbi',
 };
 
-const CATEGORY_STYLE: Record<string, { label: string; cls: string }> = {
-    timbang_hidup: {
-        label: 'Timbang Hidup',
-        cls: 'bg-amber-100 text-amber-700',
-    },
-    olahan: { label: 'Olahan', cls: 'bg-emerald-100 text-emerald-700' },
-    eceran: { label: 'Eceran', cls: 'bg-blue-100 text-blue-700' },
-};
-
 const SUB_TYPE_STYLE: Record<string, { label: string; cls: string }> = {
     babi_adat: { label: 'Babi Adat', cls: 'bg-rose-100 text-rose-700' },
     paket_pass: { label: 'Paket PASS', cls: 'bg-violet-100 text-violet-700' },
@@ -86,13 +78,41 @@ const KONDISI_STYLE: Record<string, { label: string; cls: string }> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 const fmt = (n?: number) => {
-    if (n === null || n === undefined) return null;
+    if (n === null || n === undefined) {
+        return null;
+    }
+
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
     }).format(n);
 };
+
+function resolveMenuImageUrl(item: OrderItem): string | null {
+    const rawImage =
+        item.menu_image ??
+        (item as { menu_image_url?: string | null }).menu_image_url ??
+        (item as { menu_item?: { image_url?: string | null } }).menu_item
+            ?.image_url ??
+        (item as { menuItem?: { image_url?: string | null } }).menuItem
+            ?.image_url ??
+        null;
+
+    if (!rawImage) {
+        return null;
+    }
+
+    if (
+        rawImage.startsWith('http://') ||
+        rawImage.startsWith('https://') ||
+        rawImage.startsWith('/')
+    ) {
+        return rawImage;
+    }
+
+    return `/storage/${rawImage}`;
+}
 
 function parseNotes(item: OrderItem): ParsedNotes {
     const notes = item.notes?.trim() ?? '';
@@ -117,12 +137,14 @@ function parseNotes(item: OrderItem): ParsedNotes {
 
         if (adatMain === 'Batak') {
             parsed.adatLabel = 'Adat Batak';
+
             if (batakDetail) {
                 const parts = batakDetail
                     .split(',')
                     .map((p) => p.trim())
                     .filter(Boolean)
                     .map((p) => ADAT_LABEL[p] ?? p);
+
                 parsed.detailLabel =
                     parts.length > 0
                         ? `Batak — ${parts.join(', ')}`
@@ -130,12 +152,14 @@ function parseNotes(item: OrderItem): ParsedNotes {
             }
         } else if (adatMain === 'Nias') {
             parsed.adatLabel = 'Adat Nias';
+
             if (niasDetail) {
                 const parts = niasDetail
                     .split(',')
                     .map((p) => p.trim())
                     .filter(Boolean)
                     .map((p) => ADAT_LABEL[p] ?? p);
+
                 parsed.detailLabel =
                     parts.length > 0
                         ? `Nias — ${parts.join(', ')}`
@@ -149,13 +173,19 @@ function parseNotes(item: OrderItem): ParsedNotes {
 
         parsed.sisaDaging = sisaDaging;
         parsed.catatan = catatan;
+
         return parsed;
     }
 
-    if (item.adat_type === 'batak') parsed.adatLabel = 'Adat Batak';
-    else if (item.adat_type === 'nias') parsed.adatLabel = 'Adat Nias';
-    else if (item.adat_type === 'tanpa_adat') parsed.adatLabel = 'Tanpa Adat';
-    else if (item.adat_type) parsed.adatLabel = item.adat_type;
+    if (item.adat_type === 'batak') {
+        parsed.adatLabel = 'Adat Batak';
+    } else if (item.adat_type === 'nias') {
+        parsed.adatLabel = 'Adat Nias';
+    } else if (item.adat_type === 'tanpa_adat') {
+        parsed.adatLabel = 'Tanpa Adat';
+    } else if (item.adat_type) {
+        parsed.adatLabel = item.adat_type;
+    }
 
     return parsed;
 }
@@ -178,9 +208,11 @@ function formatQty(item: OrderItem): string {
         return `${item.qty}`;
     }
 
-    return item.menu_category_type === 'timbang_hidup'
-        ? `${item.qty} kg`
-        : `${item.qty} ${item.menu_unit}`;
+    if (item.menu_category_type === 'timbang_hidup') {
+        return `${item.qty} kg`;
+    }
+
+    return `${item.qty} ${item.menu_unit}`;
 }
 
 // ─── Chip ─────────────────────────────────────────────────────────────────────
@@ -199,12 +231,12 @@ function Chip({ label, cls }: { label: string; cls: string }) {
 
 function EmptyItems() {
     return (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-50 px-4 py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200">
-                <Package className="h-6 w-6 text-slate-500" />
+        <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-12 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+                <Package className="h-6 w-6 text-slate-400" />
             </div>
             <div>
-                <p className="text-sm font-semibold text-slate-600">
+                <p className="text-sm font-semibold text-text">
                     Tidak ada item pesanan
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
@@ -225,9 +257,9 @@ function SectionHeader({
     label: string;
 }) {
     return (
-        <div className="mb-3 flex items-center gap-2 px-2">
+        <div className="mb-3 flex items-center gap-2 px-1">
             {Icon}
-            <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
                 {label}
             </p>
         </div>
@@ -238,7 +270,6 @@ function SectionHeader({
 
 export default function OrderItemsTable({
     items,
-    isEditable = false,
     subtotalAmount,
     totalAmount,
     uniqueCode = null,
@@ -246,7 +277,9 @@ export default function OrderItemsTable({
     cashbackAmount = 0,
     paymentMethod = null,
 }: OrderItemsTableProps) {
-    if (items.length === 0) return <EmptyItems />;
+    if (items.length === 0) {
+        return <EmptyItems />;
+    }
 
     // Pisah timbang hidup & eceran
     const timbangItems = items.filter(
@@ -263,15 +296,34 @@ export default function OrderItemsTable({
         (shouldShowCashback ? cashbackAmount : 0);
 
     return (
-        <div className="space-y-2.5">
+        <div className="space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-slate-50/70 px-4 py-4 ring-1 ring-slate-100">
+                <div>
+                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                        Rincian Item
+                    </p>
+                    <h3 className="mt-1 text-base font-semibold text-text">
+                        {items.length} item pesanan
+                    </h3>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                    <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
+                        {timbangItems.length} timbang hidup
+                    </span>
+                    <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">
+                        {eceranItems.length} eceran & paket
+                    </span>
+                </div>
+            </div>
+
             {/* ── Timbang Hidup ── */}
             {timbangItems.length > 0 && (
-                <div>
+                <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
                     <SectionHeader
                         icon={<Weight className="h-4 w-4 text-slate-400" />}
                         label="Timbang Hidup"
                     />
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                         {timbangItems.map((item) => (
                             <ItemRow
                                 key={item.id}
@@ -285,17 +337,17 @@ export default function OrderItemsTable({
 
             {/* Divider */}
             {timbangItems.length > 0 && eceranItems.length > 0 && (
-                <div className="my-2 h-px bg-slate-100" />
+                <div className="h-px bg-linear-to-r from-transparent via-slate-200 to-transparent" />
             )}
 
             {/* ── Eceran & Paket ── */}
             {eceranItems.length > 0 && (
-                <div>
+                <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
                     <SectionHeader
                         icon={<Package className="h-4 w-4 text-slate-400" />}
                         label="Eceran & Paket"
                     />
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                         {eceranItems.map((item) => (
                             <ItemRow
                                 key={item.id}
@@ -307,51 +359,63 @@ export default function OrderItemsTable({
                 </div>
             )}
 
-
-
             {/* ── Total Summary ── */}
             {(subtotalAmount !== undefined || totalAmount !== undefined) && (
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-linear-to-br from-slate-50 to-slate-100 px-4 py-4">
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-slate-600">
-                                Subtotal pesanan
-                            </span>
-                            <span className="font-semibold text-slate-700">
-                                {fmt(resolvedSubtotal) ?? 'Harga Menyusul'}
-                            </span>
+                <div className="rounded-3xl border border-primary/10 bg-linear-to-br from-white via-[#fbfcf8] to-primary/5 p-4 shadow-sm ring-1 ring-black/5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                Ringkasan Harga
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500">
+                                Perhitungan akhir pesanan
+                            </p>
                         </div>
-                        {uniqueCode !== null && uniqueCode !== undefined && (
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-600">
-                                    Kode unik
-                                </span>
-                                <span className="font-semibold text-slate-700">
-                                    {fmt(uniqueCode) ?? '0'}
-                                </span>
-                            </div>
-                        )}
-                        {shouldShowCashback && (
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-600">Cashback</span>
-                                <span className="font-semibold text-emerald-600">
-                                    −{fmt(cashbackAmount)}
-                                </span>
-                            </div>
-                        )}
-                        <div className="my-2 h-px bg-slate-200" />
-                        <div className="flex items-center justify-between">
-                            <span className="font-semibold text-slate-700">
-                                Total
-                            </span>
-                            <span className="text-lg font-bold text-slate-900">
+                        <div className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100">
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                Total Bayar
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold text-text">
                                 {fmt(
                                     shouldShowCashback &&
                                         totalAfterCashback !== undefined
                                         ? totalAfterCashback
                                         : resolvedTotal,
                                 ) ?? 'Harga Menyusul'}
-                            </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-100">
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                Subtotal
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-text">
+                                {fmt(resolvedSubtotal) ?? 'Harga Menyusul'}
+                            </p>
+                        </div>
+                        <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-100">
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                Kode unik
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-text">
+                                {uniqueCode !== null && uniqueCode !== undefined
+                                    ? (fmt(uniqueCode) ?? '0')
+                                    : '0'}
+                            </p>
+                        </div>
+                        <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-100">
+                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                Cashback
+                            </p>
+                            <p
+                                className={`mt-1 text-sm font-semibold ${shouldShowCashback ? 'text-emerald-600' : 'text-slate-400'}`}
+                            >
+                                {shouldShowCashback
+                                    ? `−${fmt(cashbackAmount)}`
+                                    : 'Tidak ada'}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -371,7 +435,6 @@ function ItemRow({
 }) {
     const parsed = parseNotes(item);
     const showKondisi = shouldShowKondisi(item);
-    const catStyle = CATEGORY_STYLE[item.menu_category_type];
     const subStyle = item.menu_sub_type
         ? SUB_TYPE_STYLE[item.menu_sub_type]
         : null;
@@ -380,6 +443,7 @@ function ItemRow({
         item.menu_category_type === 'timbang_hidup' && paymentMethod === 'full'
             ? (item.cashback ?? 0)
             : 0;
+    const menuImageUrl = resolveMenuImageUrl(item);
     const hasDetail =
         parsed.detailLabel ||
         parsed.sisaDaging ||
@@ -390,132 +454,149 @@ function ItemRow({
             parsed.rawNotes);
 
     return (
-        <div className="group rounded-xl border border-slate-200 bg-white px-4 py-3 transition-all duration-200 hover:border-slate-300 hover:shadow-md">
-            <div className="flex items-start justify-between gap-4">
-                {/* Kiri */}
-                <div className="min-w-0 flex-1">
-                    {/* Nama + badges */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        <p className="text-sm font-semibold text-slate-900">
-                            {item.menu_name}
-                        </p>
-
-                        {/* Kategori badge — tampil sub_type jika ada, fallback ke category */}
-                        {/* {subStyle ? (
-                            <Chip label={subStyle.label} cls={subStyle.cls} />
-                        ) : (
-                            <Chip label={catStyle.label} cls={catStyle.cls} />
-                        )} */}
-
-                        {/* Kondisi */}
-                        {showKondisi && (
-                            <Chip
-                                label={kondisiStyle.label}
-                                cls={kondisiStyle.cls}
-                            />
-                        )}
-
-                        {/* Adat group */}
-                        {parsed.adatLabel && (
-                            <Chip
-                                label={parsed.adatLabel}
-                                cls="bg-violet-100 text-violet-700"
-                            />
-                        )}
-                    </div>
-
-                    {/* Info row: qty + harga unit */}
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                        <span className="inline-flex items-center gap-1.5 font-medium">
-                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-300"></span>
-                            {formatQty(item)}
-                        </span>
-
-                        {item.unit_price !== undefined &&
-                        item.unit_price !== null ? (
-                            <span className="text-slate-500">
-                                {fmt(item.unit_price)}
-                                {item.menu_category_type === 'timbang_hidup'
-                                    ? '/kg'
-                                    : ''}
-                            </span>
-                        ) : (
-                            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">
-                                Harga Menyusul
-                            </span>
-                        )}
-
-                        {cashbackAmount > 0 && (
-                            <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                                Cashback {fmt(cashbackAmount)}
-                            </span>
-                        )}
-
-                        {item.menu_category_type === 'timbang_hidup' &&
-                            paymentMethod === 'full' && (
-                                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">
-                                    Pembayaran Penuh
-                                </span>
+        <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_40px_-28px_rgba(15,23,42,0.4)]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex gap-3">
+                        <div className="size-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-100">
+                            {menuImageUrl ? (
+                                <img
+                                    src={menuImageUrl}
+                                    alt={item.menu_name}
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                    <Package className="size-5 text-slate-400" />
+                                </div>
                             )}
-                    </div>
-
-                    {/* Detail adat / catatan */}
-                    {hasDetail && (
-                        <div className="mt-3 space-y-1.5 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-xs">
-                            {parsed.detailLabel && (
-                                <p className="text-slate-700">
-                                    <span className="font-semibold text-slate-800">
-                                        Detail adat:
-                                    </span>{' '}
-                                    <span className="text-slate-600">
-                                        {parsed.detailLabel}
-                                    </span>
-                                </p>
-                            )}
-                            {parsed.sisaDaging && (
-                                <p className="text-slate-700">
-                                    <span className="font-semibold text-slate-800">
-                                        Sisa daging:
-                                    </span>{' '}
-                                    <span className="text-slate-600">
-                                        {parsed.sisaDaging}
-                                    </span>
-                                </p>
-                            )}
-                            {parsed.catatan && (
-                                <p className="text-slate-700">
-                                    <span className="font-semibold text-slate-800">
-                                        Catatan:
-                                    </span>{' '}
-                                    <span className="text-slate-600">
-                                        {parsed.catatan}
-                                    </span>
-                                </p>
-                            )}
-                            {!parsed.detailLabel &&
-                                !parsed.sisaDaging &&
-                                !parsed.catatan &&
-                                parsed.rawNotes && (
-                                    <p className="text-slate-500 italic">
-                                        "{parsed.rawNotes}"
-                                    </p>
-                                )}
                         </div>
-                    )}
+
+                        <div className="min-w-0 flex-1 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm font-semibold text-text">
+                                    {item.menu_name}
+                                </p>
+                                {showKondisi && (
+                                    <Chip
+                                        label={kondisiStyle.label}
+                                        cls={kondisiStyle.cls}
+                                    />
+                                )}
+                                {parsed.adatLabel && (
+                                    <Chip
+                                        label={parsed.adatLabel}
+                                        cls="bg-violet-100 text-violet-700"
+                                    />
+                                )}
+                                {item.menu_sub_type && subStyle && (
+                                    <Chip
+                                        label={subStyle.label}
+                                        cls={subStyle.cls}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 ring-1 ring-slate-100">
+                                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-slate-300" />
+                                    {formatQty(item)}
+                                </span>
+
+                                {item.unit_price !== undefined &&
+                                item.unit_price !== null ? (
+                                    <span className="rounded-full bg-slate-50 px-2.5 py-1 ring-1 ring-slate-100">
+                                        {fmt(item.unit_price)}
+                                        {item.menu_category_type ===
+                                        'timbang_hidup'
+                                            ? '/kg'
+                                            : ''}
+                                    </span>
+                                ) : (
+                                    <span className="rounded-full bg-amber-50 px-2.5 py-1 font-medium text-amber-700 ring-1 ring-amber-100">
+                                        Harga menyusul
+                                    </span>
+                                )}
+
+                                {cashbackAmount > 0 && (
+                                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-medium text-emerald-700 ring-1 ring-emerald-100">
+                                        Cashback {fmt(cashbackAmount)}
+                                    </span>
+                                )}
+
+                                {item.menu_category_type === 'timbang_hidup' &&
+                                    paymentMethod === 'full' && (
+                                        <span className="rounded-full bg-blue-50 px-2.5 py-1 font-medium text-blue-700 ring-1 ring-blue-100">
+                                            Pembayaran penuh
+                                        </span>
+                                    )}
+                            </div>
+
+                            {hasDetail && (
+                                <div className="rounded-2xl bg-slate-50/80 p-3 text-xs ring-1 ring-slate-100">
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                        {parsed.detailLabel && (
+                                            <div>
+                                                <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                    Detail adat
+                                                </p>
+                                                <p className="mt-1 text-slate-700">
+                                                    {parsed.detailLabel}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {parsed.sisaDaging && (
+                                            <div>
+                                                <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                    Sisa daging
+                                                </p>
+                                                <p className="mt-1 text-slate-700">
+                                                    {parsed.sisaDaging}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {parsed.catatan && (
+                                        <div className="mt-3 border-t border-slate-200/80 pt-3">
+                                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                Catatan
+                                            </p>
+                                            <p className="mt-1 text-slate-600">
+                                                {parsed.catatan}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {!parsed.detailLabel &&
+                                        !parsed.sisaDaging &&
+                                        !parsed.catatan &&
+                                        parsed.rawNotes && (
+                                            <p className="text-slate-500 italic">
+                                                {parsed.rawNotes}
+                                            </p>
+                                        )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                {/* Kanan — subtotal */}
-                <div className="shrink-0 text-right">
-                    {item.subtotal !== undefined && item.subtotal !== null ? (
-                        <div className="flex flex-col items-end gap-0.5">
-                            <p className="text-sm font-bold text-slate-900">
+                <div className="flex shrink-0 items-center justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
+                    <div>
+                        <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                            Subtotal
+                        </p>
+                        {item.subtotal !== undefined &&
+                        item.subtotal !== null ? (
+                            <p className="mt-1 text-lg font-semibold text-text">
                                 {fmt(item.subtotal)}
                             </p>
-                            <ChevronRight className="h-3.5 w-3.5 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100" />
-                        </div>
-                    ) : (
-                        <p className="text-xs font-medium text-slate-400">—</p>
-                    )}
+                        ) : (
+                            <p className="mt-1 text-sm font-medium text-slate-400">
+                                —
+                            </p>
+                        )}
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
             </div>
         </div>

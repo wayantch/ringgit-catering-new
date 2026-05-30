@@ -1,5 +1,3 @@
-import { Plus, Trash2 } from 'lucide-react';
-
 export interface TierRow {
     kode: 'A' | 'B' | 'C';
     is_half: boolean;
@@ -222,7 +220,7 @@ function TierGroup({
                                                 event.target.value,
                                             )
                                         }
-                                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                                         placeholder="0"
                                     />
                                     <TierCellError

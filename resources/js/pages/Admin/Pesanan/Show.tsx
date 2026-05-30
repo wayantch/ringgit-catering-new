@@ -1,24 +1,20 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     ArrowLeft,
-    User,
-    Phone,
+    BadgeCheck,
+    Clock,
+    ChevronRight,
+    CheckCircle2,
+    Eye,
+    Image,
     Mail,
     MapPin,
-    Clock,
-    Calendar,
-    Package,
+    Phone,
     ShoppingBag,
-    Eye,
-    ChevronRight,
-    AlertCircle,
-    CheckCircle2,
     XCircle,
-    Receipt,
-    UserCheck,
-    Image,
+    Sparkles,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import OrderItemsTable from '@/Components/Admin/OrderItemsTable';
 import OrderTimeline from '@/Components/Admin/OrderTimeline';
 import CashbackCard from '@/Components/Admin/Pesanan/CashbackCard';
@@ -112,10 +108,10 @@ function SectionCard({
 }) {
     return (
         <div
-            className={`rounded-2xl border border-slate-100 bg-white p-5 shadow-sm ${className}`}
+            className={`rounded-3xl border border-slate-100 bg-white p-5 shadow-sm ${className}`}
         >
             {title && (
-                <h2 className="mb-4 text-sm font-semibold text-slate-700">
+                <h2 className="mb-4 text-sm font-semibold text-text">
                     {title}
                 </h2>
             )}
@@ -125,9 +121,6 @@ function SectionCard({
 }
 
 export default function Show({ order }: Props) {
-    const [showStatusForm, setShowStatusForm] = useState(false);
-    const statusForm = useForm({ status: order.order_status });
-
     const verificationPayments = order.payments.filter(
         (p: any) => p.is_verification,
     );
@@ -180,15 +173,6 @@ export default function Show({ order }: Props) {
         }
 
         return `/storage/${rawUrl}`;
-    };
-
-    const handleStatusChange = () => {
-        statusForm.post(`/admin/pesanan/${order.id}/update-status`, {
-            onSuccess: () => {
-                setShowStatusForm(false);
-                window.location.reload();
-            },
-        });
     };
 
     const handleProceed = () => {
@@ -446,293 +430,461 @@ export default function Show({ order }: Props) {
 
     return (
         <AdminLayout>
-            <div className="space-y-4 p-4">
-                {/* ── PAGE HEADER ── */}
-                <div className="flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-                    <div>
-                        <button
-                            onClick={() => window.history.back()}
-                            className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition hover:text-primary"
-                        >
-                            <ArrowLeft className="size-3.5" /> Kembali
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <h1 className="font-mono text-2xl font-bold tracking-tight text-slate-900">
-                                {order.order_number}
-                            </h1>
-                            <PesananStatusBadge status={order.order_status} />
-                            <PesananSourceBadge source={order.source} />
-                        </div>
-                        <p className="mt-1 text-sm text-slate-400">
-                            {order.source === 'pembeli'
-                                ? 'Pesanan dari pelanggan'
-                                : 'Pesanan dibuat admin'}
-                            {order.created_by &&
-                                ` · oleh ${order.created_by.name}`}
-                        </p>
-                    </div>
-                    {order.source === 'admin' && order.isEditable && (
-                        <Link
-                            href={`/admin/pesanan/${order.id}/edit`}
-                            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_-14px_rgba(122,143,107,0.55)] transition hover:bg-primary/90"
-                        >
-                            Edit Pesanan <ChevronRight className="size-4" />
-                        </Link>
-                    )}
-                </div>
-
-                {/* ── BENTO GRID ── */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-1">
-                    {/* ── MAIN COLUMN ── */}
-                    <div className="space-y-4">
-                        {/* Row 1: Pelanggan + Detail */}
-
-                        {/* Bukti pembayaran pelanggan */}
-                        {verificationPayments.length > 0 && (
-                            <SectionCard title="Bukti Pembayaran Pelanggan">
-                                <div className="divide-y divide-slate-100">
-                                    {verificationPayments.map(
-                                        (payment: any) => {
-                                            const proofImageUrl =
-                                                resolveProofImageUrl(payment);
-
-                                            return (
-                                                <div
-                                                    key={payment.id}
-                                                    className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        {proofImageUrl ? (
-                                                            <a
-                                                                href={
-                                                                    proofImageUrl
-                                                                }
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="block"
-                                                            >
-                                                                <img
-                                                                    src={
-                                                                        proofImageUrl
-                                                                    }
-                                                                    alt="Bukti pembayaran"
-                                                                    className="size-12 rounded-xl border border-slate-200 object-cover"
-                                                                />
-                                                            </a>
-                                                        ) : (
-                                                            <div className="flex size-9 items-center justify-center rounded-xl bg-slate-100">
-                                                                <Image className="size-4 text-slate-500" />
-                                                            </div>
-                                                        )}
-                                                        <div>
-                                                            <p className="text-sm font-medium text-slate-800">
-                                                                {payment.payment_type ===
-                                                                'dp'
-                                                                    ? 'Bukti DP'
-                                                                    : 'Bukti Pelunasan'}
-                                                            </p>
-                                                            <p className="text-xs text-slate-400">
-                                                                {payment.status ===
-                                                                'pending'
-                                                                    ? 'Menunggu verifikasi'
-                                                                    : payment.status ===
-                                                                        'verified'
-                                                                      ? 'Terverifikasi'
-                                                                      : 'Ditolak'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        {/* Status chip */}
-                                                        <span
-                                                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                                                                payment.status ===
-                                                                'pending'
-                                                                    ? 'bg-amber-50 text-amber-600'
-                                                                    : payment.status ===
-                                                                        'verified'
-                                                                      ? 'bg-emerald-50 text-emerald-600'
-                                                                      : 'bg-red-50 text-red-500'
-                                                            }`}
-                                                        >
-                                                            {payment.status ===
-                                                            'pending'
-                                                                ? 'Pending'
-                                                                : payment.status ===
-                                                                    'verified'
-                                                                  ? 'Verified'
-                                                                  : 'Ditolak'}
-                                                        </span>
-                                                        {payment.status ===
-                                                            'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleVerifyPaymentVerification(
-                                                                            payment,
-                                                                        )
-                                                                    }
-                                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
-                                                                >
-                                                                    <CheckCircle2 className="size-3.5" />
-                                                                    Verifikasi
-                                                                </button>
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleRejectPaymentVerification(
-                                                                            payment,
-                                                                        )
-                                                                    }
-                                                                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
-                                                                >
-                                                                    <XCircle className="size-3.5" />
-                                                                    Tolak
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        {/* Lihat pembayaran */}
-                                                        {proofImageUrl && (
-                                                            <a
-                                                                href={
-                                                                    proofImageUrl
-                                                                }
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
-                                                            >
-                                                                <Eye className="size-3.5" />{' '}
-                                                                Lihat pembayaran
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        },
-                                    )}
-                                </div>
-                            </SectionCard>
-                        )}
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <SectionCard title="Informasi Pelanggan">
-                                <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0 md:grid-cols-2">
-                                    <InfoRow
-                                        label="Nama"
-                                        value={order.customer_name}
-                                        icon={User}
-                                    />
-                                    {order.customer_email && (
-                                        <InfoRow
-                                            label="Email"
-                                            value={order.customer_email}
-                                            icon={Mail}
+            <div className="min-h-screen">
+                <div className="flex w-full flex-col gap-6 p-4">
+                    <section className="relative overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_30px_30px_-48px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
+                        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="max-w-3xl space-y-4">
+                                <button
+                                    onClick={() => window.history.back()}
+                                    className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition hover:text-primary"
+                                >
+                                    <ArrowLeft className="size-3.5" /> Kembali
+                                </button>
+                                <div className="space-y-3">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <h1 className="font-mono text-2xl font-bold tracking-tight text-text sm:text-3xl lg:text-4xl">
+                                            {order.order_number}
+                                        </h1>
+                                        <PesananStatusBadge
+                                            status={order.order_status}
                                         />
-                                    )}
-                                    <InfoRow
-                                        label="No. HP"
-                                        value={order.customer_phone}
-                                        icon={Phone}
-                                    />
+                                        <PesananSourceBadge
+                                            source={order.source}
+                                        />
+                                    </div>
+                                    <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                                        {order.source === 'pembeli'
+                                            ? 'Pesanan dari pelanggan'
+                                            : 'Pesanan dibuat admin'}
+                                        {order.created_by
+                                            ? ` · oleh ${order.created_by.name}`
+                                            : ''}
+                                    </p>
                                 </div>
-                            </SectionCard>
 
-                            <SectionCard title="Detail Pesanan">
-                                <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0 md:grid-cols-2">
-                                    <InfoRow
-                                        label="Metode Pembayaran"
-                                        value={paymentMethodLabel}
-                                        icon={Receipt}
-                                    />
-                                    <InfoRow
-                                        label="Jenis"
-                                        value={
-                                            order.order_type === 'takeaway'
-                                                ? 'Ambil Sendiri'
-                                                : 'Diantar'
-                                        }
-                                        icon={ShoppingBag}
-                                    />
-                                    <InfoRow
-                                        label="Tanggal"
-                                        value={formatDate(order.booking_date)}
-                                        icon={Calendar}
-                                    />
-                                    {order.order_type === 'takeaway' &&
-                                        order.pickup_time && (
-                                            <InfoRow
-                                                label="Jam Ambil"
-                                                value={order.pickup_time}
-                                                icon={Clock}
-                                            />
+                                <div className="flex flex-wrap gap-3">
+                                    {order.source === 'admin' &&
+                                        order.isEditable && (
+                                            <Link
+                                                href={`/admin/pesanan/${order.id}/edit`}
+                                                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(122,143,107,0.85)] transition hover:-translate-y-0.5 hover:bg-primary-600"
+                                            >
+                                                Edit Pesanan
+                                                <ChevronRight className="size-4" />
+                                            </Link>
                                         )}
-                                    {order.order_type === 'delivery' &&
-                                        order.delivery_time && (
-                                            <InfoRow
-                                                label="Jam Kirim"
-                                                value={order.delivery_time}
-                                                icon={Clock}
-                                            />
-                                        )}
-                                    {order.order_type === 'delivery' &&
-                                        order.delivery_address && (
-                                            <InfoRow
-                                                label="Alamat"
-                                                value={order.delivery_address}
-                                                icon={MapPin}
-                                            />
-                                        )}
-                                </div>
-                            </SectionCard>
-                        </div>
-
-                        {/* Timeline */}
-                        <SectionCard>
-                            <OrderTimeline
-                                status={order.order_status}
-                                source={order.source}
-                                bookingDate={order.booking_date}
-                            />
-                        </SectionCard>
-
-                        {/* Item Pesanan */}
-                        <SectionCard title="Item Pesanan">
-                            <OrderItemsTable
-                                items={order.items}
-                                paymentMethod={paymentMethod}
-                                subtotalAmount={Number(order.subtotal)}
-                                totalAmount={Number(order.total_amount)}
-                                uniqueCode={
-                                    paymentMethod === 'full'
-                                        ? (order.unique_code ?? null)
-                                        : (order.dp_unique_code ?? null)
-                                }
-                                totalAfterCashback={totalAfterCashback}
-                                cashbackAmount={totalCashback}
-                            />
-                        </SectionCard>
-
-                        <SectionCard title="Catatan Pesanan">
-                            <div className="space-y-3 text-sm text-slate-600">
-                                <div>
-                                    {order.notes ? (
-                                        <p className="mt-2 rounded-2xl bg-slate-50 px-4 py-3 leading-6 whitespace-pre-wrap text-slate-700">
-                                            {order.notes}
-                                        </p>
-                                    ) : (
-                                        <p className="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-slate-400">
-                                            Tidak ada catatan pesanan.
-                                        </p>
+                                    {order.order_status === 'baru' && (
+                                        <button
+                                            onClick={handleProceed}
+                                            className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:-translate-y-0.5 hover:bg-primary/10"
+                                        >
+                                            <Sparkles className="size-4" />
+                                            Mulai Proses
+                                        </button>
                                     )}
+                                    {order.order_status === 'diproses' && (
+                                        <button
+                                            onClick={() =>
+                                                changeStatusTo('selesai')
+                                            }
+                                            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                                        >
+                                            <BadgeCheck className="size-4" />
+                                            Tandai Selesai
+                                        </button>
+                                    )}
+                                    {order.order_status !== 'dibatalkan' &&
+                                        order.order_status !== 'selesai' && (
+                                            <button
+                                                onClick={handleReject}
+                                                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:-translate-y-0.5 hover:bg-red-100"
+                                            >
+                                                <XCircle className="size-4" />
+                                                Batalkan
+                                            </button>
+                                        )}
                                 </div>
                             </div>
-                        </SectionCard>
 
-                        {/* Cashback (moved from sidebar) */}
-                        <CashbackCard
-                            has_cashback={hasCashback}
-                            cashback_breakdown={order.cashback_breakdown ?? []}
-                            total_cashback={totalCashback}
-                            payment_method={paymentMethod}
-                        />
+                            <div className="grid gap-3 sm:grid-cols-2 xl:w-115 xl:grid-cols-2">
+                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                        Pelanggan
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold tracking-tight text-text">
+                                        {order.customer_name}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {order.customer_phone}
+                                    </p>
+                                </div>
+                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                        Jadwal Booking
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold tracking-tight text-text">
+                                        {formatDate(order.booking_date)}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {order.order_type === 'takeaway'
+                                            ? 'Ambil sendiri'
+                                            : 'Pesanan antar'}
+                                    </p>
+                                </div>
+                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                        Pembayaran
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold tracking-tight text-text">
+                                        {paymentMethodLabel}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {hasPendingPayments
+                                            ? `${pendingVerifications.length} bukti menunggu verifikasi`
+                                            : 'Tidak ada verifikasi tertunda'}
+                                    </p>
+                                </div>
+                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                        Total
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold tracking-tight text-text">
+                                        {formatCurrency(totalAfterCashback)}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {hasCashback && totalCashback > 0
+                                            ? `${formatCurrency(totalCashback)} cashback`
+                                            : order.is_price_pending
+                                              ? 'Harga menyusul'
+                                              : 'Final'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+                        <div className="space-y-6">
+                            {verificationPayments.length > 0 && (
+                                <SectionCard title="Bukti Pembayaran Pelanggan">
+                                    <div className="divide-y divide-slate-100">
+                                        {verificationPayments.map(
+                                            (payment: any) => {
+                                                const proofImageUrl =
+                                                    resolveProofImageUrl(
+                                                        payment,
+                                                    );
+
+                                                return (
+                                                    <div
+                                                        key={payment.id}
+                                                        className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            {proofImageUrl ? (
+                                                                <a
+                                                                    href={
+                                                                        proofImageUrl
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block"
+                                                                >
+                                                                    <img
+                                                                        src={
+                                                                            proofImageUrl
+                                                                        }
+                                                                        alt="Bukti pembayaran"
+                                                                        className="size-12 rounded-2xl border border-slate-200 object-cover"
+                                                                    />
+                                                                </a>
+                                                            ) : (
+                                                                <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-100">
+                                                                    <Image className="size-4 text-slate-500" />
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="text-sm font-medium text-text">
+                                                                    {payment.payment_type ===
+                                                                    'dp'
+                                                                        ? 'Bukti DP'
+                                                                        : 'Bukti Pelunasan'}
+                                                                </p>
+                                                                <p className="text-xs text-slate-400">
+                                                                    {payment.status ===
+                                                                    'pending'
+                                                                        ? 'Menunggu verifikasi'
+                                                                        : payment.status ===
+                                                                            'verified'
+                                                                          ? 'Terverifikasi'
+                                                                          : 'Ditolak'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span
+                                                                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${payment.status === 'pending' ? 'bg-amber-50 text-amber-600' : payment.status === 'verified' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}
+                                                            >
+                                                                {payment.status ===
+                                                                'pending'
+                                                                    ? 'Pending'
+                                                                    : payment.status ===
+                                                                        'verified'
+                                                                      ? 'Verified'
+                                                                      : 'Ditolak'}
+                                                            </span>
+                                                            {payment.status ===
+                                                                'pending' && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleVerifyPaymentVerification(
+                                                                                payment,
+                                                                            )
+                                                                        }
+                                                                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                                                                    >
+                                                                        <CheckCircle2 className="size-3.5" />
+                                                                        Verifikasi
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleRejectPaymentVerification(
+                                                                                payment,
+                                                                            )
+                                                                        }
+                                                                        className="inline-flex items-center gap-1.5 rounded-xl bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                                                                    >
+                                                                        <XCircle className="size-3.5" />
+                                                                        Tolak
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {proofImageUrl && (
+                                                                <a
+                                                                    href={
+                                                                        proofImageUrl
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                                                                >
+                                                                    <Eye className="size-3.5" />
+                                                                    Lihat
+                                                                    pembayaran
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            },
+                                        )}
+                                    </div>
+                                </SectionCard>
+                            )}
+
+                            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                                <SectionCard title="Informasi Pelanggan">
+                                    <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0">
+                                        {order.customer_email && (
+                                            <InfoRow
+                                                label="Email"
+                                                value={order.customer_email}
+                                                icon={Mail}
+                                            />
+                                        )}
+                                        <InfoRow
+                                            label="No. HP"
+                                            value={order.customer_phone}
+                                            icon={Phone}
+                                        />
+                                    </div>
+                                </SectionCard>
+
+                                <SectionCard title="Detail Pesanan">
+                                    <div className="grid min-w-0 grid-cols-1 gap-3.5 *:min-w-0">
+                                        <InfoRow
+                                            label="Jenis"
+                                            value={
+                                                order.order_type === 'takeaway'
+                                                    ? 'Ambil Sendiri'
+                                                    : 'Diantar'
+                                            }
+                                            icon={ShoppingBag}
+                                        />
+                                        {order.order_type === 'takeaway' &&
+                                            order.pickup_time && (
+                                                <InfoRow
+                                                    label="Jam Ambil"
+                                                    value={order.pickup_time}
+                                                    icon={Clock}
+                                                />
+                                            )}
+                                        {order.order_type === 'delivery' &&
+                                            order.delivery_time && (
+                                                <InfoRow
+                                                    label="Jam Kirim"
+                                                    value={order.delivery_time}
+                                                    icon={Clock}
+                                                />
+                                            )}
+                                        {order.order_type === 'delivery' &&
+                                            order.delivery_address && (
+                                                <InfoRow
+                                                    label="Alamat"
+                                                    value={
+                                                        order.delivery_address
+                                                    }
+                                                    icon={MapPin}
+                                                />
+                                            )}
+                                    </div>
+                                </SectionCard>
+                            </div>
+
+                            <SectionCard>
+                                <OrderTimeline
+                                    status={order.order_status}
+                                    source={order.source}
+                                    bookingDate={order.booking_date}
+                                />
+                            </SectionCard>
+
+                            <SectionCard title="Item Pesanan">
+                                <OrderItemsTable
+                                    items={order.items}
+                                    paymentMethod={paymentMethod}
+                                    subtotalAmount={Number(order.subtotal)}
+                                    totalAmount={Number(order.total_amount)}
+                                    uniqueCode={
+                                        paymentMethod === 'full'
+                                            ? (order.unique_code ?? null)
+                                            : (order.dp_unique_code ?? null)
+                                    }
+                                    totalAfterCashback={totalAfterCashback}
+                                    cashbackAmount={totalCashback}
+                                />
+                            </SectionCard>
+
+                            <SectionCard title="Catatan Pesanan">
+                                <div className="space-y-3 text-sm text-slate-600">
+                                    <div>
+                                        {order.notes ? (
+                                            <p className="mt-2 rounded-2xl bg-slate-50 px-4 py-3 leading-6 whitespace-pre-wrap text-slate-700">
+                                                {order.notes}
+                                            </p>
+                                        ) : (
+                                            <p className="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-slate-400">
+                                                Tidak ada catatan pesanan.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </SectionCard>
+                        </div>
+
+                        <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+                            <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Ringkasan
+                                        </p>
+                                        <h2 className="mt-2 text-base font-semibold text-text">
+                                            Overview Pesanan
+                                        </h2>
+                                    </div>
+                                    <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+                                        <Sparkles className="size-5" />
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 space-y-3">
+                                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                                        <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Total Akhir
+                                        </div>
+                                        <div className="mt-1 text-xl font-semibold text-text">
+                                            {formatCurrency(totalAfterCashback)}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                                        <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Subtotal
+                                        </div>
+                                        <div className="mt-1 text-lg font-semibold text-text">
+                                            {formatCurrency(order.subtotal)}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                                        <div className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Cashback
+                                        </div>
+                                        <div className="mt-1 text-lg font-semibold text-text">
+                                            {formatCurrency(totalCashback)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {order.order_status !== 'selesai' && (
+                                <SectionCard title="Aksi Cepat">
+                                    <div className="space-y-3">
+                                        {order.source === 'admin' &&
+                                            order.isEditable && (
+                                                <Link
+                                                    href={`/admin/pesanan/${order.id}/edit`}
+                                                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                                >
+                                                    Edit Pesanan
+                                                    <ChevronRight className="size-4" />
+                                                </Link>
+                                            )}
+                                        {order.order_status === 'baru' && (
+                                            <button
+                                                onClick={handleProceed}
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(122,143,107,0.85)] transition hover:bg-primary-600"
+                                            >
+                                                <Sparkles className="size-4" />
+                                                Mulai Proses Pesanan
+                                            </button>
+                                        )}
+                                        {order.order_status === 'diproses' && (
+                                            <button
+                                                onClick={() =>
+                                                    changeStatusTo('selesai')
+                                                }
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                            >
+                                                <BadgeCheck className="size-4" />
+                                                Tandai Selesai
+                                            </button>
+                                        )}
+                                        {order.order_status !==
+                                            'dibatalkan' && (
+                                            <button
+                                                onClick={handleReject}
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                                            >
+                                                <XCircle className="size-4" />
+                                                Batalkan Pesanan
+                                            </button>
+                                        )}
+                                    </div>
+                                </SectionCard>
+                            )}
+
+                            <CashbackCard
+                                has_cashback={hasCashback}
+                                cashback_breakdown={
+                                    order.cashback_breakdown ?? []
+                                }
+                                total_cashback={totalCashback}
+                                payment_method={paymentMethod}
+                            />
+                        </aside>
                     </div>
                 </div>
             </div>

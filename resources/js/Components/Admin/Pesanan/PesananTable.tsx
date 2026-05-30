@@ -79,11 +79,48 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                     <tbody>
                         {orders.length === 0 ? (
                             <tr>
-                                <td
-                                    colSpan={8}
-                                    className="py-10 text-center text-slate-500"
-                                >
-                                    Tidak ada pesanan
+                                <td colSpan={8} className="py-12">
+                                    <div className="flex flex-col items-center justify-center gap-4">
+                                        <svg
+                                            width="64"
+                                            height="64"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="text-slate-300"
+                                        >
+                                            <path
+                                                d="M3 7h18"
+                                                stroke="currentColor"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                            <path
+                                                d="M7 7v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"
+                                                stroke="currentColor"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                            <path
+                                                d="M10 11h4"
+                                                stroke="currentColor"
+                                                strokeWidth="1.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                        </svg>
+                                        <div className="text-center text-sm text-slate-500">
+                                            Belum ada pesanan
+                                        </div>
+                                        <Link
+                                            href="/admin/pesanan/create"
+                                            className="rounded-md bg-primary px-4 py-2 text-sm text-white"
+                                        >
+                                            Buat Pesanan
+                                        </Link>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
@@ -93,14 +130,30 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                     className="border-t border-slate-100 transition-colors hover:bg-slate-50/70"
                                 >
                                     <td className="p-4 align-top">
-                                        <div className="font-mono font-semibold text-primary">
-                                            {o.order_number}
+                                        <div className="flex items-center gap-3">
+                                            <div className="font-mono font-semibold text-primary">
+                                                {o.order_number}
+                                            </div>
+                                            {/* <div>
+                                                <PesananSourceBadge
+                                                    source={o.source}
+                                                />
+                                            </div> */}
                                         </div>
                                     </td>
                                     <td className="p-4 align-top">
                                         <div className="font-semibold">
                                             {o.customer_name}
                                         </div>
+                                        {/* {o.customer_email ? (
+                                            <div className="text-[12px] text-slate-400">
+                                                {o.customer_email}
+                                            </div>
+                                        ) : null}
+                                        <div className="mt-2 text-[12px] text-slate-500">
+                                            {o.items_count} item •{' '}
+                                            {o.items_summary}
+                                        </div> */}
                                     </td>
                                     <td className="p-4 align-top">
                                         <div>
@@ -159,7 +212,7 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                     <td className="p-4 align-top">
                                         <Link
                                             href={`/admin/pesanan/${o.id}`}
-                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
                                         >
                                             Detail
                                         </Link>

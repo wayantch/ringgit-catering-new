@@ -1,4 +1,17 @@
 import { CalendarDays, Package, Truck } from 'lucide-react';
+import SelectNative from '@/Components/UI/SelectNative';
+
+const DELIVERY_TIME_OPTIONS = Array.from({ length: 27 }, (_, index) => {
+    const totalMinutes = 5 * 60 + index * 30;
+    const hour = Math.floor(totalMinutes / 60);
+    const minute = totalMinutes % 60;
+    const value = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+    return {
+        value,
+        label: value,
+    };
+});
 
 interface Props {
     orderType: 'takeaway' | 'delivery';
@@ -34,37 +47,44 @@ export default function DeliverySection({
     error,
 }: Props) {
     return (
-        <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-                <div>
-                    <p className="text-[11px] font-semibold tracking-[0.24em] text-slate-400 uppercase">
-                        Detail Pesanan
-                    </p>
-                    <h3 className="mt-1 text-lg font-semibold text-text">
-                        Pengambilan dan pengiriman
-                    </h3>
-                </div>
-                <div className="flex rounded-full bg-secondary/70 p-1">
-                    <button
-                        type="button"
-                        onClick={() => onOrderTypeChange('takeaway')}
-                        className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition ${orderType === 'takeaway' ? 'bg-primary text-white' : 'text-text'}`}
-                    >
-                        <Package className="size-3.5" />
-                        Pickup
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => onOrderTypeChange('delivery')}
-                        className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition ${orderType === 'delivery' ? 'bg-primary text-white' : 'text-text'}`}
-                    >
-                        <Truck className="size-3.5" />
-                        Delivery
-                    </button>
+        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
+            <div className="border-b border-slate-100 bg-linear-to-br from-white via-[#fcfcfa] to-primary/5 px-4 py-4 sm:px-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                        <p className="text-[11px] font-semibold tracking-[0.24em] text-slate-400 uppercase">
+                            Detail Pesanan
+                        </p>
+                        <h3 className="text-lg font-semibold tracking-tight text-text sm:text-xl">
+                            Pengambilan dan pengiriman
+                        </h3>
+                        <p className="text-sm leading-6 text-slate-500">
+                            Atur jadwal pengambilan atau kirim dengan tampilan
+                            yang lebih rapi.
+                        </p>
+                    </div>
+
+                    <div className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => onOrderTypeChange('takeaway')}
+                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${orderType === 'takeaway' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:text-text'}`}
+                        >
+                            <Package className="size-3.5" />
+                            Pickup
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onOrderTypeChange('delivery')}
+                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${orderType === 'delivery' ? 'bg-primary text-white shadow-sm' : 'text-slate-600 hover:text-text'}`}
+                        >
+                            <Truck className="size-3.5" />
+                            Delivery
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
                 <label className="block">
                     <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
                         Tanggal Booking
@@ -78,7 +98,7 @@ export default function DeliverySection({
                             onChange={(event) =>
                                 onBookingDateChange(event.target.value)
                             }
-                            className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-4 pl-10 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pr-4 pl-10 text-sm text-text shadow-sm transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                     </div>
                 </label>
@@ -94,7 +114,7 @@ export default function DeliverySection({
                             onChange={(event) =>
                                 onPickupTimeChange(event.target.value)
                             }
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                     </label>
                 ) : (
@@ -102,14 +122,21 @@ export default function DeliverySection({
                         <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
                             Jam Kirim
                         </span>
-                        <input
-                            type="time"
+                        <SelectNative
+                            id="delivery_time"
                             value={deliveryTime}
                             onChange={(event) =>
                                 onDeliveryTimeChange(event.target.value)
                             }
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
+                            className="w-full"
+                        >
+                            <option value="">Pilih jam kirim</option>
+                            {DELIVERY_TIME_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </SelectNative>
                     </label>
                 )}
 
@@ -125,7 +152,7 @@ export default function DeliverySection({
                                 onDeliveryAddressChange(event.target.value)
                             }
                             placeholder="Alamat lengkap pengiriman"
-                            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         />
                     </label>
                 )}
@@ -139,12 +166,16 @@ export default function DeliverySection({
                         value={notes}
                         onChange={(event) => onNotesChange(event.target.value)}
                         placeholder="Opsional"
-                        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-text transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                 </label>
             </div>
 
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+            {error && (
+                <p className="border-t border-red-100 bg-red-50/80 px-4 py-3 text-sm text-red-600 sm:px-5">
+                    {error}
+                </p>
+            )}
         </section>
     );
 }

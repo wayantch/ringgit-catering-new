@@ -262,9 +262,11 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur">
             <div className="mb-5">
-                <h3 className="text-base font-semibold text-text">{title}</h3>
+                <h3 className="text-base font-semibold tracking-tight text-text">
+                    {title}
+                </h3>
                 {description && (
                     <p className="mt-1 text-sm leading-6 text-slate-500">
                         {description}
@@ -595,13 +597,13 @@ export default function MenuForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+            <div className="rounded-[28px] border border-white/70 bg-linear-to-br from-white via-[#fcfcfa] to-primary/5 p-5 shadow-[0_18px_38px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
                             Langkah 2
                         </p>
-                        <h2 className="mt-2 text-2xl font-bold text-text">
+                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-text sm:text-3xl">
                             {isCreate
                                 ? 'Buat Menu Baru'
                                 : `Edit Menu: ${item?.name ?? ''}`}
@@ -611,7 +613,7 @@ export default function MenuForm({
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                         <ArrowLeft className="size-4" />
                         Kembali
@@ -659,7 +661,7 @@ export default function MenuForm({
                         </div>
                     )}
 
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 md:col-span-2">
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600 md:col-span-2">
                         {activeMenuType === 'eceran'
                             ? ' Pilih sub-tipe di atas untuk menentukan alur harga eceran.'
                             : ' Gunakan range tier untuk menentukan alur harga timbang hidup.'}
@@ -1145,11 +1147,11 @@ export default function MenuForm({
                 </Section>
             )}
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-3 rounded-[28px] border border-white/70 bg-white/90 px-5 py-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.35)] ring-1 ring-black/5 backdrop-blur">
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                     <ArrowLeft className="size-4" />
                     Batal
@@ -1157,7 +1159,7 @@ export default function MenuForm({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <Save className="size-4" />
                     {processing ? 'Menyimpan...' : 'Simpan Menu'}
