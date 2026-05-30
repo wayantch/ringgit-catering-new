@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import Select from '@/Components/UI/Select';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 import { konfirmasi, alertError } from '@/lib/alert';
 import pesanan from '@/routes/user/pesanan';
@@ -332,9 +331,8 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
         <>
             <Head title="Checkout" />
 
-            <div className="bg-[#f7f5ef] text-text">
-                {/* ── Header ── */}
-                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
+                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
                     <div
                         aria-hidden="true"
                         className="pointer-events-none absolute inset-0 opacity-40"
@@ -349,25 +347,37 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                         style={{ background: 'rgba(255,255,255,0.5)' }}
                     />
 
-                    <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="max-w-2xl">
-                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+                    <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                        <div className="flex items-center justify-between gap-6">
+                            <div className="max-w-2xl space-y-4">
+                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                                     Ringgit Catering
                                 </span>
-                                <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                                <p className="text-sm font-medium text-white/75 sm:text-base">
                                     Hampir selesai!
                                 </p>
-                                <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                                <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                                     Checkout.
                                 </h1>
-                                <p className="mt-2 max-w-xl text-sm leading-6 text-white/72 sm:text-base">
+                                <p className="max-w-xl text-sm leading-6 text-white/74 sm:text-base">
                                     Lengkapi detail pesananmu di bawah.
                                 </p>
+
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Detail jadwal
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Metode checkout
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Ringkasan total
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="shrink-0">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                                     <ShoppingBag className="h-5 w-5 text-white" />
                                 </div>
                             </div>
@@ -376,7 +386,7 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                 </header>
 
                 {/* ── Form ── */}
-                <div className="relative mt-6 sm:mt-8">
+                <div className="relative mt-8">
                     <div className="mx-auto w-full max-w-7xl px-4 pb-32 sm:px-8 sm:pb-40">
                         <form
                             onSubmit={submit}
@@ -488,23 +498,43 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
                                     {/* Jam */}
                                     <div>
-                                        <Select
+                                        <FieldLabel
+                                            htmlFor={timeField}
+                                            required
+                                        >
+                                            {isDelivery
+                                                ? 'Kirim dari outlet jam'
+                                                : 'Ambil di outlet pukul'}
+                                        </FieldLabel>
+                                        <select
                                             id={timeField}
                                             name={timeField}
-                                            label={
-                                                isDelivery
-                                                    ? 'Kirim dari outlet jam'
-                                                    : 'Ambil di outlet pukul'
-                                            }
-                                            value={selectedTime}
-                                            onChange={(value) =>
-                                                form.setData(timeField, value)
-                                            }
-                                            options={timeOptions}
-                                            placeholder="Pilih jam"
-                                            error={form.errors[timeField]}
                                             required
-                                            size="lg"
+                                            value={selectedTime}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    timeField,
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className={`${inputCls(
+                                                !!form.errors[timeField],
+                                            )} cursor-pointer appearance-auto`}
+                                        >
+                                            <option value="" disabled>
+                                                Pilih jam
+                                            </option>
+                                            {timeOptions.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <FieldError
+                                            message={form.errors[timeField]}
                                         />
                                     </div>
                                 </div>

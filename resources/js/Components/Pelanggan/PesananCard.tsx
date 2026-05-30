@@ -38,7 +38,9 @@ function statusClass(
 }
 
 function formatCurrency(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return 'Rp 0';
+    if (value === null || value === undefined) {
+        return 'Rp 0';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -59,8 +61,7 @@ function formatDate(dateString: string): string {
 
 export default function PesananCard({ order }: PesananCardProps) {
     return (
-        <article className="rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5">
-            {/* Header: nomor order + badge status */}
+        <article className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_54px_-32px_rgba(15,23,42,0.55)]">
             <div className="flex items-center justify-between gap-2">
                 <p className="truncate font-mono text-xs font-medium tracking-wide text-slate-700">
                     {order.order_number}
@@ -73,7 +74,7 @@ export default function PesananCard({ order }: PesananCardProps) {
             </div>
 
             {/* Divider */}
-            <hr className="my-3 border-black/5" />
+            <hr className="my-4 border-black/5" />
 
             {/* Meta info dalam grid 2 kolom */}
             <div className="mb-3 grid grid-cols-2 gap-x-3 gap-y-2">
@@ -112,7 +113,7 @@ export default function PesananCard({ order }: PesananCardProps) {
                 </p>
                 <Link
                     href={pesanan.show({ order: order.id })}
-                    className="rounded-2xl border border-primary/10 bg-secondary px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                    className="rounded-full border border-primary/10 bg-secondary px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/10"
                 >
                     Lihat Detail →
                 </Link>

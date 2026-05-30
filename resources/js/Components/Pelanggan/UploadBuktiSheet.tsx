@@ -59,16 +59,16 @@ export default function UploadBuktiSheet({
             />
             <form
                 onSubmit={submit}
-                className="absolute right-0 bottom-0 left-0 mx-auto max-w-2xl space-y-4 rounded-t-[28px] border border-black/5 bg-[#f7f5ef] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)]"
+                className="absolute right-0 bottom-0 left-0 mx-auto max-w-2xl space-y-4 rounded-t-[28px] border border-white/70 bg-[linear-gradient(180deg,#ffffff_0%,#fdfbf6_100%)] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)] ring-1 ring-black/5 backdrop-blur-sm"
             >
                 <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-black/10" />
 
-                <h3 className="text-base font-semibold text-text">
+                <h3 className="text-base font-semibold tracking-tight text-text">
                     {existingProofImage ? 'Edit' : 'Upload'} Bukti Pembayaran
                 </h3>
 
                 {(previewUrl || existingProofImage) && (
-                    <div className="space-y-2 rounded-3xl border border-black/5 bg-white p-4 shadow-sm">
+                    <div className="space-y-2 rounded-3xl border border-black/5 bg-white p-4 shadow-sm ring-1 ring-black/5">
                         <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
                             Preview:
                         </p>
@@ -86,7 +86,7 @@ export default function UploadBuktiSheet({
                     </div>
                 )}
 
-                <div className="space-y-2 rounded-3xl border border-black/5 bg-white p-4 shadow-sm">
+                <div className="space-y-2 rounded-3xl border border-black/5 bg-white p-4 shadow-sm ring-1 ring-black/5">
                     <label className="block text-xs font-medium tracking-[0.2em] text-slate-500 uppercase">
                         {existingProofImage
                             ? 'Ganti bukti'
@@ -124,7 +124,7 @@ export default function UploadBuktiSheet({
                     disabled={
                         form.processing || isCancelled || !form.data.proof_image
                     }
-                    className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {form.processing
                         ? 'Uploading...'

@@ -100,7 +100,7 @@ export default function Index({
     return (
         <AdminLayout>
             <div className="space-y-6 p-4 lg:p-6">
-                <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.14),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
                     <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-3xl space-y-3">

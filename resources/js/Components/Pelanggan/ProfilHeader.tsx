@@ -28,7 +28,9 @@ function initials(name: string): string {
 }
 
 function formatCurrency(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return 'Rp 0';
+    if (value === null || value === undefined) {
+        return 'Rp 0';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -39,7 +41,7 @@ function formatCurrency(value: string | number | null | undefined): string {
 
 export default function ProfilHeader({ user, stats }: ProfilHeaderProps) {
     return (
-        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-40"
@@ -59,33 +61,43 @@ export default function ProfilHeader({ user, stats }: ProfilHeaderProps) {
                 style={{ background: 'rgba(255,255,255,0.5)' }}
             />
 
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                {/* Avatar + info */}
-                <div className="flex items-center justify-between gap-4">
-                    <div className="max-w-2xl">
-                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                <div className="flex items-center justify-between gap-6">
+                    <div className="max-w-2xl space-y-4">
+                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                             Ringgit Catering
                         </span>
-                        <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                        <p className="text-sm font-medium text-white/75 sm:text-base">
                             Halo, {user.name}
                         </p>
-                        <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                        <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                             Profil.
                         </h1>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-white/72 sm:text-base">
+                        <p className="max-w-xl text-sm leading-6 text-white/74 sm:text-base">
                             Atur data akun, lihat ringkasan, dan akses menu
                             profil dengan tampilan yang lebih rapi.
                         </p>
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Data akun
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Riwayat pesanan
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Logout aman
+                            </span>
+                        </div>
                     </div>
 
                     <div className="shrink-0">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-lg font-semibold shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16 sm:text-xl">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 text-lg font-semibold shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16 sm:text-xl">
                             {initials(user.name)}
                         </div>
                     </div>
                 </div>
 
-                {/* Stats 2-kolom */}
                 <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                     <div className="rounded-3xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
                         <p className="mb-1 text-[11px] tracking-[0.18em] text-white/60 uppercase">

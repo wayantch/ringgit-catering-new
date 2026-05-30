@@ -19,24 +19,24 @@ interface Props {
 
 function resolveImageSrc(image: string | null): string | null {
     if (!image) {
-return null;
-}
+        return null;
+    }
 
     if (
         image.startsWith('http://') ||
         image.startsWith('https://') ||
         image.startsWith('/')
     ) {
-return image;
-}
+        return image;
+    }
 
     return `/storage/${image}`;
 }
 
 function formatCurrency(value: number | null): string {
     if (value === null) {
-return 'Harga menyusul';
-}
+        return 'Harga menyusul';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -50,8 +50,8 @@ export default function EceranListItem({ item, onSelect }: Props) {
     const price = item.min_price ?? item.variants?.[0]?.harga ?? null;
 
     return (
-        <div className="flex items-center gap-4 rounded-xl px-3 py-2 hover:bg-slate-50">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+        <div className="flex items-center gap-4 rounded-[22px] border border-slate-100 bg-white px-3 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5">
                 {img ? (
                     <img
                         src={img}
@@ -93,7 +93,7 @@ export default function EceranListItem({ item, onSelect }: Props) {
                         })
                     }
                     disabled={!item.is_available}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-sm hover:bg-primary/5 disabled:opacity-50"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-primary shadow-sm transition hover:border-primary/20 hover:bg-primary/5 disabled:opacity-50"
                 >
                     <ShoppingCart className="h-4 w-4" />
                 </button>

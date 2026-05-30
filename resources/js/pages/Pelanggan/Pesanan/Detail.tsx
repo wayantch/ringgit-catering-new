@@ -428,8 +428,7 @@ function Detail({ order }: Props) {
         <>
             <Head title={`Pesanan ${order.order_number}`} />
 
-            {/* ── Page Header (konsisten dengan halaman lain) ── */}
-            <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+            <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 opacity-40"
@@ -444,19 +443,19 @@ function Detail({ order }: Props) {
                     style={{ background: 'rgba(255,255,255,0.5)' }}
                 />
 
-                <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="max-w-2xl">
-                            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+                <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                    <div className="flex items-center justify-between gap-6">
+                        <div className="max-w-2xl space-y-4">
+                            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                                 Ringgit Catering
                             </span>
-                            <p className="mt-3 font-mono text-xs font-semibold tracking-widest text-white/70">
+                            <p className="font-mono text-xs font-semibold tracking-widest text-white/70">
                                 {order.order_number}
                             </p>
-                            <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                            <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                                 Detail pesanan.
                             </h1>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white">
                                     <TypeIcon className="h-3 w-3" />
                                     {isPickup ? 'Pickup' : 'Delivery'}
@@ -466,10 +465,22 @@ function Detail({ order }: Props) {
                                     {formatDate(order.booking_date)}
                                 </span>
                             </div>
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                    Timeline
+                                </span>
+                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                    Detail item
+                                </span>
+                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                    Status pembayaran
+                                </span>
+                            </div>
                         </div>
 
                         <div className="shrink-0">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                                 <PackageCheck className="h-5 w-5 text-white" />
                             </div>
                         </div>
@@ -478,7 +489,7 @@ function Detail({ order }: Props) {
             </header>
 
             {/* ── Content ── */}
-            <div className="bg-[#f7f5ef] text-text">
+            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
                 <div className="relative -mt-6 sm:-mt-8">
                     <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-8 sm:px-8">
                         {/* Timeline */}
@@ -492,8 +503,8 @@ function Detail({ order }: Props) {
                             {/* ── Kiri ── */}
                             <div className="space-y-4">
                                 {/* Info pesanan */}
-                                <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
-                                    <h2 className="mb-4 text-sm font-semibold text-text">
+                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                    <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
                                         Info Pesanan
                                     </h2>
                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -530,7 +541,7 @@ function Detail({ order }: Props) {
                                 </section>
 
                                 {/* Item pesanan */}
-                                <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                                     <div className="mb-4 flex items-center justify-between gap-3">
                                         <div>
                                             <h2 className="text-sm font-semibold text-text">
@@ -555,7 +566,7 @@ function Detail({ order }: Props) {
                                                 return (
                                                     <article
                                                         key={item.id}
-                                                        className="rounded-2xl border border-black/5 bg-[#fbfaf6] p-4 shadow-sm"
+                                                        className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 shadow-sm ring-1 ring-black/5"
                                                     >
                                                         <div className="flex items-start justify-between gap-3">
                                                             <div className="min-w-0 flex-1">
@@ -662,7 +673,7 @@ function Detail({ order }: Props) {
                                         )}
                                     </div>
 
-                                    <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
+                                    <div className="mt-4 rounded-[24px] bg-primary/5 px-4 py-3 ring-1 ring-primary/10">
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="text-sm font-semibold text-slate-600">
                                                 Total Pesanan
@@ -685,11 +696,11 @@ function Detail({ order }: Props) {
 
                                 {/* Catatan Tambahan */}
                                 {order.notes && (
-                                    <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
+                                    <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                                         <h2 className="mb-3 text-sm font-semibold text-text">
                                             Catatan Tambahan
                                         </h2>
-                                        <div className="rounded-2xl border border-black/5 bg-[#fbfaf6] p-4">
+                                        <div className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                             <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
                                                 {order.notes}
                                             </p>
@@ -700,8 +711,8 @@ function Detail({ order }: Props) {
 
                             {/* ── Kanan: Pembayaran (sticky di desktop) ── */}
                             <div className="lg:sticky lg:top-4">
-                                <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
-                                    <h2 className="mb-4 text-sm font-semibold text-text">
+                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                    <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
                                         Pembayaran
                                     </h2>
                                     {isAdminFullPaid ? (

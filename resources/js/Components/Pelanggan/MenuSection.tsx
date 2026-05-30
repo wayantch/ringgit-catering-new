@@ -30,7 +30,7 @@ export default function MenuSection({
 }: MenuSectionProps) {
     return (
         <section id={id} className="space-y-3 pt-2">
-            <div className="flex flex-col gap-3 rounded-[28px] border border-black/5 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:px-5">
+            <div className="flex flex-col gap-3 rounded-[28px] border border-white/70 bg-white/90 px-4 py-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between sm:px-5">
                 <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                         <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
@@ -46,13 +46,13 @@ export default function MenuSection({
                         <h2 className="text-base font-semibold text-text sm:text-lg">
                             {title}
                         </h2>
-                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500 ">
+                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
                             {description}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 self-start rounded-full bg-[#fbfaf6] px-3 py-2 text-xs font-medium text-slate-500">
+                <div className="flex items-center gap-2 self-start rounded-full bg-[#fbfaf6] px-3 py-2 text-xs font-medium text-slate-500 ring-1 ring-black/5">
                     <span
                         className={`h-2.5 w-2.5 rounded-full ${tone === 'amber' ? 'bg-amber-500' : tone === 'rose' ? 'bg-rose-500' : tone === 'emerald' ? 'bg-emerald-500' : 'bg-slate-400'}`}
                     />
@@ -60,9 +60,7 @@ export default function MenuSection({
                 </div>
             </div>
 
-            <div className="">
-                {children}
-            </div>
+            <div>{children}</div>
         </section>
     );
 }

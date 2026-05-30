@@ -140,10 +140,10 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
     const variantLabel = item.variant?.label ?? 'Varian menu';
 
     return (
-        <article className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md">
+        <article className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_54px_-32px_rgba(15,23,42,0.55)]">
             <div className="p-4 sm:p-5">
                 <div className="flex gap-3 sm:gap-4">
-                    <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:size-16">
+                    <div className="size-14 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5 sm:size-16">
                         {imageSrc ? (
                             <img
                                 src={imageSrc}
@@ -219,19 +219,19 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
 
                 <div className="mt-4 border-t border-dashed border-slate-200 pt-4">
                     <div className="flex items-end justify-between gap-3">
-                            <div className="text-left">
-                                <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
-                                    Harga/item
-                                </p>
-                                <p className="mt-1 text-base font-semibold text-text sm:text-sm">
-                                    {formatCurrency(
-                                        item.variant?.harga ??
-                                            item.subtotal ??
-                                            null,
-                                    )}
-                                </p>
-                            </div>
-                        <div className="inline-flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
+                        <div className="text-left">
+                            <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
+                                Harga/item
+                            </p>
+                            <p className="mt-1 text-base font-semibold text-text sm:text-sm">
+                                {formatCurrency(
+                                    item.variant?.harga ??
+                                        item.subtotal ??
+                                        null,
+                                )}
+                            </p>
+                        </div>
+                        <div className="inline-flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm ring-1 ring-black/5">
                             <button
                                 type="button"
                                 onClick={() =>
@@ -255,7 +255,7 @@ export default function CartItemCardEceran({ item }: { item: CartItemEceran }) {
                         </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-[#fbfaf6] px-3 py-2.5 text-sm">
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-[#fbfaf6] px-3 py-2.5 text-sm ring-1 ring-black/5">
                         <span className="text-sm text-slate-600">Subtotal</span>
                         <span className="text-base font-bold text-primary sm:text-sm">
                             {formatCurrency(item.subtotal)}

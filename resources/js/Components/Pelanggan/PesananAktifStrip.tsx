@@ -13,7 +13,9 @@ interface PesananAktifStripProps {
 }
 
 function formatCurrency(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return 'Rp 0';
+    if (value === null || value === undefined) {
+        return 'Rp 0';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -38,13 +40,13 @@ function statusClass(
 
 export default function PesananAktifStrip({ orders }: PesananAktifStripProps) {
     return (
-        <section className="rounded-3xl border border-black/5 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
+        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                    <p className="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                    <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
                         Pesanan aktif
                     </p>
-                    <h2 className="text-base font-semibold text-text">
+                    <h2 className="text-base font-semibold tracking-tight text-text">
                         Lanjutkan pesanan Anda
                     </h2>
                 </div>
@@ -61,7 +63,7 @@ export default function PesananAktifStrip({ orders }: PesananAktifStripProps) {
                     <Link
                         key={order.id}
                         href={pesanan.show({ order: order.hashid })}
-                        className="min-w-64 rounded-2xl border border-black/5 bg-[#fbfaf6] p-4 transition-all duration-200 hover:shadow-md"
+                        className="min-w-64 rounded-3xl border border-slate-100 bg-linear-to-br from-[#fcfbf7] to-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                     >
                         <div className="flex items-start justify-between gap-2">
                             <p className="text-xs font-semibold tracking-wide text-slate-500">
@@ -76,7 +78,7 @@ export default function PesananAktifStrip({ orders }: PesananAktifStripProps) {
                         <p className="mt-2 text-sm text-slate-500">
                             {order.booking_date}
                         </p>
-                        <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                             <p className="text-sm font-semibold text-primary">
                                 {formatCurrency(order.total_amount)}
                             </p>

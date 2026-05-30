@@ -53,8 +53,8 @@ export default function BottomNavbar() {
     };
 
     return (
-        <nav className="pb-safe fixed right-0 bottom-0 left-0 z-50 w-full border-t border-primary/10 bg-white/90 pb-4 backdrop-blur-md">
-            <div className="m-auto flex h-24 max-w-7xl items-end justify-around">
+        <nav className="pb-safe fixed right-0 bottom-0 left-0 z-50 w-full border-t border-primary/10 bg-white/90 pb-4 shadow-[0_-12px_32px_-24px_rgba(15,23,42,0.45)] backdrop-blur-md">
+            <div className="m-auto flex h-24 max-w-7xl items-end justify-around px-2 sm:px-4">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const active = isActive(tab.path);
@@ -83,7 +83,7 @@ export default function BottomNavbar() {
                                 {tab.name}
                             </span>
                             {active && (
-                                <div className="absolute bottom-0 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary"></div>
+                                <div className="absolute bottom-0 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(122,143,107,0.12)]"></div>
                             )}
                         </Link>
                     );

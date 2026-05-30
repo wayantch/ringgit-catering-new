@@ -50,7 +50,7 @@ export default function Form({ mode, pelanggan }: Props) {
     return (
         <AdminLayout>
             <div className="space-y-6 p-4 lg:p-6">
-                <section className="overflow-hidden rounded-[32px] border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                <section className="overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
                     <div className="flex items-start justify-between gap-4">
                         <div className="max-w-3xl space-y-3">
                             <p className="text-[11px] font-semibold tracking-[0.28em] text-primary uppercase">
@@ -186,7 +186,7 @@ export default function Form({ mode, pelanggan }: Props) {
 
                         {/* Info Box */}
                         {mode === 'create' && (
-                            <div className="rounded-[24px] border border-primary/20 bg-primary/5 px-4 py-4 text-primary shadow-sm">
+                            <div className="rounded-3xl border border-primary/20 bg-primary/5 px-4 py-4 text-primary shadow-sm">
                                 <p className="text-sm leading-6">
                                     <span className="font-semibold">
                                         ℹ️ Informasi:
@@ -200,7 +200,7 @@ export default function Form({ mode, pelanggan }: Props) {
 
                         {/* Send Invite Checkbox */}
                         {mode === 'create' && (
-                            <div className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+                            <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
                                 <input
                                     id="send_invite"
                                     type="checkbox"

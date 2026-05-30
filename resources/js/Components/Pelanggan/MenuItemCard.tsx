@@ -1,4 +1,4 @@
-import { ArrowRight, ChefHat, Package, ShoppingCart } from 'lucide-react';
+import { ArrowRight, Package, ShoppingCart } from 'lucide-react';
 
 interface MenuItemCardProps {
     item: {
@@ -129,7 +129,7 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
         item.menu_type === 'eceran' ? item.variants.length : item.tiers.length;
 
     return (
-        <article className="group relative overflow-hidden rounded-[28px] border border-black/5 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5">
+        <article className="group relative overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_22px_54px_-32px_rgba(15,23,42,0.55)]">
             <div className="relative aspect-video overflow-hidden bg-slate-100">
                 {imageSrc ? (
                     <img
@@ -167,7 +167,7 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
                 )}
             </div>
 
-            <div className="space-y-2 p-5">
+            <div className="space-y-3 p-5">
                 <div>
                     <h3 className="line-clamp-2 text-base leading-6 font-semibold text-text">
                         {item.name}
@@ -195,6 +195,11 @@ export default function MenuItemCard({ item, onSelect }: MenuItemCardProps) {
                         </p>
                         <p className="mt-1 text-sm font-semibold text-primary">
                             {formatCurrency(item.min_price)}
+                        </p>
+                        <p className="mt-1 text-[11px] text-slate-400">
+                            {item.is_bundle
+                                ? 'Bundle siap pilih'
+                                : `${optionCount} opsi tersedia`}
                         </p>
                     </div>
 

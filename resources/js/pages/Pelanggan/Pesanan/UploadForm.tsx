@@ -74,7 +74,6 @@ function UploadForm({ order }: Props) {
     };
 
     const totalCashback = order.total_cashback ?? 0;
-    const cashbackEligible = order.cashback_eligible ?? totalCashback > 0;
     const fullPaymentAmount = Math.max(
         Number(order.total_amount) - totalCashback,
         0,
@@ -84,9 +83,8 @@ function UploadForm({ order }: Props) {
         <>
             <Head title={`Upload Bukti - ${order.order_number}`} />
 
-            <div className="text-text">
-                {/* Header */}
-                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
+                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
                     <div
                         aria-hidden="true"
                         className="pointer-events-none absolute inset-0 opacity-40"
@@ -95,26 +93,38 @@ function UploadForm({ order }: Props) {
                                 'radial-gradient(circle at 15% 25%, rgba(255,255,255,0.22), transparent 45%), radial-gradient(circle at 85% 10%, rgba(255,255,255,0.16), transparent 40%)',
                         }}
                     />
-                    <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="max-w-2xl">
-                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+                    <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                        <div className="flex items-center justify-between gap-6">
+                            <div className="max-w-2xl space-y-4">
+                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                                     Ringgit Catering
                                 </span>
-                                <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                                <p className="text-sm font-medium text-white/75 sm:text-base">
                                     {order.order_number}
                                 </p>
-                                <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                                <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                                     Upload bukti pembayaran.
                                 </h1>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
+                                <p className="max-w-2xl text-sm leading-6 text-white/74 sm:text-base">
                                     Pilih jenis pembayaran lalu upload bukti
                                     dalam tampilan yang lebih rapi.
                                 </p>
+
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Pilih metode
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Upload bukti
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Verifikasi admin
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="shrink-0">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                                     <Upload className="h-5 w-5 text-white" />
                                 </div>
                             </div>
@@ -126,14 +136,14 @@ function UploadForm({ order }: Props) {
                 <div className="relative -mt-6 sm:-mt-8">
                     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-10 sm:px-8">
                         {/* Payment Info Card */}
-                        <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
                             <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                 Ringkasan
                             </p>
                             <h2 className="mt-1 text-lg font-semibold text-text">
                                 Ringkasan Pembayaran
                             </h2>
-                            <div className="mt-4 space-y-3 rounded-3xl bg-[#fbfaf6] p-4">
+                            <div className="mt-4 space-y-3 rounded-3xl bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                 {/* If user hasn't selected a payment type yet, prompt them */}
                                 {form.data.payment_type === '' && (
                                     <div className="text-sm leading-6 text-slate-600">
@@ -236,7 +246,7 @@ function UploadForm({ order }: Props) {
                         {/* Upload Form */}
                         <form
                             onSubmit={submit}
-                            className="space-y-4 rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6"
+                            className="space-y-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6"
                         >
                             <div className="space-y-1">
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
@@ -266,7 +276,7 @@ function UploadForm({ order }: Props) {
                                             form.data.payment_type ===
                                             'pelunasan'
                                         }
-                                        className={`rounded-2xl border px-4 py-4 text-left transition-all duration-150 ${
+                                        className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
                                             form.data.payment_type ===
                                             'pelunasan'
                                                 ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
@@ -293,7 +303,7 @@ function UploadForm({ order }: Props) {
                                         aria-pressed={
                                             form.data.payment_type === 'dp'
                                         }
-                                        className={`rounded-2xl border px-4 py-4 text-left transition-all duration-150 ${
+                                        className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
                                             form.data.payment_type === 'dp'
                                                 ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
                                                 : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
@@ -324,7 +334,7 @@ function UploadForm({ order }: Props) {
                                     Foto/Gambar Bukti Transfer
                                 </label>
 
-                                <div className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
+                                <div className="rounded-3xl border border-primary/10 bg-primary/5 p-4 ring-1 ring-primary/10">
                                     <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                         Rekening Tujuan
                                     </p>
@@ -425,7 +435,7 @@ function UploadForm({ order }: Props) {
                                         htmlFor="proof-file"
                                         className="flex cursor-pointer flex-col items-center justify-center gap-2 text-center"
                                     >
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-[28px] bg-primary/10 ring-1 ring-primary/10">
                                             <Upload className="h-6 w-6 text-primary" />
                                         </div>
                                         <div className="text-center">
@@ -448,7 +458,7 @@ function UploadForm({ order }: Props) {
 
                             {/* Preview */}
                             {previewUrl && (
-                                <div className="space-y-2 rounded-3xl border border-black/5 bg-white p-4 shadow-sm">
+                                <div className="space-y-2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                                     <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
                                         Preview:
                                     </p>
@@ -469,7 +479,7 @@ function UploadForm({ order }: Props) {
                                     !form.data.proof_image ||
                                     !form.data.payment_type
                                 }
-                                className="w-full rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {form.processing
                                     ? 'Mengunggah...'
@@ -484,7 +494,7 @@ function UploadForm({ order }: Props) {
                         </form>
 
                         {/* Info Box */}
-                        <div className="rounded-3xl border border-primary/10 bg-secondary/40 p-4 shadow-sm">
+                        <div className="rounded-3xl border border-primary/10 bg-secondary/40 p-4 shadow-sm ring-1 ring-black/5">
                             <p className="text-sm leading-6 text-slate-600">
                                 <span className="font-semibold">Info:</span>{' '}
                                 Setelah upload, bukti pembayaran Anda akan

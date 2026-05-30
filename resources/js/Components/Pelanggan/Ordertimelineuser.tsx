@@ -39,8 +39,8 @@ function formatDate(value: string): string {
     const d = new Date(value);
 
     if (isNaN(d.getTime())) {
-return '-';
-}
+        return '-';
+    }
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
@@ -62,10 +62,11 @@ export default function OrderTimelineUser({
         : STEPS.findIndex((s) => s.status === status);
 
     return (
-        <section className="rounded-3xl border border-black/5 bg-white p-4 shadow-sm">
-            {/* Header */}
-            <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-text">Pantau Pesanan</h2>
+        <section className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+            <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold tracking-tight text-text">
+                    Pantau Pesanan
+                </h2>
                 {bookingDate && (
                     <p className="text-xs text-slate-400">
                         {formatDate(bookingDate)}
@@ -78,7 +79,6 @@ export default function OrderTimelineUser({
                 )}
             </div>
 
-            {/* Steps */}
             <div className="relative flex items-start">
                 {STEPS.map((step, index) => {
                     const isDone =
@@ -93,7 +93,6 @@ export default function OrderTimelineUser({
                             key={step.status}
                             className="relative flex flex-1 flex-col items-center"
                         >
-                            {/* Line kiri */}
                             {index > 0 && (
                                 <div className="absolute top-4 right-1/2 left-0 h-0.5 -translate-y-1/2">
                                     <div
@@ -106,7 +105,6 @@ export default function OrderTimelineUser({
                                 </div>
                             )}
 
-                            {/* Line kanan */}
                             {!isLast && (
                                 <div className="absolute top-4 right-0 left-1/2 h-0.5 -translate-y-1/2">
                                     <div
@@ -119,7 +117,6 @@ export default function OrderTimelineUser({
                                 </div>
                             )}
 
-                            {/* Circle */}
                             <div
                                 className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-4 transition-all duration-300 ${
                                     isDone
@@ -139,7 +136,6 @@ export default function OrderTimelineUser({
                                 )}
                             </div>
 
-                            {/* Label */}
                             <div className="mt-2.5 w-full px-1 text-center">
                                 <p
                                     className={`text-[11px] leading-tight font-semibold transition-colors ${
@@ -167,9 +163,8 @@ export default function OrderTimelineUser({
                 })}
             </div>
 
-            {/* Cancelled banner */}
             {isCancelled && (
-                <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
+                <div className="mt-4 rounded-[24px] border border-red-100 bg-red-50 px-4 py-3">
                     <p className="text-xs font-medium text-red-600">
                         Pesanan ini telah dibatalkan.
                     </p>

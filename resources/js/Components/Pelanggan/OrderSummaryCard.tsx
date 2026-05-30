@@ -116,12 +116,12 @@ export default function OrderSummaryCard({
     const ongkirMax = summary.ongkir_subsidi_max ?? (ongkirMaxValue || null);
 
     return (
-        <aside className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 lg:sticky lg:top-4">
-            <div className="border-b border-black/5 px-4 py-4 sm:px-5">
+        <aside className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm lg:sticky lg:top-4">
+            <div className="border-b border-slate-100 bg-linear-to-r from-slate-50 to-white px-4 py-4 sm:px-5">
                 <p className="text-[11px] font-semibold tracking-[0.12em] text-slate-500 uppercase sm:tracking-[0.2em] sm:text-slate-400">
                     Ringkasan Pesanan
                 </p>
-                <h2 className="mt-1 text-lg font-semibold text-text">
+                <h2 className="mt-1 text-lg font-semibold tracking-tight text-text">
                     Ringkasan Pesanan
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-slate-600 sm:text-slate-500">
@@ -207,7 +207,7 @@ export default function OrderSummaryCard({
                     )}
                 </div> */}
 
-                <div className="space-y-2 rounded-2xl border border-black/5 bg-white p-4 text-sm shadow-sm">
+                <div className="space-y-3 rounded-3xl border border-black/5 bg-white p-4 text-sm shadow-sm">
                     <div className="flex flex-wrap gap-2">
                         <button
                             type="button"
@@ -336,14 +336,14 @@ export default function OrderSummaryCard({
                 </div>
 
                 {hasPendingPrice && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                         Ada item dengan harga menyusul. Total akan dihitung
                         setelah dikonfirmasi.
                     </div>
                 )}
 
                 {ongkirEligible && (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
                         <div className="flex items-center gap-2 font-semibold">
                             <Truck className="size-4" />
                             Gratis Ongkir s/d {ongkirMax} km (Jabodetabek)
@@ -358,7 +358,7 @@ export default function OrderSummaryCard({
 
                 <Link
                     href={checkout()}
-                    className="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3.5 text-center text-base font-semibold text-white transition hover:bg-primary-600 sm:py-3 sm:text-sm"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-primary px-4 py-3.5 text-center text-base font-semibold text-white transition hover:bg-primary-600 sm:py-3 sm:text-sm"
                 >
                     Lanjut Checkout
                 </Link>

@@ -121,8 +121,8 @@ function UploadDraftForm({ draft }: Props) {
         <>
             <Head title="Upload Bukti Pembayaran" />
 
-            <div className="min-h-screen bg-[#f7f5ef] text-text">
-                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+            <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
+                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
                     <div
                         aria-hidden="true"
                         className="pointer-events-none absolute inset-0 opacity-40"
@@ -131,26 +131,38 @@ function UploadDraftForm({ draft }: Props) {
                                 'radial-gradient(circle at 15% 25%, rgba(255,255,255,0.22), transparent 45%), radial-gradient(circle at 85% 10%, rgba(255,255,255,0.16), transparent 40%)',
                         }}
                     />
-                    <div className="relative mx-auto w-full max-w-6xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="max-w-2xl">
-                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+                    <div className="relative mx-auto w-full max-w-6xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                        <div className="flex items-center justify-between gap-6">
+                            <div className="max-w-2xl space-y-4">
+                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                                     Ringgit Catering
                                 </span>
-                                <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                                <p className="text-sm font-medium text-white/75 sm:text-base">
                                     Checkout tersimpan sementara
                                 </p>
-                                <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                                <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                                     Upload bukti pembayaran.
                                 </h1>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
+                                <p className="max-w-2xl text-sm leading-6 text-white/74 sm:text-base">
                                     Pesanan akan disimpan setelah bukti upload
                                     berhasil.
                                 </p>
+
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Simpan draft
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Upload bukti
+                                    </span>
+                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                        Verifikasi admin
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="shrink-0">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                                     <Upload className="h-5 w-5 text-white" />
                                 </div>
                             </div>
@@ -161,7 +173,7 @@ function UploadDraftForm({ draft }: Props) {
                 <div className="relative -mt-6 sm:-mt-8">
                     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-12 sm:px-8 sm:pb-16">
                         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                            <div className="space-y-6 rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6">
+                            <div className="space-y-6 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
                                 <div>
                                     <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                         Ringkasan Checkout
@@ -172,7 +184,7 @@ function UploadDraftForm({ draft }: Props) {
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                    <div className="rounded-[22px] bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                         <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             <CalendarDays className="size-4" />
                                             tgl booking
@@ -181,7 +193,7 @@ function UploadDraftForm({ draft }: Props) {
                                             {draft.checkout.booking_date}
                                         </p>
                                     </div>
-                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                    <div className="rounded-[22px] bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                         <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             <Clock className="size-4" />
                                             {bookingTimeLabel}
@@ -190,7 +202,7 @@ function UploadDraftForm({ draft }: Props) {
                                             {draft.checkout.booking_time}
                                         </p>
                                     </div>
-                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                    <div className="rounded-[22px] bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                         <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             <Phone className="size-4" />
                                             Kontak
@@ -199,7 +211,7 @@ function UploadDraftForm({ draft }: Props) {
                                             {draft.checkout.phone}
                                         </p>
                                     </div>
-                                    <div className="rounded-2xl bg-[#fbfaf6] p-4">
+                                    <div className="rounded-[22px] bg-[#fbfaf6] p-4 ring-1 ring-black/5">
                                         <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                             <ReceiptText className="size-4" />
                                             Item
@@ -210,7 +222,7 @@ function UploadDraftForm({ draft }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="rounded-2xl border border-black/5 bg-[#fbfaf6] p-4 text-sm text-slate-600">
+                                <div className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 text-sm text-slate-600 ring-1 ring-black/5">
                                     <div className="flex items-center gap-2 font-semibold text-text">
                                         {isDelivery ? (
                                             <MapPin className="size-4" />
@@ -230,7 +242,7 @@ function UploadDraftForm({ draft }: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-4 rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6">
+                            <div className="space-y-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
                                 <div>
                                     <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                         Pembayaran
@@ -266,7 +278,7 @@ function UploadDraftForm({ draft }: Props) {
                                     </button>
                                 </div>
 
-                                <div className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
+                                <div className="rounded-[24px] border border-primary/10 bg-primary/5 p-4 ring-1 ring-primary/10">
                                     <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
                                         Rekening Tujuan
                                     </p>
@@ -297,7 +309,7 @@ function UploadDraftForm({ draft }: Props) {
                                     </p>
                                 </div>
 
-                                <div className="space-y-2 rounded-2xl bg-[#fbfaf6] p-4 text-sm">
+                                <div className="space-y-2 rounded-[24px] bg-[#fbfaf6] p-4 text-sm ring-1 ring-black/5">
                                     {paymentType === 'pelunasan' ? (
                                         <>
                                             <div className="flex items-center justify-between gap-3 text-slate-600">
@@ -390,7 +402,7 @@ function UploadDraftForm({ draft }: Props) {
 
                         <form
                             onSubmit={submit}
-                            className="space-y-4 rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6"
+                            className="space-y-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6"
                         >
                             <div className="space-y-1">
                                 <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
@@ -401,7 +413,7 @@ function UploadDraftForm({ draft }: Props) {
                                 </h2>
                             </div>
 
-                            <div className="rounded-2xl border border-dashed border-primary/25 bg-secondary/40 p-4">
+                            <div className="rounded-[24px] border border-dashed border-primary/25 bg-secondary/40 p-4">
                                 <label className="block text-sm font-medium text-slate-600">
                                     Bukti pembayaran
                                 </label>
@@ -433,7 +445,7 @@ function UploadDraftForm({ draft }: Props) {
                             </div>
 
                             {previewUrl && (
-                                <div className="overflow-hidden rounded-2xl border border-black/5 bg-[#fbfaf6] p-3">
+                                <div className="overflow-hidden rounded-[24px] border border-black/5 bg-[#fbfaf6] p-3 ring-1 ring-black/5">
                                     <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
                                         Preview
                                     </p>

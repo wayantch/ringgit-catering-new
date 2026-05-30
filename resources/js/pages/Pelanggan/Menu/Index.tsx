@@ -2,7 +2,7 @@ import type { PageProps } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import { ChevronRight, Search, Sparkles, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import AddToCartSheet from '@/Components/Pelanggan/AddToCartSheet';
 import EceranListItem from '@/Components/Pelanggan/EceranListItem';
 import MenuItemCard from '@/Components/Pelanggan/MenuItemCard';
@@ -98,18 +98,6 @@ const sectionMeta: Record<
     },
 };
 
-function formatCurrency(value: number | null): string {
-    if (value === null) {
-        return 'Harga menyusul';
-    }
-
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        maximumFractionDigits: 0,
-    }).format(value);
-}
-
 function toSearchableText(item: MenuItem): string {
     return [
         item.name,
@@ -168,7 +156,7 @@ function collapseTimbangItems(items: MenuItem[]): MenuItem[] {
 
 function MenuPageHeader({ totalItems }: { totalItems: number }) {
     return (
-        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white">
+        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-40"
@@ -177,28 +165,40 @@ function MenuPageHeader({ totalItems }: { totalItems: number }) {
                         'radial-gradient(circle at 15% 25%, rgba(255,255,255,0.22), transparent 45%), radial-gradient(circle at 85% 10%, rgba(255,255,255,0.16), transparent 40%), radial-gradient(circle at 60% 80%, rgba(0,0,0,0.08), transparent 50%)',
                 }}
             />
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="max-w-2xl">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                <div className="flex items-center justify-between gap-6">
+                    <div className="max-w-2xl space-y-4">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                             <Sparkles className="h-3.5 w-3.5" />
                             Ringgit Catering
                         </span>
-                        <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                        <p className="text-sm font-medium text-white/75 sm:text-base">
                             {totalItems} menu aktif siap dipilih
                         </p>
-                        <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                        <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                             Pilih menu, lihat tier, lalu lanjutkan pesanan.
                         </h1>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-white/72 sm:text-base">
+                        <p className="max-w-xl text-sm leading-6 text-white/74 sm:text-base">
                             Jelajah semua section dalam satu halaman, gunakan
                             pencarian cepat, dan buka detail pesanan tanpa
                             kehilangan konteks.
                         </p>
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Search cepat
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Grid menu
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Pilih sekali klik
+                            </span>
+                        </div>
                     </div>
 
                     <div className="shrink-0">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                             <UtensilsCrossed className="h-5 w-5 text-white" />
                         </div>
                     </div>
@@ -210,7 +210,7 @@ function MenuPageHeader({ totalItems }: { totalItems: number }) {
 
 function EmptySearch({ query }: { query: string }) {
     return (
-        <div className="flex flex-col items-center gap-3 rounded-[28px] border border-dashed border-black/8 bg-white px-6 py-14 text-center shadow-sm">
+        <div className="flex flex-col items-center gap-3 rounded-[28px] border border-dashed border-black/8 bg-white px-6 py-14 text-center shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Search className="h-6 w-6" />
             </div>
@@ -303,6 +303,12 @@ function Index({ timbang_hidup, eceran }: Props) {
         [filteredSections],
     );
 
+    const resolvedActiveSectionId = filteredSections.some(
+        (section) => section.id === activeSectionId,
+    )
+        ? activeSectionId
+        : (filteredSections[0]?.id ?? activeSectionId);
+
     const selectedItem = useMemo(() => {
         for (const section of allSections) {
             const found = section.items.find(
@@ -326,18 +332,6 @@ function Index({ timbang_hidup, eceran }: Props) {
         setInitialQuantity(opts?.quantity ?? null);
     }
 
-    useEffect(() => {
-        if (filteredSections.length === 0) {
-            return;
-        }
-
-        if (
-            !filteredSections.some((section) => section.id === activeSectionId)
-        ) {
-            setActiveSectionId(filteredSections[0].id);
-        }
-    }, [activeSectionId, filteredSections]);
-
     const scrollToSection = (sectionId: string): void => {
         setActiveSectionId(sectionId);
         sectionRefs.current[sectionId]?.scrollIntoView({
@@ -354,16 +348,16 @@ function Index({ timbang_hidup, eceran }: Props) {
 
             <div className="relative -mt-6 sm:-mt-8">
                 <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-8">
-                    <div className="rounded-[28px] border border-black/5 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] sm:p-5">
+                    <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 backdrop-blur-sm sm:p-5">
                         <div className="space-y-4">
                             <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
                                 <MenuSearchBar
-                                    initialValue={query}
+                                    value={query}
                                     onDebouncedChange={setQuery}
                                 />
 
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                                    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-2 font-medium text-slate-600">
+                                    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-2 font-medium text-slate-600 ring-1 ring-black/5">
                                         {visibleItems} hasil
                                     </span>
                                     {query.trim() !== '' && (
@@ -381,7 +375,7 @@ function Index({ timbang_hidup, eceran }: Props) {
                             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
                                 {filteredSections.map((section) => {
                                     const isActive =
-                                        activeSectionId === section.id;
+                                        resolvedActiveSectionId === section.id;
 
                                     return (
                                         <button
@@ -466,7 +460,7 @@ function Index({ timbang_hidup, eceran }: Props) {
                         )}
                     </div>
 
-                    <div className="mt-6 rounded-[28px] border border-black/5 bg-white/90 p-4 shadow-sm sm:p-5">
+                    <div className="mt-6 rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-5">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">

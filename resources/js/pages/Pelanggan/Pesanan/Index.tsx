@@ -63,7 +63,7 @@ function getFilterLabel(filter: OrderFilter, date: string | null): string {
 
 function PesananPageHeader({ totalItems }: { totalItems: number }) {
     return (
-        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#6f8570_0%,#89a189_52%,#d9d1be_100%)] text-white">
+        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-40"
@@ -83,26 +83,38 @@ function PesananPageHeader({ totalItems }: { totalItems: number }) {
                 style={{ background: 'rgba(255,255,255,0.5)' }}
             />
 
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="max-w-2xl">
-                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
+            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
+                <div className="flex items-center justify-between gap-6">
+                    <div className="max-w-2xl space-y-4">
+                        <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
                             Ringgit Catering
                         </span>
-                        <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
+                        <p className="text-sm font-medium text-white/75 sm:text-base">
                             {totalItems} pesanan
                         </p>
-                        <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
+                        <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                             Pesanan saya.
                         </h1>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-white/72 sm:text-base">
+                        <p className="max-w-xl text-sm leading-6 text-white/74 sm:text-base">
                             Pantau status pesananmu dengan tampilan yang lebih
                             ringkas.
                         </p>
+
+                        <div className="flex flex-wrap gap-2 pt-1">
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Semua pesanan
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Filter tanggal
+                            </span>
+                            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
+                                Status terbaru
+                            </span>
+                        </div>
                     </div>
 
                     <div className="shrink-0">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
                             <UtensilsCrossed className="h-5 w-5 text-white" />
                         </div>
                     </div>
@@ -139,10 +151,10 @@ function Index({ orders, filters }: Props) {
         <>
             <Head title="Pesanan" />
             <PesananPageHeader totalItems={orders.total} />
-            <div className=" text-text">
+            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
                 <div className="relative -mt-6 sm:-mt-8">
                     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-10 sm:px-8">
-                        <section className="rounded-3xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+                        <section className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-5">
                             <div className="no-scrollbar flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
                                 <button
                                     type="button"
@@ -189,7 +201,7 @@ function Index({ orders, filters }: Props) {
                                 </button>
                             </div>
 
-                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#fbfaf6] px-4 py-3">
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[22px] bg-[#fbfaf6] px-4 py-3 ring-1 ring-black/5">
                                 <div>
                                     <p className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
                                         Filter aktif
@@ -268,7 +280,7 @@ function Index({ orders, filters }: Props) {
                                 />
                             </>
                         ) : (
-                            <div className="rounded-3xl border border-black/5 bg-white p-6 text-center shadow-sm">
+                            <div className="rounded-[28px] border border-white/70 bg-white/90 p-6 text-center shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                                 <p className="text-sm font-semibold text-text">
                                     Tidak ada pesanan untuk filter ini.
                                 </p>

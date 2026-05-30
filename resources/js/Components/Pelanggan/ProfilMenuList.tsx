@@ -52,11 +52,11 @@ export default function ProfilMenuList({
 
     return (
         <>
-            <section className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                 <button
                     type="button"
                     onClick={() => setOpenEdit(true)}
-                    className="flex w-full cursor-pointer items-center justify-between border-b border-black/5 px-4 py-4 transition hover:bg-[#fbfaf6]"
+                    className="flex w-full cursor-pointer items-center justify-between border-b border-slate-100 px-4 py-4 transition hover:bg-[#fbfaf6]"
                 >
                     <div className="flex items-center gap-3">
                         <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -76,7 +76,7 @@ export default function ProfilMenuList({
 
                 <Link
                     href={pesanan.index()}
-                    className="flex w-full cursor-pointer items-center justify-between border-b border-black/5 px-4 py-4 transition hover:bg-[#fbfaf6]"
+                    className="flex w-full cursor-pointer items-center justify-between border-b border-slate-100 px-4 py-4 transition hover:bg-[#fbfaf6]"
                 >
                     <div className="flex items-center gap-3">
                         <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -94,7 +94,7 @@ export default function ProfilMenuList({
                 <button
                     type="button"
                     onClick={() => alertInfo('Hubungi admin untuk bantuan')}
-                    className="flex w-full cursor-pointer items-center justify-between border-b border-black/5 px-4 py-4 transition hover:bg-[#fbfaf6]"
+                    className="flex w-full cursor-pointer items-center justify-between border-b border-slate-100 px-4 py-4 transition hover:bg-[#fbfaf6]"
                 >
                     <div className="flex items-center gap-3">
                         <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -136,7 +136,7 @@ export default function ProfilMenuList({
                         />
                         <form
                             onSubmit={saveProfile}
-                            className="absolute right-0 bottom-0 left-0 mx-auto max-w-2xl space-y-4 rounded-t-[28px] border border-black/5 bg-[#f7f5ef] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)]"
+                            className="absolute right-0 bottom-0 left-0 mx-auto max-w-2xl space-y-4 rounded-t-[28px] border border-white/70 bg-[linear-gradient(180deg,#ffffff_0%,#fdfbf6_100%)] p-4 shadow-[0_-20px_60px_rgba(15,23,42,0.18)] ring-1 ring-black/5 backdrop-blur-sm"
                         >
                             <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-black/10" />
                             <h3 className="text-base font-semibold text-text">
@@ -198,7 +198,7 @@ export default function ProfilMenuList({
                             </label>
                             <button
                                 type="submit"
-                                className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)]"
+                                className="w-full rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)]"
                             >
                                 Simpan
                             </button>

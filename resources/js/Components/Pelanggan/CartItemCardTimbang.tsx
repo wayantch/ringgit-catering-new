@@ -129,10 +129,10 @@ export default function CartItemCardTimbang({
     };
 
     return (
-        <article className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md">
+        <article className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_54px_-32px_rgba(15,23,42,0.55)]">
             <div className="p-4 sm:p-5">
                 <div className="flex gap-3 sm:gap-4">
-                    <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:size-16">
+                    <div className="size-14 shrink-0 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-black/5 sm:size-16">
                         {imageSrc ? (
                             <img
                                 src={imageSrc}
@@ -191,7 +191,7 @@ export default function CartItemCardTimbang({
                             )}
                         </div>
 
-                        <div className="mt-3 rounded-xl bg-[#fbfaf6] p-3 text-sm text-slate-600">
+                        <div className="mt-3 rounded-2xl bg-[#fbfaf6] p-3 text-sm text-slate-600 ring-1 ring-black/5">
                             <p className="text-sm leading-6 font-medium text-text">
                                 {formatAdat(item)}
                             </p>
@@ -205,7 +205,7 @@ export default function CartItemCardTimbang({
                 </div>
 
                 <div className="mt-4 border-t border-dashed border-slate-200 pt-4">
-                    <div className="grid gap-3 grid-cols-2 md:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                         <div>
                             <p className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase sm:tracking-[0.18em] sm:text-slate-400">
                                 Berat
@@ -233,11 +233,13 @@ export default function CartItemCardTimbang({
                     </div>
 
                     {cashback > 0 && (
-                        <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-accent-2/10 px-3 py-1.5 text-xs font-semibold text-accent-2">
+                        <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-accent-2/10 px-3 py-1.5 text-xs font-semibold text-accent-2 ring-1 ring-accent-2/10">
                             <Check className="size-3.5" />
                             Cashback Rp{' '}
-                            {new Intl.NumberFormat('id-ID').format(cashback)}
-                            {' '}jika bayar penuh
+                            {new Intl.NumberFormat('id-ID').format(
+                                cashback,
+                            )}{' '}
+                            jika bayar penuh
                         </div>
                     )}
 

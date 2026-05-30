@@ -10,7 +10,7 @@ export default function KategoriStrip({
     onChange,
 }: KategoriStripProps) {
     return (
-        <div className="sticky top-0 z-20 -mx-4 border-b border-black/5 bg-[#f7f5ef]/95 px-4 py-3 backdrop-blur-xl sm:-mx-8 sm:px-8">
+        <div className="sticky top-0 z-20 -mx-4 border-b border-black/5 bg-[#f7f5ef]/90 px-4 py-3 backdrop-blur-xl sm:-mx-8 sm:px-8">
             <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
                 {categories.map((category) => {
                     const isActive = active === category;

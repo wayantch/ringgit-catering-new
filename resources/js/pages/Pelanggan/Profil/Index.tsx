@@ -29,10 +29,10 @@ function Index({ user, stats }: Props) {
     return (
         <>
             <Head title="Profil" />
-            <div className="text-text">
-                <div className="">
+            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
+                <div>
                     <ProfilHeader user={user} stats={stats} />
-                    <div className="mx-auto w-full space-y-4 sm:px-8 sm:py-6 md:max-w-7xl">
+                    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-10 sm:px-8 sm:pb-12">
                         <ProfilMenuList
                             currentName={user.name}
                             currentPhone={user.phone ?? ''}
