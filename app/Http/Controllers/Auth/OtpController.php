@@ -42,7 +42,19 @@ class OtpController extends Controller
 
         RateLimiter::hit($key, 10 * 60); // 10 menit
 
-        $this->otpService->sendOtp($email);
+        try {
+            $this->otpService->sendOtp($email);
+        } catch (\Throwable $e) {
+            Log::error('OTP request failed.', [
+                'email' => $email,
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => 'Gagal mengirim OTP. Coba lagi beberapa saat.',
+            ]);
+        }
 
         $request->session()->put('otp_email', $email);
 
@@ -54,7 +66,7 @@ class OtpController extends Controller
     {
         $email = $request->query('email', session('otp_email'));
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('login');
         }
 
@@ -73,7 +85,7 @@ class OtpController extends Controller
         $email = strtolower(trim($validated['email']));
         $token = preg_replace('/\s+/', '', $validated['token']);
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('login');
         }
 
@@ -106,7 +118,7 @@ class OtpController extends Controller
     {
         $email = strtolower(trim((string) $request->input('email', session('otp_email'))));
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('login');
         }
 
@@ -121,7 +133,19 @@ class OtpController extends Controller
 
         RateLimiter::hit($key, 10 * 60); // 10 menit
 
-        $this->otpService->sendOtp($email);
+        try {
+            $this->otpService->sendOtp($email);
+        } catch (\Throwable $e) {
+            Log::error('OTP resend failed.', [
+                'email' => $email,
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'resend' => 'Gagal mengirim OTP baru. Coba lagi beberapa saat.',
+            ]);
+        }
 
         return back()->with('success', 'Kode OTP baru telah dikirim ke email kamu.');
     }

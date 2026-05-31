@@ -31,7 +31,13 @@ class OtpService
         ]);
 
         // 4. Kirim email
-        Mail::to($email)->send(new OtpMail($token));
+        try {
+            Mail::to($email)->send(new OtpMail($token));
+        } catch (\Throwable $e) {
+            $otp->delete();
+
+            throw $e;
+        }
 
         return $otp;
     }
@@ -62,7 +68,7 @@ class OtpService
         );
 
         // 4. Verifikasi email jika belum
-        if (!$user->email_verified_at) {
+        if (! $user->email_verified_at) {
             $user->update(['email_verified_at' => now()]);
         }
 
