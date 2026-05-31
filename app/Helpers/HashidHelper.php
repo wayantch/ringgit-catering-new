@@ -2,18 +2,18 @@
 
 namespace App\Helpers;
 
+use App\Support\HashidEncoder;
+
 class HashidHelper
 {
     public static function encode(int $id): string
     {
-        return app('hashids')->encode($id);
+        return HashidEncoder::encode($id);
     }
 
     public static function decode(string $hashid): ?int
     {
-        $decoded = app('hashids')->decode($hashid);
-
-        return ! empty($decoded) ? (int) $decoded[0] : null;
+        return HashidEncoder::decode($hashid);
     }
 
     public static function decodeOrFail(string $hashid): int

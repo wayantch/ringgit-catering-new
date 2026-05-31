@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Support\HashidEncoder;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -13,15 +14,13 @@ class ValidHashid implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $decoded = app('hashids')->decode((string) $value);
+        $id = HashidEncoder::decode((string) $value);
 
-        if (empty($decoded)) {
+        if ($id === null) {
             $fail('ID tidak valid.');
 
             return;
         }
-
-        $id = (int) $decoded[0];
 
         if (! ($this->model)::query()->whereKey($id)->exists()) {
             $fail('Data tidak ditemukan.');

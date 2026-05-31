@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Support\HashidEncoder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -27,14 +28,12 @@ trait HasHashid
 
     public static function encodeId(int|string $id): string
     {
-        return app('hashids')->encode($id);
+        return HashidEncoder::encode($id);
     }
 
     public static function decodeHashid(string $hashid): ?int
     {
-        $decoded = app('hashids')->decode($hashid);
-
-        return ! empty($decoded) ? (int) $decoded[0] : null;
+        return HashidEncoder::decode($hashid);
     }
 
     public static function findByHashid(string $hashid): static
