@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["php", "phpExtensions.bcmath"]
+nixPkgs = ["php", "phpExtensions.bcmath", "phpExtensions.gmp"]
