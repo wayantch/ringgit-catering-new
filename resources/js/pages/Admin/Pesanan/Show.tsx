@@ -141,6 +141,8 @@ export default function Show({ order }: Props) {
         (p: any) => p.status === 'pending',
     );
     const hasPendingPayments = pendingVerifications.length > 0;
+    const canShowPrimaryActions = !hasPendingPayments;
+    const showQuickActions = order.order_status !== 'selesai';
 
     const formatCurrency = (amount: string | number) =>
         new Intl.NumberFormat('id-ID', {
@@ -462,49 +464,67 @@ export default function Show({ order }: Props) {
                                             ? ` · oleh ${order.created_by.name}`
                                             : ''}
                                     </p>
-                                </div>
 
-                                <div className="flex flex-wrap gap-3">
-                                    {order.source === 'admin' &&
-                                        order.isEditable && (
-                                            <Link
-                                                href={`/admin/pesanan/${order.id}/edit`}
-                                                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(122,143,107,0.85)] transition hover:-translate-y-0.5 hover:bg-primary-600"
-                                            >
-                                                Edit Pesanan
-                                                <ChevronRight className="size-4" />
-                                            </Link>
-                                        )}
-                                    {order.order_status === 'baru' && (
-                                        <button
-                                            onClick={handleProceed}
-                                            className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:-translate-y-0.5 hover:bg-primary/10"
-                                        >
-                                            <Sparkles className="size-4" />
-                                            Mulai Proses
-                                        </button>
+                                    {showQuickActions && (
+                                        <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+                                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                Aksi Cepat
+                                            </p>
+                                            <div className="mt-3 flex flex-wrap gap-3">
+                                                {order.source === 'admin' &&
+                                                    order.isEditable && (
+                                                        <Link
+                                                            href={`/admin/pesanan/${order.id}/edit`}
+                                                            className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(122,143,107,0.85)] transition hover:-translate-y-0.5 hover:bg-primary-600"
+                                                        >
+                                                            Edit Pesanan
+                                                            <ChevronRight className="size-4" />
+                                                        </Link>
+                                                    )}
+                                                {canShowPrimaryActions &&
+                                                    order.order_status ===
+                                                        'baru' && (
+                                                        <button
+                                                            onClick={
+                                                                handleProceed
+                                                            }
+                                                            className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:-translate-y-0.5 hover:bg-primary/10"
+                                                        >
+                                                            <Sparkles className="size-4" />
+                                                            Mulai Proses
+                                                        </button>
+                                                    )}
+                                                {canShowPrimaryActions &&
+                                                    order.order_status ===
+                                                        'diproses' && (
+                                                        <button
+                                                            onClick={() =>
+                                                                changeStatusTo(
+                                                                    'selesai',
+                                                                )
+                                                            }
+                                                            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:-translate-y-0.5 hover:bg-emerald-100"
+                                                        >
+                                                            <BadgeCheck className="size-4" />
+                                                            Tandai Selesai
+                                                        </button>
+                                                    )}
+                                                {canShowPrimaryActions &&
+                                                    order.order_status !==
+                                                        'dibatalkan' && (
+                                                        <button
+                                                            onClick={
+                                                                handleReject
+                                                            }
+                                                            className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:-translate-y-0.5 hover:bg-red-100"
+                                                        >
+                                                            <XCircle className="size-4" />
+                                                            Batalkan
+                                                        </button>
+                                                    )}
+                                            </div>
+                                        </div>
                                     )}
-                                    {order.order_status === 'diproses' && (
-                                        <button
-                                            onClick={() =>
-                                                changeStatusTo('selesai')
-                                            }
-                                            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:-translate-y-0.5 hover:bg-emerald-100"
-                                        >
-                                            <BadgeCheck className="size-4" />
-                                            Tandai Selesai
-                                        </button>
-                                    )}
-                                    {order.order_status !== 'dibatalkan' &&
-                                        order.order_status !== 'selesai' && (
-                                            <button
-                                                onClick={handleReject}
-                                                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:-translate-y-0.5 hover:bg-red-100"
-                                            >
-                                                <XCircle className="size-4" />
-                                                Batalkan
-                                            </button>
-                                        )}
                                 </div>
                             </div>
 
@@ -828,53 +848,6 @@ export default function Show({ order }: Props) {
                                     </div>
                                 </div>
                             </div>
-
-                            {order.order_status !== 'selesai' && (
-                                <SectionCard title="Aksi Cepat">
-                                    <div className="space-y-3">
-                                        {order.source === 'admin' &&
-                                            order.isEditable && (
-                                                <Link
-                                                    href={`/admin/pesanan/${order.id}/edit`}
-                                                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                                >
-                                                    Edit Pesanan
-                                                    <ChevronRight className="size-4" />
-                                                </Link>
-                                            )}
-                                        {order.order_status === 'baru' && (
-                                            <button
-                                                onClick={handleProceed}
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_-16px_rgba(122,143,107,0.85)] transition hover:bg-primary-600"
-                                            >
-                                                <Sparkles className="size-4" />
-                                                Mulai Proses Pesanan
-                                            </button>
-                                        )}
-                                        {order.order_status === 'diproses' && (
-                                            <button
-                                                onClick={() =>
-                                                    changeStatusTo('selesai')
-                                                }
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
-                                            >
-                                                <BadgeCheck className="size-4" />
-                                                Tandai Selesai
-                                            </button>
-                                        )}
-                                        {order.order_status !==
-                                            'dibatalkan' && (
-                                            <button
-                                                onClick={handleReject}
-                                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-                                            >
-                                                <XCircle className="size-4" />
-                                                Batalkan Pesanan
-                                            </button>
-                                        )}
-                                    </div>
-                                </SectionCard>
-                            )}
 
                             <CashbackCard
                                 has_cashback={hasCashback}

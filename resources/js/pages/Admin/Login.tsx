@@ -51,18 +51,18 @@ export default function AdminLogin() {
 
                 <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
                     <section
-                        className={`relative mx-auto w-full max-w-2xl rounded-2xl bg-white/95 p-6 shadow-[0_28px_80px_-36px_rgba(46,46,46,0.28)] ring-1 ring-black/5 backdrop-blur-sm transition duration-700 ease-out sm:p-8 lg:p-10 ${mounted ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-3 scale-[0.98] opacity-0'}`}
+                        className={`relative mx-auto w-full max-w-2xl rounded-[28px] bg-white/95 p-6 shadow-[0_20px_60px_-28px_rgba(46,46,46,0.18)] ring-1 ring-black/5 backdrop-blur-sm transition duration-500 ease-out sm:p-8 lg:p-10 ${mounted ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-2 scale-[0.995] opacity-0'}`}
                     >
                         <div className="flex flex-col gap-6">
-                            <header className="space-y-3">
+                            <header className="space-y-2 self-center text-center">
                                 <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium tracking-[0.28em] text-primary uppercase">
                                     Ringgit Catering
                                 </div>
-                                <div className="space-y-2">
-                                    <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-                                        Ringgit Catering
+                                <div className="space-y-1">
+                                    <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">
+                                        Panel Admin
                                     </h1>
-                                    <p className="text-sm text-black/60 sm:text-base">
+                                    <p className="text-sm text-black/50">
                                         Masuk ke sistem internal
                                     </p>
                                 </div>
@@ -72,7 +72,8 @@ export default function AdminLogin() {
                                 <button
                                     type="button"
                                     onClick={() => switchRole('admin')}
-                                    className={`rounded-xl px-4 py-3 text-left transition ${staffRole === 'admin' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-black/55 hover:bg-white/70 hover:text-text'}`}
+                                    aria-pressed={staffRole === 'admin'}
+                                    className={`rounded-[14px] px-4 py-3 text-left transition ${staffRole === 'admin' ? 'bg-white text-primary shadow ring-1 ring-black/5' : 'text-black/60 hover:bg-white/70 hover:text-text'}`}
                                 >
                                     <span className="block text-sm font-semibold">
                                         Admin
@@ -85,7 +86,8 @@ export default function AdminLogin() {
                                 <button
                                     type="button"
                                     onClick={() => switchRole('produksi')}
-                                    className={`rounded-xl px-4 py-3 text-left transition ${staffRole === 'produksi' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-black/55 hover:bg-white/70 hover:text-text'}`}
+                                    aria-pressed={staffRole === 'produksi'}
+                                    className={`rounded-[14px] px-4 py-3 text-left transition ${staffRole === 'produksi' ? 'bg-white text-primary shadow ring-1 ring-black/5' : 'text-black/60 hover:bg-white/70 hover:text-text'}`}
                                 >
                                     <span className="block text-sm font-semibold">
                                         Produksi
@@ -116,7 +118,7 @@ export default function AdminLogin() {
                                             )
                                         }
                                         placeholder="admin@example.com"
-                                        className="w-full rounded-lg border border-black/15 bg-white px-4 py-2.5 text-sm placeholder-black/40 transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm placeholder-black/40 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                                     />
                                     {form.errors.email && (
                                         <p className="text-xs text-red-600">
@@ -144,7 +146,7 @@ export default function AdminLogin() {
                                             )
                                         }
                                         placeholder="••••••••"
-                                        className="w-full rounded-lg border border-black/15 bg-white px-4 py-2.5 text-sm placeholder-black/40 transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm placeholder-black/40 shadow-sm transition focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                                     />
                                     {form.errors.password && (
                                         <p className="text-xs text-red-600">
@@ -156,7 +158,7 @@ export default function AdminLogin() {
                                 <button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="w-full rounded-full bg-primary px-6 py-3 text-base font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {form.processing
                                         ? 'Memproses...'

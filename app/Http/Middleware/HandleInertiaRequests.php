@@ -43,6 +43,13 @@ class HandleInertiaRequests extends Middleware
             $cartCount = \App\Models\Cart::where('user_id', $user->id)->count();
         }
 
+        $newOrdersCount = 0;
+        if ($user && in_array($user->role, ['admin', 'produksi'], true)) {
+            $newOrdersCount = \App\Models\Order::where('order_status', 'baru')
+                ->where('source', 'pembeli')
+                ->count();
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -50,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
             ],
             'cartCount' => $cartCount,
+            'newOrdersCount' => $newOrdersCount,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

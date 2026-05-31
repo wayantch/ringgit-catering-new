@@ -6,7 +6,6 @@ import {
     Users,
     X,
     ChevronRight,
-    Sparkles,
     LogOut,
 } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -22,6 +21,8 @@ export default function Sidebar() {
     const isProductionUser = role === 'produksi';
     const userName = page.props.auth?.user?.name ?? 'Admin';
     const userEmail = page.props.auth?.user?.email ?? 'admin@ringgit.id';
+    // Ensure newOrdersCount is a number to satisfy TS checks
+    const newOrdersCount = Number(page.props.newOrdersCount ?? 0);
 
     const isActive = (path: string) => url?.startsWith(path);
 
@@ -158,13 +159,24 @@ export default function Sidebar() {
                                 )}
 
                                 <span
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all duration-200 ${
+                                    className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all duration-200 ${
                                         active
                                             ? 'bg-primary/15 text-primary'
                                             : 'bg-slate-100 text-slate-500 group-hover:bg-slate-100 group-hover:text-slate-700'
                                     } `}
                                 >
                                     <Icon className="h-5 w-5" strokeWidth={2} />
+
+                                    {item.name === 'Pesanan' &&
+                                        typeof newOrdersCount === 'number' &&
+                                        newOrdersCount > 0 &&
+                                        !active && (
+                                            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] leading-none font-semibold text-white shadow-sm ring-2 ring-white">
+                                                {newOrdersCount > 9
+                                                    ? '9+'
+                                                    : String(newOrdersCount)}
+                                            </span>
+                                        )}
                                 </span>
 
                                 <span className="min-w-0 flex-1">

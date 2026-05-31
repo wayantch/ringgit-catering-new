@@ -33,7 +33,7 @@ class PrintService
                 'items' => static fn($query) => $query->orderBy('id'),
                 'payments',
             ])
-            ->where('order_status', 'diproses');
+            ->whereIn('order_status', ['diproses', 'selesai']);
 
         if ($tanggal) {
             $query->whereDate('booking_date', $tanggal);

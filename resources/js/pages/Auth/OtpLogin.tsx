@@ -95,14 +95,13 @@ export default function OtpLogin() {
                 <div className="rounded-lg bg-primary/5 p-4 text-sm text-slate-700">
                     <p className="font-medium text-primary">💡 Informasi</p>
                     <p className="mt-2">
-                        Belum punya akun? Cukup masukkan emailmu di sini. Akun
-                        akan otomatis dibuat saat kamu login dengan OTP.
+                        Masukan email yang terdaftar untuk menerima kode OTP. Pastikan email benar agar kamu bisa masuk ke akunmu dengan mudah!
                     </p>
                 </div>
 
                 {/* Footer */}
                 <p className="text-center text-xs text-slate-500">
-                    Ringgit Catering © 2025
+                    Ringgit Catering &copy; {new Date().getFullYear()}
                 </p>
             </div>
         </div>
