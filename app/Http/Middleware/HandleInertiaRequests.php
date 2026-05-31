@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cart;
+use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,25 +39,28 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $sharedUser = null;
 
-        $cartCount = 0;
         if ($user) {
-            // Count distinct cart rows (number of menu entries in cart), not total quantity
-            $cartCount = \App\Models\Cart::where('user_id', $user->id)->count();
+            $sharedUser = $user->only([
+                'id',
+                'name',
+                'email',
+                'role',
+                'phone',
+                'address',
+            ]);
         }
 
-        $newOrdersCount = 0;
-        if ($user && in_array($user->role, ['admin', 'produksi'], true)) {
-            $newOrdersCount = \App\Models\Order::where('order_status', 'baru')
-                ->where('source', 'pembeli')
-                ->count();
-        }
+        $cartCount = $this->cartCountForUser($user);
+
+        $newOrdersCount = $this->newOrdersCountForUser($user);
 
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user,
+                'user' => $sharedUser,
             ],
             'cartCount' => $cartCount,
             'newOrdersCount' => $newOrdersCount,
@@ -65,5 +71,32 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
             ],
         ];
+    }
+
+    /**
+     * Count the authenticated user's cart entries.
+     */
+    protected function cartCountForUser(?User $user): int
+    {
+        if (! $user) {
+            return 0;
+        }
+
+        // Count distinct cart rows (number of menu entries in cart), not total quantity.
+        return Cart::where('user_id', $user->id)->count();
+    }
+
+    /**
+     * Count incoming orders visible to privileged users.
+     */
+    protected function newOrdersCountForUser(?User $user): int
+    {
+        if (! $user || ! in_array($user->role, ['admin', 'produksi'], true)) {
+            return 0;
+        }
+
+        return Order::where('order_status', 'baru')
+            ->where('source', 'pembeli')
+            ->count();
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Requests\Pelanggan\StoreCartItemRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 test('exposes hashid route key behavior on models', function (): void {
     $user = User::make();
@@ -33,5 +35,45 @@ test('cart item request rules can resolve hashid input without a builder error',
         'kondisi_produk',
         'quantity',
         'notes',
+    ]);
+});
+
+test('inertia shared auth user omits hashid serialization', function (): void {
+    $user = User::make();
+    $user->setRawAttributes([
+        'id' => 77,
+        'name' => 'Admin Ringgit',
+        'email' => 'admin@example.com',
+        'role' => 'admin',
+        'phone' => '08123456789',
+        'address' => 'Denpasar',
+    ], true);
+
+    $request = Request::create('/admin/dashboard', 'GET');
+    $request->setUserResolver(fn() => $user);
+    $request->setLaravelSession(app('session.store'));
+
+    $shared = new class extends HandleInertiaRequests
+    {
+        protected function cartCountForUser(?User $user): int
+        {
+            return 0;
+        }
+
+        protected function newOrdersCountForUser(?User $user): int
+        {
+            return 0;
+        }
+    };
+
+    $shared = $shared->share($request);
+
+    expect($shared['auth']['user'])->toBe([
+        'id' => 77,
+        'name' => 'Admin Ringgit',
+        'email' => 'admin@example.com',
+        'role' => 'admin',
+        'phone' => '08123456789',
+        'address' => 'Denpasar',
     ]);
 });
