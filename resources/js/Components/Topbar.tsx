@@ -203,7 +203,7 @@ export default function Topbar({ user }: { user?: TopbarUser }) {
     const { toggle } = useSidebar();
 
     return (
-        <div className="flex items-center gap-3 border-b border-primary/10 bg-white/70 px-4 py-3 backdrop-blur-sm sm:px-6">
+        <div className="sticky top-0 z-50 flex items-center gap-3 border-b border-primary/10 bg-white/70 px-4 py-3 backdrop-blur-sm sm:px-6">
             {/* Hamburger — mobile only */}
             <button
                 onClick={toggle}

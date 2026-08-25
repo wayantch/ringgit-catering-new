@@ -12,23 +12,27 @@ type PrintFilters = {
 
 interface PrintRow {
     order_id: number;
-    customer_name: string;
     name: string;
     qty: number;
     qty_label: string;
     price: number;
     keterangan: string;
-    detail_label: string;
-    payment_method: string;
-    payment_date: string;
-    jam: string;
-    pickup_delivery: string;
 }
 
 interface PrintGroup {
     booking_date: string;
     booking_date_label: string;
-    rows: PrintRow[];
+    orders: Array<{
+        order_id: number;
+        customer_name: string;
+        payment_method: string;
+        payment_date: string;
+        jam: string;
+        pickup_delivery: string;
+        item_count: number;
+        grand_total: number;
+        items: PrintRow[];
+    }>;
     row_count: number;
     grand_total: number;
 }

@@ -485,11 +485,10 @@ export default function Dashboard() {
                                     <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl lg:text-5xl">
                                         Dashboard admin.
                                     </h1>
-                                    <p className="max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+                                    <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
                                         Lihat performa penjualan hari ini,
                                         status pesanan, dan menu yang paling
-                                        sering dipesan dalam satu tampilan yang
-                                        lebih bersih.
+                                        sering dipesan
                                     </p>
                                 </div>
 

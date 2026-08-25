@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import CTA from '../../Components/LandingPage/CTA';
 import Features from '../../Components/LandingPage/Features';
@@ -7,6 +7,26 @@ import Hero from '../../Components/LandingPage/Hero';
 import MenuSection from '../../Components/LandingPage/MenuSection';
 import Navbar from '../../Components/LandingPage/Navbar';
 import Testimonials from '../../Components/LandingPage/Testimonials';
+
+const siteName = 'Ringgit Catering';
+const pageTitle = 'Jual Babi Bekasi & Jabodetabek';
+const pageDescription =
+    'Ringgit Catering melayani jual babi Bekasi, jual babi Jabodetabek, dan aneka olahan segar dengan kualitas terjaga, harga transparan, serta layanan cepat.';
+const pageKeywords =
+    'jual babi bekasi, jual babi jabodetabek, ringgit catering, babi segar bekasi, catering babi bekasi, olahan babi jabodetabek, daging babi segar';
+const canonicalUrl =
+    typeof window !== 'undefined'
+        ? window.location.origin
+        : 'http://localhost:8000';
+const ogImageUrl = `${canonicalUrl.replace(/\/$/, '')}/apple-touch-icon.png`;
+const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: siteName,
+    url: canonicalUrl,
+    description: pageDescription,
+    areaServed: ['Bekasi', 'Jabodetabek'],
+};
 
 interface MenuItem {
     id: number;
@@ -47,11 +67,33 @@ export default function LandingPage({
 
     return (
         <div className="text-test overflow-x-hidden bg-bg pt-16 font-sans">
+            <Head title={pageTitle}>
+                <meta name="description" content={pageDescription} />
+                <meta name="keywords" content={pageKeywords} />
+                <meta name="robots" content="index, follow" />
+                <link rel="canonical" href={canonicalUrl} />
+
+                <meta property="og:type" content="website" />
+                <meta property="og:site_name" content={siteName} />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDescription} />
+                <meta property="og:url" content={canonicalUrl} />
+                <meta property="og:image" content={ogImageUrl} />
+
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content={pageDescription} />
+                <meta name="twitter:image" content={ogImageUrl} />
+
+                <script type="application/ld+json">
+                    {JSON.stringify(structuredData)}
+                </script>
+            </Head>
             <Navbar scrolled={scrolled} />
 
             {/* Hero fixed container */}
             <div className="relative h-screen" id="hero">
-                <div className="fixed inset-0 top-16 z-0">
+                <div className="fixed inset-0 z-0">
                     <Hero heroVis={heroVis} />
                 </div>
             </div>

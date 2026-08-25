@@ -29,9 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (app()->environment('production')) {
-            URL::forceScheme('https');
-        }
+        // if (app()->environment('production')) {
+        // URL::forceScheme('https');
+        // }
         $this->configureDefaults();
         $this->configureRouteModelBinding();
 
@@ -58,13 +58,13 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn(): ?Password => app()->isProduction()
+            fn (): ?Password => app()->isProduction()
                 ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
                 : null,
         );
     }

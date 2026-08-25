@@ -100,5 +100,8 @@ it('includes completed orders in the print data for a selected date', function (
     expect($printData['groups'])->toHaveCount(1);
     expect($printData['groups'][0]['booking_date'])->toBe('2026-05-31');
     expect($printData['groups'][0]['row_count'])->toBe(1);
-    expect($printData['groups'][0]['rows'][0]['order_id'])->toBe($orderId);
+    expect($printData['groups'][0]['orders'][0]['order_id'])->toBe($orderId)
+        ->and($printData['groups'][0]['orders'][0]['customer_name'])->toBe('Pelanggan Test')
+        ->and($printData['groups'][0]['orders'][0]['item_count'])->toBe(1)
+        ->and($printData['groups'][0]['orders'][0]['items'][0]['name'])->toBe('Rendang Daging');
 });

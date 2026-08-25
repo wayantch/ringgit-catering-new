@@ -1,33 +1,25 @@
 import { router } from '@inertiajs/react';
-import {
-    UtensilsCrossed,
-    Menu,
-    X,
-    ArrowRight,
-    ChevronRight,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { UtensilsCrossed, Menu, X, ArrowRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+const NAV_LINKS = ['Beranda', 'Tentang', 'Menu', 'Kontak'] as const;
+
+const SECTION_MAP = {
+    Beranda: 'hero',
+    Tentang: 'features',
+    Menu: 'menu',
+    Kontak: 'footer',
+} as const;
 
 interface NavbarProps {
     scrolled: boolean;
 }
 
-interface SectionMap {
-    [key: string]: string;
-}
-
 export default function Navbar({ scrolled }: NavbarProps) {
     const [activeNav, setActiveNav] = useState('Beranda');
     const [mobileOpen, setMobileOpen] = useState(false);
-
-    const NAV_LINKS = ['Beranda', 'Tentang', 'Menu', 'Kontak'];
-
-    const SECTION_MAP: SectionMap = {
-        Beranda: 'hero',
-        Tentang: 'features',
-        Menu: 'menu',
-        Kontak: 'footer',
-    };
+    const [isVisible, setIsVisible] = useState(true);
+    const lastScrollY = useRef(0);
 
     const handleScroll = (sectionName: string) => {
         const sectionId = SECTION_MAP[sectionName];
@@ -73,15 +65,42 @@ export default function Navbar({ scrolled }: NavbarProps) {
         return () => observer.disconnect();
     }, []);
 
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            if (currentScrollY <= 40) {
+                setIsVisible(true);
+            } else if (currentScrollY > lastScrollY.current) {
+                setIsVisible(false);
+            } else if (currentScrollY < lastScrollY.current) {
+                setIsVisible(true);
+            }
+
+            lastScrollY.current = currentScrollY;
+        };
+
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     return (
         <nav
-            className={`fixed top-0 right-0 left-0 z-50 w-full transition-all duration-300 ${
-                scrolled
-                    ? 'border-b border-black/10 bg-white/95 shadow-md backdrop-blur-lg'
-                    : 'border-b border-white/20 bg-white/40 shadow-none backdrop-blur-md'
+            className={`fixed top-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-7xl -translate-x-1/2 transition-all duration-300 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)] ${
+                isVisible
+                    ? 'translate-y-0 opacity-100'
+                    : 'pointer-events-none -translate-y-6 opacity-0'
             }`}
         >
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+            <div
+                className={`flex items-center justify-between gap-4 rounded-full border p-4 shadow-[0_20px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl transition-colors duration-300 sm:px-5 ${
+                    scrolled
+                        ? 'border-black/10 bg-white/95'
+                        : 'border-white/50 bg-white/80'
+                }`}
+            >
                 {/* Logo */}
                 <div className="flex items-center gap-2.5">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary">
@@ -126,14 +145,14 @@ export default function Navbar({ scrolled }: NavbarProps) {
 
             {/* Mobile menu */}
             <div
-                className={`overflow-hidden border-t border-black/6 bg-white transition-all duration-300 md:hidden ${mobileOpen ? 'max-h-72' : 'max-h-0'}`}
+                className={`absolute top-full right-0 left-0 mt-3 overflow-hidden rounded-[28px] border border-black/6 bg-white shadow-[0_18px_40px_-26px_rgba(15,23,42,0.35)] transition-all duration-300 md:hidden ${mobileOpen ? 'max-h-72 opacity-100' : 'max-h-0 opacity-0'}`}
             >
                 <div className="flex flex-col gap-1 px-5 py-4">
                     {NAV_LINKS.map((n) => (
                         <button
                             key={n}
                             onClick={() => handleScroll(n)}
-                            className={`cursor-pointer rounded-xl border-0 px-4 py-2.5 text-left text-[14px] font-medium transition-colors duration-150 ${activeNav === n ? 'bg-secondary text-primary/80' : 'text-test bg-transparent'}`}
+                            className={`cursor-pointer rounded-full border-0 px-4 py-2.5 text-left text-[14px] font-medium transition-colors duration-150 ${activeNav === n ? 'bg-secondary text-primary/80' : 'text-test bg-transparent'}`}
                         >
                             {n}
                         </button>
@@ -143,7 +162,7 @@ export default function Navbar({ scrolled }: NavbarProps) {
                             router.visit('/login');
                             setMobileOpen(false);
                         }}
-                        className="mt-2 cursor-pointer rounded-xl border-0 bg-primary px-4 py-2.5 text-[14px] font-medium text-white"
+                        className="mt-2 cursor-pointer rounded-full border-0 bg-primary px-4 py-2.5 text-[14px] font-medium text-white"
                     >
                         Pesan sekarang
                     </button>

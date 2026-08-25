@@ -30,7 +30,7 @@ class PrintService
 
         $query = Order::query()
             ->with([
-                'items' => static fn($query) => $query->orderBy('id'),
+                'items' => static fn ($query) => $query->orderBy('id'),
                 'payments',
             ])
             ->whereIn('order_status', ['diproses', 'selesai']);
@@ -50,19 +50,15 @@ class PrintService
             ->get();
 
         $groups = $orders
-            ->groupBy(static fn(Order $order): string => $order->booking_date?->toDateString() ?? 'unknown')
+            ->groupBy(static fn (Order $order): string => $order->booking_date?->toDateString() ?? 'unknown')
             ->map(function (Collection $orders, string $bookingDate): array {
-                $rows = $orders->flatMap(function (Order $order): array {
+                $ordersGrouped = $orders->map(function (Order $order): array {
                     $scheduledTime = $order->pickup_time ?? $order->delivery_time;
                     $paymentSummary = $this->resolvePaymentSummary($order);
-
-                    return $order->items->map(function ($item) use ($order, $scheduledTime, $paymentSummary): array {
+                    $items = $order->items->map(function ($item) use ($order): array {
                         $subtotal = (float) ($item->subtotal ?? 0);
-                        $detailLabel = $item->menu_name . ' — ' . $this->formatKeterangan($item->kondisi_produk, $item->adat_type);
 
                         return [
-                            'order_id' => $order->id,
-                            'customer_name' => $order->customer_name,
                             'name' => $item->menu_name,
                             'qty' => (float) $item->quantity,
                             'qty_label' => $this->formatQuantity(
@@ -71,22 +67,33 @@ class PrintService
                             ),
                             'price' => $subtotal,
                             'keterangan' => $this->formatKeterangan($item->kondisi_produk, $item->adat_type),
-                            'detail_label' => $detailLabel,
-                            'payment_method' => $paymentSummary['method'],
-                            'payment_date' => $paymentSummary['date_label'],
-                            'jam' => $scheduledTime ? Carbon::parse($scheduledTime)->format('H:i') : '—',
-                            'pickup_delivery' => $order->order_type === 'delivery' ? 'Delivery' : 'Pickup',
+                            'detail_label' => $item->menu_name.' — '.$this->formatKeterangan($item->kondisi_produk, $item->adat_type),
+                            'order_id' => $order->id,
                         ];
                     })->values()->all();
+
+                    $orderGrandTotal = collect($items)->sum('price');
+
+                    return [
+                        'order_id' => $order->id,
+                        'customer_name' => $order->customer_name,
+                        'payment_method' => $paymentSummary['method'],
+                        'payment_date' => $paymentSummary['date_label'],
+                        'jam' => $scheduledTime ? Carbon::parse($scheduledTime)->format('H:i') : '—',
+                        'pickup_delivery' => $order->order_type === 'delivery' ? 'Delivery' : 'Pickup',
+                        'items' => $items,
+                        'item_count' => count($items),
+                        'grand_total' => $orderGrandTotal,
+                    ];
                 })->values()->all();
 
-                $grandTotal = collect($rows)->sum('price');
+                $grandTotal = collect($ordersGrouped)->sum('grand_total');
 
                 return [
                     'booking_date' => $bookingDate,
                     'booking_date_label' => Carbon::parse($bookingDate)->format('d/m/Y'),
-                    'rows' => $rows,
-                    'row_count' => count($rows),
+                    'orders' => $ordersGrouped,
+                    'row_count' => count($ordersGrouped),
                     'grand_total' => $grandTotal,
                 ];
             })
@@ -123,7 +130,7 @@ class PrintService
         $formattedQuantity = rtrim(rtrim(number_format((float) $quantity, 2, '.', ''), '0'), '.');
 
         if ($categoryType === 'timbang_hidup') {
-            return $formattedQuantity . ' Kg';
+            return $formattedQuantity.' Kg';
         }
 
         return $formattedQuantity;
@@ -148,10 +155,10 @@ class PrintService
         }
 
         $adatParts = collect(explode(',', $adatType))
-            ->map(static fn(string $part): string => trim($part))
+            ->map(static fn (string $part): string => trim($part))
             ->filter();
 
-        $labels = $adatParts->map(fn(string $part): string => match ($part) {
+        $labels = $adatParts->map(fn (string $part): string => match ($part) {
             'batak_lengkap' => 'Lengkap',
             'batak_kepala' => 'Kepala',
             'batak_aliang' => 'Aliang',
@@ -164,19 +171,19 @@ class PrintService
             default => ucfirst(str_replace('_', ' ', $part)),
         });
 
-        if ($adatParts->every(static fn(string $part): bool => str_starts_with($part, 'batak_'))) {
-            return 'Adat Batak — ' . $labels->implode(', ');
+        if ($adatParts->every(static fn (string $part): bool => str_starts_with($part, 'batak_'))) {
+            return 'Adat Batak — '.$labels->implode(', ');
         }
 
         if ($adatParts->contains('nias_simbi_simbi')) {
-            return 'Adat Nias — ' . $labels->implode(', ');
+            return 'Adat Nias — '.$labels->implode(', ');
         }
 
         if ($adatParts->contains('lainnya')) {
-            return 'Adat — ' . $labels->implode(', ');
+            return 'Adat — '.$labels->implode(', ');
         }
 
-        return 'Adat — ' . $labels->implode(', ');
+        return 'Adat — '.$labels->implode(', ');
     }
 
     private function resolvePaymentSummary(Order $order): array

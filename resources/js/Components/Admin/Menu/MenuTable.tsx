@@ -13,7 +13,7 @@ type SubType =
     | 'babi_adat';
 
 interface MenuItem {
-    id: string;
+    id: number;
     name: string;
     description: string | null;
     image: string | null;
@@ -169,7 +169,7 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                         {items.map((item) => (
                             <tr
                                 key={item.id}
-                                className="border-b border-slate-100 transition-colors duration-200 hover:bg-primary/[0.03]"
+                                className="border-b border-slate-100 transition-colors duration-200 hover:bg-primary/3"
                             >
                                 <td className="px-4 py-4">
                                     <div className="size-14 overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-100">
@@ -193,7 +193,7 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                     <p className="font-semibold text-text">
                                         {item.name}
                                     </p>
-                                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                                    <p className="mt-1 block max-w-48 truncate text-xs leading-5 text-slate-500">
                                         {item.description ??
                                             'Deskripsi belum tersedia'}
                                     </p>

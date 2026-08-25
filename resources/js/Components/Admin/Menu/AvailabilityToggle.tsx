@@ -3,7 +3,7 @@ import { useState } from 'react';
 import menu from '@/routes/admin/menu';
 
 interface AvailabilityToggleProps {
-    menuId: string;
+    menuId: number;
     initialValue: boolean;
 }
 

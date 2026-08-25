@@ -1,19 +1,25 @@
 import React from 'react';
 
 interface PrintRow {
-    customer_name: string;
     name: string;
     qty_label: string;
     price: number;
-    keterangan: string;
-    jam: string;
-    pickup_delivery: string;
 }
 
 interface PrintGroup {
     booking_date: string;
     booking_date_label: string;
-    rows: PrintRow[];
+    orders: Array<{
+        order_id: number;
+        customer_name: string;
+        payment_method: string;
+        payment_date: string;
+        jam: string;
+        pickup_delivery: string;
+        item_count: number;
+        grand_total: number;
+        items: Array<PrintRow>;
+    }>;
 }
 
 interface PrintAreaDapurProps {
@@ -55,19 +61,14 @@ export default function PrintAreaDapur({ groups }: PrintAreaDapurProps) {
                             Tanggal: {group.booking_date_label}
                         </h3>
                         <span className="text-xs">
-                            {group.rows.length} baris
+                            {group.orders.length} pesanan
                         </span>
                     </div>
 
                     <table className="w-full border-collapse text-[10pt]">
                         <thead>
                             <tr>
-                                <th className="px-2 py-2 text-left">
-                                    Pelanggan
-                                </th>
-                                <th className="px-2 py-2 text-left">
-                                    Menu
-                                </th>
+                                <th className="px-2 py-2 text-left">Menu</th>
                                 <th className="px-2 py-2 text-left">
                                     Qty/Timbangan
                                 </th>
@@ -82,30 +83,46 @@ export default function PrintAreaDapur({ groups }: PrintAreaDapurProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {group.rows.map((row, rowIndex) => (
-                                <tr key={`${group.booking_date}-${rowIndex}`}>
-                                    <td className="px-2 py-2 align-top font-semibold">
-                                        {row.customer_name}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {row.name}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {row.qty_label}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {formatCurrency(row.price)}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {row.keterangan}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {row.jam}
-                                    </td>
-                                    <td className="px-2 py-2 align-top">
-                                        {row.pickup_delivery}
-                                    </td>
-                                </tr>
+                            {group.orders.map((order) => (
+                                <React.Fragment key={order.order_id}>
+                                    <tr>
+                                        <td
+                                            colSpan={6}
+                                            className="bg-slate-100 px-2 py-2 font-semibold"
+                                        >
+                                            {order.customer_name}
+                                            <span className="ml-2 font-normal text-slate-600">
+                                                · {order.item_count} item ·{' '}
+                                                {order.jam} ·{' '}
+                                                {order.pickup_delivery}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {order.items.map((row, rowIndex) => (
+                                        <tr
+                                            key={`${order.order_id}-${rowIndex}`}
+                                        >
+                                            <td className="px-2 py-2 align-top">
+                                                {row.name}
+                                            </td>
+                                            <td className="px-2 py-2 align-top">
+                                                {row.qty_label}
+                                            </td>
+                                            <td className="px-2 py-2 align-top">
+                                                {formatCurrency(row.price)}
+                                            </td>
+                                            <td className="px-2 py-2 align-top">
+                                                {row.keterangan}
+                                            </td>
+                                            <td className="px-2 py-2 align-top">
+                                                {order.jam}
+                                            </td>
+                                            <td className="px-2 py-2 align-top">
+                                                {order.pickup_delivery}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>

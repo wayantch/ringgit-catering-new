@@ -125,6 +125,9 @@ export default function Show({ order }: Props) {
         (p: any) => p.is_verification,
     );
     const paymentMethod = order.payment_method ?? null;
+    const isDpPayment = paymentMethod === 'dp' || Number(order.dp_amount) > 0;
+    const dpAmount = Number(order.dp_amount);
+    const remainingAmount = Number(order.remaining_amount);
     const hasCashback = order.has_cashback ?? order.cashback_eligible ?? false;
     const totalCashback = order.total_cashback ?? 0;
     const totalAfterCashback =
@@ -560,11 +563,30 @@ export default function Show({ order }: Props) {
                                     <p className="mt-2 text-lg font-semibold tracking-tight text-text">
                                         {paymentMethodLabel}
                                     </p>
-                                    <p className="mt-1 text-sm text-slate-500">
-                                        {hasPendingPayments
-                                            ? `${pendingVerifications.length} bukti menunggu verifikasi`
-                                            : 'Tidak ada verifikasi tertunda'}
-                                    </p>
+                                    {isDpPayment ? (
+                                        <div className="mt-2 space-y-1.5 text-sm text-slate-500">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span>Nominal DP</span>
+                                                <span className="font-semibold text-text">
+                                                    {formatCurrency(dpAmount)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span>Total pelunasan</span>
+                                                <span className="font-semibold text-text">
+                                                    {formatCurrency(
+                                                        remainingAmount,
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            {hasPendingPayments
+                                                ? `${pendingVerifications.length} bukti menunggu verifikasi`
+                                                : 'Tidak ada verifikasi tertunda'}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
                                     <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">

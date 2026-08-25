@@ -13,21 +13,21 @@ const MENU_ITEMS = [
         Icon: Leaf,
         cat: 'Timbang hidup',
         name: 'Ayam kampung segar',
-        price: 'Rp 45.000 / kg',
+        price: 'Rp 45.000',
         badge: 'Populer',
     },
     {
         Icon: UtensilsCrossed,
         cat: 'Olahan',
         name: 'Rendang daging sapi',
-        price: 'Rp 35.000 / porsi',
+        price: 'Rp 35.000',
         badge: null,
     },
     {
         Icon: Leaf,
         cat: 'Timbang hidup',
         name: 'Gurame air tawar',
-        price: 'Rp 55.000 / kg',
+        price: 'Rp 55.000',
         badge: null,
     },
 ];
@@ -48,6 +48,28 @@ function resolveImageSrc(image: string | null | undefined): string | null {
     return `/storage/${image}`;
 }
 
+function resolveCategoryLabel(
+    categoryType?: string,
+    categoryName?: string,
+    menuType?: string,
+    subType?: string,
+): string {
+    const labels: Record<string, string> = {
+        timbang_hidup: 'Timbang Hidup',
+        olahan: 'Olahan',
+        eceran: 'Eceran',
+    };
+
+    const typeLabel = labels[categoryType ?? ''] ?? categoryType ?? 'Menu';
+    const nameLabel = categoryName ?? menuType ?? subType ?? '';
+
+    if (!nameLabel) {
+        return typeLabel;
+    }
+
+    return `${typeLabel} • ${nameLabel}`;
+}
+
 interface MenuSectionProps {
     menuItems?: any[];
     handleMenuClick: () => void;
@@ -66,8 +88,7 @@ export default function MenuSection({
                             Menu pilihan
                         </p>
                         <h2 className="text-test text-2xl font-light md:text-3xl">
-                            Sajian{' '}
-                            <span className="font-medium">terpopuler</span>
+                            Sajian <span className="font-medium">terlaris</span>
                         </h2>
                     </div>
                     <button
@@ -88,15 +109,17 @@ export default function MenuSection({
                                 id,
                                 name,
                                 category_type,
+                                menu_type,
+                                sub_type,
                                 base_price,
-                                unit,
+                                min_price,
+                                price_label,
                                 description,
                                 image,
                                 Icon,
                                 cat,
                                 price,
                                 badge,
-                                ...rest
                             }: any,
                             i,
                         ) => {
@@ -107,13 +130,13 @@ export default function MenuSection({
                                 category_type === 'timbang_hidup' ||
                                 cat === 'Timbang hidup'
                             ) {
-FinalIcon = Leaf;
-} else if (
+                                FinalIcon = Leaf;
+                            } else if (
                                 category_type === 'olahan' ||
                                 cat === 'Olahan'
                             ) {
-FinalIcon = UtensilsCrossed;
-}
+                                FinalIcon = UtensilsCrossed;
+                            }
 
                             const finalBadge =
                                 badge ||
@@ -124,20 +147,30 @@ FinalIcon = UtensilsCrossed;
                                       : null);
                             const priceText =
                                 price ||
-                                (base_price
-                                    ? `Rp ${Math.round(base_price).toLocaleString('id-ID')} / ${unit}`
-                                    : `${unit}`);
+                                price_label ||
+                                (base_price !== null && base_price !== undefined
+                                    ? `Rp ${Math.round(base_price).toLocaleString('id-ID')}`
+                                    : min_price !== null &&
+                                        min_price !== undefined
+                                      ? `Rp ${Math.round(min_price).toLocaleString('id-ID')}`
+                                      : 'Harga menyusul');
                             const imageSrc = resolveImageSrc(image);
                             const finalName = name;
+                            const categoryLabel = resolveCategoryLabel(
+                                category_type,
+                                cat,
+                                menu_type,
+                                sub_type,
+                            );
 
                             return (
                                 <FadeUp key={id || finalName} delay={i * 0.07}>
                                     <div
                                         onClick={handleMenuClick}
-                                        className="group cursor-pointer overflow-hidden rounded-2xl border border-black/5 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                                        className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-black/5 bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
                                     >
                                         {/* image container */}
-                                        <div className="relative flex h-54 items-center justify-center overflow-hidden bg-[#eef2eb]">
+                                        <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-[#eef2eb]">
                                             {imageSrc ? (
                                                 <img
                                                     src={imageSrc}
@@ -157,28 +190,36 @@ FinalIcon = UtensilsCrossed;
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="p-4">
-                                            <p className="mb-1 text-[11px] font-medium tracking-wide text-primary uppercase">
-                                                {category_type || cat}
+                                        <div className="flex flex-1 flex-col p-4">
+                                            <p className="mb-1 text-[11px] font-semibold tracking-[0.22em] text-primary uppercase">
+                                                {categoryLabel}
                                             </p>
-                                            <h3 className="text-test mb-3 text-[14px] font-semibold">
+                                            <h3 className="text-test text-[15px] leading-6 font-semibold">
                                                 {finalName}
                                             </h3>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[13px] font-semibold text-primary/80">
-                                                    {priceText}
-                                                </span>
+
+                                            <p className="mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-500">
+                                                {description ||
+                                                    'Sajian pilihan dengan rasa autentik dan kualitas terbaik.'}
+                                            </p>
+
+                                            <div className="mt-4 flex flex-1 flex-col justify-end gap-3">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <span className="text-[13px] font-semibold text-primary/80">
+                                                        {priceText}
+                                                    </span>
+                                                </div>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleMenuClick();
                                                     }}
-                                                    className="group/btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-secondary transition-colors duration-200 hover:bg-primary hover:text-white"
+                                                    className="group/btn inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border-0 bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary/90"
                                                 >
+                                                    Pesan sekarang
                                                     <ArrowRight
                                                         size={14}
-                                                        color="#7a8f6b"
-                                                        className="group-hover/btn:text-white"
+                                                        color="#fff"
                                                     />
                                                 </button>
                                             </div>

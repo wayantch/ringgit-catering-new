@@ -443,6 +443,21 @@ class PesananService
             return (float) $order->dp_amount > 0 ? 'dp' : 'full';
         }
 
+        $verifiedPaymentVerificationTypes = $order->paymentVerifications
+            ->where('status', 'verified')
+            ->pluck('payment_type')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($verifiedPaymentVerificationTypes->contains('dp')) {
+            return 'dp';
+        }
+
+        if ($verifiedPaymentVerificationTypes->contains('pelunasan')) {
+            return 'full';
+        }
+
         $paymentVerificationType = $order->paymentVerifications
             ->pluck('payment_type')
             ->filter()

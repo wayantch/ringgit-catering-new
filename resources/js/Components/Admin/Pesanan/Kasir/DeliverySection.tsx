@@ -108,14 +108,21 @@ export default function DeliverySection({
                         <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
                             Jam Ambil
                         </span>
-                        <input
-                            type="time"
+                        <SelectNative
+                            id="pickup_time"
                             value={pickupTime}
                             onChange={(event) =>
                                 onPickupTimeChange(event.target.value)
                             }
-                            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-text shadow-sm transition outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
+                            className="w-full"
+                        >
+                            <option value="">Pilih jam ambil</option>
+                            {DELIVERY_TIME_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </SelectNative>
                     </label>
                 ) : (
                     <label className="block">
