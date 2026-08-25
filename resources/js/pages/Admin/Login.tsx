@@ -1,10 +1,9 @@
 import { Head, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type StaffRole = 'admin' | 'produksi';
 
 export default function AdminLogin() {
-    const [mounted, setMounted] = useState(false);
     const [staffRole, setStaffRole] = useState<StaffRole>('admin');
 
     const form = useForm({
@@ -12,10 +11,6 @@ export default function AdminLogin() {
         password: '',
         role: 'admin' as StaffRole,
     });
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const switchRole = (role: StaffRole) => {
         form.clearErrors();
@@ -51,7 +46,7 @@ export default function AdminLogin() {
 
                 <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
                     <section
-                        className={`relative mx-auto w-full max-w-2xl rounded-[28px] bg-white/95 p-6 shadow-[0_20px_60px_-28px_rgba(46,46,46,0.18)] ring-1 ring-black/5 backdrop-blur-sm transition duration-500 ease-out sm:p-8 lg:p-10 ${mounted ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-2 scale-[0.995] opacity-0'}`}
+                        className={`relative mx-auto w-full max-w-2xl animate-enter rounded-[28px] bg-white/95 p-6 shadow-[0_20px_60px_-28px_rgba(46,46,46,0.18)] ring-1 ring-black/5 backdrop-blur-sm transition duration-500 ease-out sm:p-8 lg:p-10`}
                     >
                         <div className="flex flex-col gap-6">
                             <header className="space-y-2 self-center text-center">

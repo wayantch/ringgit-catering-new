@@ -7,15 +7,15 @@ function useInView() {
         const o = new IntersectionObserver(
             ([e]) => {
                 if (e.isIntersecting) {
-setVis(true);
-}
+                    setVis(true);
+                }
             },
             { threshold: 0.1 },
         );
 
         if (ref.current) {
-o.observe(ref.current);
-}
+            o.observe(ref.current);
+        }
 
         return () => o.disconnect();
     }, []);

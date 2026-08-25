@@ -121,7 +121,7 @@ class PesananController extends Controller
                 ->where('role', 'pembeli')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'phone'])
-                ->map(static fn(User $user): array => [
+                ->map(static fn (User $user): array => [
                     'id' => $user->hashid,
                     'name' => $user->name,
                     'email' => $user->email,

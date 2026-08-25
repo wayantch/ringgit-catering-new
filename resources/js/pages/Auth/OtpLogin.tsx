@@ -95,7 +95,9 @@ export default function OtpLogin() {
                 <div className="rounded-lg bg-primary/5 p-4 text-sm text-slate-700">
                     <p className="font-medium text-primary">💡 Informasi</p>
                     <p className="mt-2">
-                        Masukan email yang terdaftar untuk menerima kode OTP. Pastikan email benar agar kamu bisa masuk ke akunmu dengan mudah!
+                        Masukan email yang terdaftar untuk menerima kode OTP.
+                        Pastikan email benar agar kamu bisa masuk ke akunmu
+                        dengan mudah!
                     </p>
                 </div>
 

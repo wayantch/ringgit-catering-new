@@ -18,7 +18,7 @@ class MenuService
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
-            ->map(static fn(MenuItem $item): array => self::mapItem($item))
+            ->map(static fn (MenuItem $item): array => self::mapItem($item))
             ->values()
             ->all();
     }
@@ -35,7 +35,7 @@ class MenuService
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
-            ->map(static fn(MenuItem $item): array => self::mapItem($item))
+            ->map(static fn (MenuItem $item): array => self::mapItem($item))
             ->values();
 
         return [

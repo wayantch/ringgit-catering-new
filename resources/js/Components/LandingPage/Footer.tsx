@@ -106,7 +106,7 @@ export default function Footer() {
                 {/* Bottom Footer */}
                 <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                     <p className="text-[12px] text-white/30">
-                        &copy; {new Date().getFullYear()} Ringgit Catering. 
+                        &copy; {new Date().getFullYear()} Ringgit Catering.
                     </p>
                     <div className="flex gap-6">
                         {['Privacy Policy', 'Terms of Service'].map((link) => (

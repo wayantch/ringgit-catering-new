@@ -1,12 +1,6 @@
 import { ChevronDown, Search, X } from 'lucide-react';
-import {
-    useMemo,
-    useEffect,
-    useRef
-
-
-} from 'react';
-import type {ReactNode, ElementType} from 'react';
+import { useMemo, useEffect } from 'react';
+import type { ElementType } from 'react';
 import { useSelect } from '@/hooks/useSelect';
 import { cn } from '@/lib/cn';
 
@@ -268,7 +262,7 @@ return true;
                             </div>
                         ) : (
                             <div className="py-2">
-                                {options.map((opt, groupIndex) => {
+                                {options.map((opt) => {
                                     if (isOptionGroup(opt)) {
                                         return (
                                             <div key={opt.group}>
@@ -279,7 +273,7 @@ return true;
 
                                                 {/* Group Items */}
                                                 {opt.items.map(
-                                                    (item, itemIndex) => {
+                                                    (item) => {
                                                         const optionIndex =
                                                             flatOptions.indexOf(
                                                                 item,

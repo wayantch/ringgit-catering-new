@@ -1,5 +1,5 @@
 import Swal from 'sweetalert2';
-import type {SweetAlertResult} from 'sweetalert2';
+import type { SweetAlertResult } from 'sweetalert2';
 
 // ─── Base instance dengan tema global ────────────────────────────────────────
 
@@ -263,20 +263,20 @@ export function tampilFlash(flash: {
     info?: string;
 }) {
     if (flash.success) {
-alertSukses(flash.success);
-}
+        alertSukses(flash.success);
+    }
 
     if (flash.error) {
-alertError(flash.error);
-}
+        alertError(flash.error);
+    }
 
     if (flash.warning) {
-alertPeringatan(flash.warning);
-}
+        alertPeringatan(flash.warning);
+    }
 
     if (flash.info) {
-alertInfo(flash.info);
-}
+        alertInfo(flash.info);
+    }
 }
 
 // Re-export Swal asli jika benar-benar perlu custom lanjutan

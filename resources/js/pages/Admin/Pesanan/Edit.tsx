@@ -98,12 +98,6 @@ export default function Edit({ order, menuItems }: Props) {
         setShowItemPicker(false);
     };
 
-    const handleRemoveItem = (id: number) => {
-        const newItems = selectedItems.filter((item) => item.id !== id);
-        setSelectedItems(newItems);
-        form.setData('items', newItems);
-    };
-
     const handleSubmit = (data: any) => {
         router.patch(`/admin/pesanan/${order.id}`, data, {
             preserveScroll: true,

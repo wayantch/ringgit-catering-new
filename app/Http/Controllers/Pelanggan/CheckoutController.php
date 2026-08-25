@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Pelanggan;
 
-use App\Services\Pelanggan\KeranjangService;
 use App\Services\LoyaltyService;
+use App\Services\Pelanggan\KeranjangService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

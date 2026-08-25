@@ -8,7 +8,8 @@ import {
     TimerReset,
     WalletCards,
 } from 'lucide-react';
-import React, { type FormEvent, type ReactNode } from 'react';
+import React from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { alertError, alertSukses } from '@/lib/alert';
 import pengaturan from '@/routes/admin/pengaturan';

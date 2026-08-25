@@ -1,7 +1,8 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, useForm } from '@inertiajs/react';
 import { KeyRound, Phone, Shield, User } from 'lucide-react';
-import React, { type FormEvent, type ReactNode } from 'react';
+import React from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { alertError, alertSukses } from '@/lib/alert';
 import profile from '@/routes/admin/profil';

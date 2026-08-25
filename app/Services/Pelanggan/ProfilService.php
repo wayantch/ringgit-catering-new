@@ -27,8 +27,8 @@ class ProfilService
             ->count();
         $hasRedeemed = $activeConfig !== null
             ? $user->loyaltyRedemptions()
-            ->where('loyalty_config_id', $activeConfig->id)
-            ->exists()
+                ->where('loyalty_config_id', $activeConfig->id)
+                ->exists()
             : false;
 
         return [

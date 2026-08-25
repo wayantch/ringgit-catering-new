@@ -29,8 +29,8 @@ class LandingPageController extends Controller
                 ->available()
                 ->when(
                     count($menuIds) > 0,
-                    static fn($query) => $query->whereIn('id', $menuIds),
-                    static fn($query) => $query->orderBy('sort_order', 'asc')->orderByDesc('created_at')->limit(3),
+                    static fn ($query) => $query->whereIn('id', $menuIds),
+                    static fn ($query) => $query->orderBy('sort_order', 'asc')->orderByDesc('created_at')->limit(3),
                 )
                 ->with('category')
                 ->get()
@@ -42,7 +42,7 @@ class LandingPageController extends Controller
                         ? (float) $item->base_price
                         : $minPrice;
                     $priceLabel = $resolvedPrice !== null
-                        ? 'Rp ' . number_format($resolvedPrice, 0, ',', '.')
+                        ? 'Rp '.number_format($resolvedPrice, 0, ',', '.')
                         : 'Harga menyusul';
 
                     return [
@@ -66,11 +66,11 @@ class LandingPageController extends Controller
                 })
                 ->when(
                     count($menuIds) > 0,
-                    static fn($collection) => collect($menuIds)
-                        ->map(fn(int $menuId) => $collection->get($menuId))
+                    static fn ($collection) => collect($menuIds)
+                        ->map(fn (int $menuId) => $collection->get($menuId))
                         ->filter()
                         ->values(),
-                    static fn($collection) => $collection->values(),
+                    static fn ($collection) => $collection->values(),
                 );
         } catch (QueryException) {
             // If database query fails, return empty array

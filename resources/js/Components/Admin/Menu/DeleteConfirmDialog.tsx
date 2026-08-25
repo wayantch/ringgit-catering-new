@@ -18,8 +18,8 @@ export default function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
     useEffect(() => {
         if (!open || menuId === null) {
-return;
-}
+            return;
+        }
 
         let mounted = true;
 
@@ -31,8 +31,8 @@ return;
                 );
 
                 if (!mounted) {
-return;
-}
+                    return;
+                }
 
                 if (result.isConfirmed) {
                     router.delete(menu.destroy(menuId), {
@@ -49,7 +49,7 @@ return;
                 } else {
                     onClose();
                 }
-            } catch (e) {
+            } catch {
                 onClose();
             }
         })();

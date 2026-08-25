@@ -24,15 +24,15 @@ export default function PrintToolbar({
         const el = document.getElementById('print-area');
 
         if (!el) {
-return;
-}
+            return;
+        }
 
         const html = el.innerText;
 
         try {
             await navigator.clipboard.writeText(html);
             alertSukses('Teks rekap disalin ke clipboard');
-        } catch (e) {
+        } catch {
             alertError('Gagal menyalin ke clipboard');
         }
     };

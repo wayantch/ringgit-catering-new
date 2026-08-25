@@ -1,11 +1,10 @@
-import { Link, router } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
+import { Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CheckCircle2,
     CirclePlus,
     Layers3,
-    Plus,
     Printer,
     ShoppingBag,
 } from 'lucide-react';
@@ -77,7 +76,7 @@ export default function Index({ orders, filters }: Props) {
 
     return (
         <AdminLayout>
-            <div className=" flex w-full  flex-col gap-6 p-4 ">
+            <div className="flex w-full flex-col gap-6 p-4">
                 {/* Header */}
                 <div className="relative overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_30px_30px_-48px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />

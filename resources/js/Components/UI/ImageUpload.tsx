@@ -1,5 +1,5 @@
 import { ImageIcon, UploadCloud, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState  } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type {DragEvent} from 'react';
 
 interface ImageUploadProps {
@@ -22,22 +22,20 @@ export default function ImageUpload({
     onRemoveExisting,
 }: ImageUploadProps) {
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const previewUrl = useMemo(
+        () => (file ? URL.createObjectURL(file) : null),
+        [file],
+    );
 
     useEffect(() => {
-        if (! file) {
-            setPreviewUrl(null);
-
+        if (previewUrl === null) {
             return;
         }
 
-        const objectUrl = URL.createObjectURL(file);
-        setPreviewUrl(objectUrl);
-
         return () => {
-            URL.revokeObjectURL(objectUrl);
+            URL.revokeObjectURL(previewUrl);
         };
-    }, [file]);
+    }, [previewUrl]);
 
     const displayImage = useMemo(() => {
         if (previewUrl !== null) {

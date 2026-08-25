@@ -28,7 +28,9 @@ function resolveImageSrc(image: string | null): string | null {
 }
 
 function formatCurrency(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return 'Harga menyusul';
+    if (value === null || value === undefined) {
+        return 'Harga menyusul';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',

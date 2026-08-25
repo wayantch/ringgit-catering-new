@@ -1,6 +1,6 @@
 import { useForm, Link } from '@inertiajs/react';
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react';
-import React, { useEffect, useRef, useState, FormEvent } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import otpRoutes from '@/routes/otp';
 import user from '@/routes/user';
 
@@ -9,22 +9,21 @@ interface Props {
 }
 
 export default function OtpVerify({ email }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { setData, post, processing, errors } = useForm({
         email,
         token: '',
     });
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [countdown, setCountdown] = useState(300); // 5 menit
-    const [canResend, setCanResend] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+    const canResend = countdown <= 0;
 
     // Countdown timer
     useEffect(() => {
         if (countdown <= 0) {
-            setCanResend(true);
-
             return;
         }
 
@@ -45,8 +44,8 @@ export default function OtpVerify({ email }: Props) {
     const handleOtpChange = (index: number, value: string) => {
         // Only allow single digit
         if (!/^\d?$/.test(value)) {
-return;
-}
+            return;
+        }
 
         const newOtp = [...otp];
         newOtp[index] = value;
@@ -129,7 +128,6 @@ return;
                 setOtp(['', '', '', '', '', '']);
                 setData('token', '');
                 setCountdown(300);
-                setCanResend(false);
                 inputRefs.current[0]?.focus();
             },
         });

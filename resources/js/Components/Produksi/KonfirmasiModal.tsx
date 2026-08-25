@@ -22,8 +22,8 @@ export default function KonfirmasiModal({
 }: KonfirmasiModalProps) {
     useEffect(() => {
         if (!isOpen) {
-return;
-}
+            return;
+        }
 
         let mounted = true;
 
@@ -37,20 +37,20 @@ return;
                 });
 
                 if (!mounted) {
-return;
-}
+                    return;
+                }
 
                 if (result.isConfirmed) {
                     try {
                         await onConfirm();
                         alertSukses('Tindakan berhasil.');
-                    } catch (e) {
+                    } catch {
                         alertError('Tindakan gagal. Coba lagi.');
                     }
                 } else {
                     onCancel();
                 }
-            } catch (e) {
+            } catch {
                 onCancel();
             }
         })();

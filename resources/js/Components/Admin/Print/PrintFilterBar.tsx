@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 type FilterMode = 'tanggal' | 'range';
 
@@ -35,14 +35,6 @@ export default function PrintFilterBar({
     const [dari, setDari] = useState(filters.dari ?? '');
     const [sampai, setSampai] = useState(filters.sampai ?? '');
     const [error, setError] = useState('');
-
-    useEffect(() => {
-        setMode(getInitialMode(filters));
-        setTanggal(filters.tanggal ?? '');
-        setDari(filters.dari ?? '');
-        setSampai(filters.sampai ?? '');
-        setError('');
-    }, [filters.dari, filters.sampai, filters.tanggal]);
 
     const hasActiveFilter = useMemo(
         () => Boolean(tanggal || dari || sampai),

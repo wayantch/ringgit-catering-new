@@ -471,7 +471,7 @@ export default function Dashboard() {
             <Head title="Admin Dashboard" />
 
             <AdminLayout>
-                <div className="relative space-y-6 p-4 ">
+                <div className="relative space-y-6 p-4">
                     {/* Header */}
                     <div className="relative overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_30px_80px_-48px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />

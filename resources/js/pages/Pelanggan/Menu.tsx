@@ -2,7 +2,7 @@ import type { PageProps } from '@inertiajs/core';
 import { Head } from '@inertiajs/react';
 import { Sparkles, UtensilsCrossed } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import AddToCartSheet from '@/Components/Pelanggan/AddToCartSheet';
 import MenuItemCard from '@/Components/Pelanggan/MenuItemCard';
 import MenuSearchBar from '@/Components/Pelanggan/MenuSearchBar';
@@ -89,18 +89,6 @@ const SECTIONS = [
     },
 ];
 
-function formatCurrency(value: number | null): string {
-    if (value === null) {
-        return 'Harga menyusul';
-    }
-
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        maximumFractionDigits: 0,
-    }).format(value);
-}
-
 function toSearchableText(item: MenuItem): string {
     return [
         item.name,
@@ -158,7 +146,7 @@ function MenuPageHeader({ totalItems }: { totalItems: number }) {
 function Index({ timbang_hidup, eceran }: Props) {
     const [query, setQuery] = useState('');
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-    const [activeSectionId, setActiveSectionId] =
+    const [selectedSectionId, setSelectedSectionId] =
         useState<string>('timbang_hidup');
     const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -214,20 +202,16 @@ function Index({ timbang_hidup, eceran }: Props) {
         return null;
     }, [allSections, selectedItemId]);
 
-    useEffect(() => {
-        if (filteredSections.length === 0) {
-            return;
-        }
-
-        if (
-            !filteredSections.some((section) => section.id === activeSectionId)
-        ) {
-            setActiveSectionId(filteredSections[0].id);
-        }
-    }, [activeSectionId, filteredSections]);
+    // Fall back to the first visible section when filtering hides the selected
+    // one, derived during render rather than synced through an effect.
+    const activeSectionId =
+        filteredSections.length === 0 ||
+        filteredSections.some((section) => section.id === selectedSectionId)
+            ? selectedSectionId
+            : filteredSections[0].id;
 
     const scrollToSection = (sectionId: string): void => {
-        setActiveSectionId(sectionId);
+        setSelectedSectionId(sectionId);
         sectionRefs.current[sectionId]?.scrollIntoView({
             behavior: 'smooth',
             block: 'start',

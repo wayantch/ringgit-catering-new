@@ -8,12 +8,12 @@ import {
     ClipboardList,
     Clock,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import EmptyState from '@/Components/Produksi/EmptyState';
 import PesananCard from '@/Components/Produksi/PesananCard';
-import ProduksiLayout from '@/Layouts/ProduksiLayout';
 import StatCard from '@/Components/Produksi/StatCard';
+import ProduksiLayout from '@/Layouts/ProduksiLayout';
 import pesanan from '@/routes/produksi/pesanan';
-import { useEffect, useState } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +71,9 @@ export default function Beranda({ user, stats, pesanan_aktif }: Props) {
     const [autoRefresh, setAutoRefresh] = useState(false);
 
     useEffect(() => {
-        if (!autoRefresh) return;
+        if (!autoRefresh) {
+            return;
+        }
 
         const id = setInterval(() => {
             router.get(

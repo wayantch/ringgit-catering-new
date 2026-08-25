@@ -1,7 +1,6 @@
 import { useForm, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { konfirmasiStatus, alertSukses, alertError } from '@/lib/alert';
-import PesananStatusBadge from './PesananStatusBadge';
 
 interface Payment {
     id: number;

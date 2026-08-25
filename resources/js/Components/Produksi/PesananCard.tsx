@@ -53,9 +53,6 @@ export default function PesananCard({
     items_count,
     kondisi_summary,
     status,
-    selectable = false,
-    selected = false,
-    onToggleSelect,
 }: PesananCardProps) {
     const scheduleTime =
         order_type === 'delivery' ? delivery_time : pickup_time;

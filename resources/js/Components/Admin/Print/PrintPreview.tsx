@@ -71,7 +71,7 @@ export default function PrintPreview({ printData }: { printData: any[] }) {
                                         <td className="px-2 py-1.5 text-slate-600 italic">
                                             {it.keterangan}
                                         </td>
-                                        <td className="px-2 py-1.5  font-medium">
+                                        <td className="px-2 py-1.5 font-medium">
                                             {it.qty}
                                         </td>
                                         <td className="px-2 py-1.5">

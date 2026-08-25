@@ -19,7 +19,7 @@ class OtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Kode OTP Ringgit Catering: ' . $this->token,
+            subject: 'Kode OTP Ringgit Catering: '.$this->token,
         );
     }
 

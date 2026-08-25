@@ -30,7 +30,7 @@ export default function Edit({ menu: item }: Props) {
         <>
             <Head title={`Edit Menu: ${item.name}`} />
             <AdminLayout>
-                <div className="space-y-6 p-4 ">
+                <div className="space-y-6 p-4">
                     <section className="overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_24px_30px_-42px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
                         <div className="max-w-3xl space-y-3">
                             <p className="text-[11px] font-semibold tracking-[0.28em] text-primary uppercase">

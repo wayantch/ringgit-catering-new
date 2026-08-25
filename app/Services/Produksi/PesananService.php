@@ -3,9 +3,6 @@
 namespace App\Services\Produksi;
 
 use App\Models\Order;
-use App\Models\OrderItem;
-use Carbon\Carbon;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -120,7 +117,7 @@ class PesananService
             'order_type' => $order->order_type,
             'status' => $order->order_status,
             'notes' => $order->notes,
-            'items' => $order->items->map(fn($item) => [
+            'items' => $order->items->map(fn ($item) => [
                 'id' => $item->hashid,
                 'menu_name' => $item->menu_name,
                 'menu_category_type' => $item->menu_category_type,
@@ -160,7 +157,7 @@ class PesananService
     {
         $collection = is_array($orders) ? collect($orders) : $orders;
 
-        return $collection->map(fn($order) => [
+        return $collection->map(fn ($order) => [
             'id' => $order->hashid,
             'order_number' => $order->order_number,
             'customer_name' => $order->customer_name,
@@ -178,7 +175,7 @@ class PesananService
     {
         $collection = is_array($orders) ? collect($orders) : $orders;
 
-        return $collection->map(fn($order) => [
+        return $collection->map(fn ($order) => [
             'id' => $order->hashid,
             'order_number' => $order->order_number,
             'customer_name' => $order->customer_name,
@@ -195,7 +192,7 @@ class PesananService
     private function buildKondisiSummary(Collection $items): string
     {
         $grouped = $items->groupBy('kondisi_produk')
-            ->map(fn($group, $kondisi) => $group->count() . ' ' . $this->getKondisiLabel($kondisi))
+            ->map(fn ($group, $kondisi) => $group->count().' '.$this->getKondisiLabel($kondisi))
             ->values();
 
         return $grouped->join(', ') ?: 'Tidak ada item';

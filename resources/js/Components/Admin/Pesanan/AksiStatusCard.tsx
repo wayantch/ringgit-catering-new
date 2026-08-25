@@ -20,8 +20,8 @@ export default function AksiStatusCard({
 
     const handleAction = async (target: string) => {
         if (!onChangeStatus) {
-return;
-}
+            return;
+        }
 
         const conf = await konfirmasiStatus(
             target === 'diproses'
@@ -34,8 +34,8 @@ return;
         );
 
         if (conf.isConfirmed) {
-onChangeStatus(target);
-}
+            onChangeStatus(target);
+        }
     };
 
     return (

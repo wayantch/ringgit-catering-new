@@ -44,8 +44,8 @@ export function useSelect(options: UseSelectOptions = {}) {
     // Handle click outside
     useEffect(() => {
         if (!isOpen) {
-return;
-}
+            return;
+        }
 
         const handleClickOutside = (e: MouseEvent) => {
             const target = e.target as Node;
@@ -67,8 +67,8 @@ return;
     // Handle keyboard navigation
     useEffect(() => {
         if (!isOpen) {
-return;
-}
+            return;
+        }
 
         const handleKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
@@ -95,8 +95,8 @@ return;
     // Check if dropdown needs to flip (near bottom of viewport)
     useEffect(() => {
         if (!isOpen || !triggerRef.current || !dropdownRef.current) {
-return;
-}
+            return;
+        }
 
         const trigger = triggerRef.current.getBoundingClientRect();
         const dropdownHeight = 300; // approximate height

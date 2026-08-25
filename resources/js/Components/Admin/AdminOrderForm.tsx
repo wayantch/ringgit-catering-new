@@ -48,7 +48,6 @@ interface AdminOrderFormProps {
 }
 
 export default function AdminOrderForm({
-    menuItems,
     data,
     errors,
     onChange,

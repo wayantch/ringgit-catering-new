@@ -68,7 +68,7 @@ export default function PesananDetail({ order }: Props) {
     const user = props.auth?.user || { name: 'Produksi' };
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState<'proses' | 'selesai'>('proses');
-    const [isLoading, setIsLoading] = useState(false);
+    const [, setIsLoading] = useState(false);
 
     const initials = user.name
         .split(' ')

@@ -33,14 +33,14 @@ const STEPS: Record<OrderTimelineProps['source'], TimelineStep[]> = {
 
 function formatDate(value: string): string {
     if (!value) {
-return '-';
-}
+        return '-';
+    }
 
     const d = new Date(value);
 
     if (isNaN(d.getTime())) {
-return '-';
-}
+        return '-';
+    }
 
     return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
@@ -93,7 +93,6 @@ export default function OrderTimeline({
                         (index < activeIndex ||
                             (isCompleted && index === activeIndex));
                     const isActive = !isCancelled && index === activeIndex;
-                    const isPending = isCancelled || index > activeIndex;
                     const isLast = index === steps.length - 1;
 
                     return (

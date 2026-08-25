@@ -46,7 +46,7 @@ export default function Features() {
             {/* Left decorative icons */}
             <ChefHat
                 size={120}
-                className="pointer-events-none absolute top-32 -rotate-12 left-32 text-primary/15"
+                className="pointer-events-none absolute top-32 left-32 -rotate-12 text-primary/15"
             />
             <Utensils
                 size={80}

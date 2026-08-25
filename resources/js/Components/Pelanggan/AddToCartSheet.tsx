@@ -138,10 +138,6 @@ function getDefaultKondisiProduk(item: MenuItem | null): KondisiValue {
     return 'mentah';
 }
 
-function formatTierPricePair(tier: MenuTier): string {
-    return `Mentah ${formatTierPrice(tier.harga_mentah)} · Matang ${formatTierPrice(tier.harga_matang)}`;
-}
-
 function getTierQuantityBounds(
     tier: MenuTier | null,
 ): { min: number; max: number | null } | null {

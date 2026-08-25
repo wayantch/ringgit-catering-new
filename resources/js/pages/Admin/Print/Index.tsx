@@ -188,6 +188,9 @@ export default function Index({ printData, filters }: Props) {
 
                     <div className="mt-5">
                         <PrintFilterBar
+                            // Remount on a filter change so the form re-seeds
+                            // from props instead of syncing via an effect.
+                            key={`${filters.tanggal ?? ''}|${filters.dari ?? ''}|${filters.sampai ?? ''}`}
                             filters={filters}
                             onApply={applyFilter}
                             onReset={resetFilter}

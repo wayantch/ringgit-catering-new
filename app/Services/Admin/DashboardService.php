@@ -4,7 +4,6 @@ namespace App\Services\Admin;
 
 use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +109,7 @@ class DashboardService
         }
 
         $completed = Order::where('order_status', 'selesai')->count();
+
         return (int) round(($completed / $total) * 100);
     }
 
@@ -125,6 +125,7 @@ class DashboardService
                 $qty = $it->quantity;
                 $unit = $it->menu_unit ?? null;
                 $unitText = $unit ? " {$unit}" : '';
+
                 return trim("{$it->menu_name} ({$qty}{$unitText})");
             })->toArray();
 
@@ -135,7 +136,7 @@ class DashboardService
                 $menuSummary = implode(', ', $items);
             } else {
                 $firstTwo = array_slice($items, 0, 2);
-                $menuSummary = implode(', ', $firstTwo) . ' dan ' . (count($items) - 2) . ' lainnya';
+                $menuSummary = implode(', ', $firstTwo).' dan '.(count($items) - 2).' lainnya';
             }
 
             return [

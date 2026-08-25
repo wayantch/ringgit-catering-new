@@ -23,7 +23,7 @@ class HashidEncoder
 
         do {
             $remainder = $id % $base;
-            $encoded = $alphabet[$remainder] . $encoded;
+            $encoded = $alphabet[$remainder].$encoded;
             $id = intdiv($id, $base);
         } while ($id > 0);
 
@@ -94,7 +94,7 @@ class HashidEncoder
         }
 
         for ($index = $count - 1; $index > 0; $index--) {
-            $hash = hash('sha256', $salt . ':' . $index);
+            $hash = hash('sha256', $salt.':'.$index);
             $swapIndex = hexdec(substr($hash, 0, 8)) % ($index + 1);
 
             [$characters[$index], $characters[$swapIndex]] = [$characters[$swapIndex], $characters[$index]];

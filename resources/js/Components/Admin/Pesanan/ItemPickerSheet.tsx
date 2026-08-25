@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     KONDISI_OPTIONS,
     ADAT_OPTIONS,
-    requiresAdat
-    
-    
+    requiresAdat,
 } from '@/constants/kondisiProduk';
-import type {KondisiValue, CategoryType} from '@/constants/kondisiProduk';
+import type { KondisiValue, CategoryType } from '@/constants/kondisiProduk';
 
 interface Props {
     item: any; // menu item shape
@@ -15,27 +13,32 @@ interface Props {
     onAdd: (payload: any) => void;
 }
 
+// Gate the stateful content so it unmounts while closed. That resets the draft
+// fields on every open without a state-syncing effect.
 export default function ItemPickerSheet({
     item,
     isOpen,
     onClose,
     onAdd,
 }: Props) {
+    if (!isOpen || !item) {
+        return null;
+    }
+
+    return (
+        <ItemPickerSheetContent item={item} onClose={onClose} onAdd={onAdd} />
+    );
+}
+
+function ItemPickerSheetContent({
+    item,
+    onClose,
+    onAdd,
+}: Omit<Props, 'isOpen'>) {
     const [kondisiProduk, setKondisiProduk] = useState<KondisiValue | ''>('');
     const [adatType, setAdatType] = useState('');
     const [quantity, setQuantity] = useState<number>(1);
     const [notes, setNotes] = useState('');
-
-    useEffect(() => {
-        if (!isOpen || !item) {
-return;
-}
-
-        setKondisiProduk('');
-        setAdatType('');
-        setQuantity(1);
-        setNotes('');
-    }, [isOpen, item]);
 
     const kategori = (item?.category?.type as CategoryType) ?? 'olahan';
     const kondisiOptions = KONDISI_OPTIONS[kategori] ?? KONDISI_OPTIONS.olahan;
@@ -45,8 +48,8 @@ return;
 
     function handleAdd() {
         if (!canAdd) {
-return;
-}
+            return;
+        }
 
         const payload = {
             menu_item_id: item.id,
@@ -58,10 +61,6 @@ return;
         onAdd(payload);
         onClose?.();
     }
-
-    if (!isOpen || !item) {
-return null;
-}
 
     return (
         <div className="fixed inset-0 z-60">

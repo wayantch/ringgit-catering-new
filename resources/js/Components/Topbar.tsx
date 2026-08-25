@@ -12,8 +12,8 @@ import { useState, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useSidebar } from '@/contexts/SidebarContext';
-import admin from '@/routes/admin';
 import { logout } from '@/routes';
+import admin from '@/routes/admin';
 import produksi from '@/routes/produksi';
 
 type TopbarUser = {
@@ -27,7 +27,11 @@ type TopbarUser = {
 function ProfileDropdown({ user }: { user?: TopbarUser }) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement | null>(null);
-    const portalRef = useRef<HTMLDivElement | null>(null);
+    // Held in state, not a ref: the portal container is read during render,
+    // and a ref mutation would not schedule the re-render that needs it.
+    const [portalEl] = useState<HTMLDivElement | null>(() =>
+        typeof document === 'undefined' ? null : document.createElement('div'),
+    );
     const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
     const page = usePage();
     const currentUser = (user ??
@@ -49,7 +53,7 @@ function ProfileDropdown({ user }: { user?: TopbarUser }) {
                 ref.current &&
                 event.target instanceof Node &&
                 !ref.current.contains(event.target) &&
-                !(portalRef.current && portalRef.current.contains(event.target))
+                !(portalEl && portalEl.contains(event.target))
             ) {
                 setOpen(false);
             }
@@ -57,21 +61,20 @@ function ProfileDropdown({ user }: { user?: TopbarUser }) {
         document.addEventListener('mousedown', handler);
 
         return () => document.removeEventListener('mousedown', handler);
-    }, []);
+    }, [portalEl]);
 
-    // Create portal container
+    // Attach the portal container to the document
     useEffect(() => {
-        const el = document.createElement('div');
-        document.body.appendChild(el);
-        portalRef.current = el;
+        if (!portalEl) {
+            return;
+        }
+
+        document.body.appendChild(portalEl);
 
         return () => {
-            if (portalRef.current) {
-                document.body.removeChild(portalRef.current);
-                portalRef.current = null;
-            }
+            document.body.removeChild(portalEl);
         };
-    }, []);
+    }, [portalEl]);
 
     // Position dropdown when opened or on resize/scroll
     useEffect(() => {
@@ -144,7 +147,7 @@ function ProfileDropdown({ user }: { user?: TopbarUser }) {
 
             {/* Dropdown (rendered via portal to avoid stacking/overflow issues) */}
             {open &&
-                portalRef.current &&
+                portalEl &&
                 createPortal(
                     <div
                         style={dropdownStyle}
@@ -191,7 +194,7 @@ function ProfileDropdown({ user }: { user?: TopbarUser }) {
                             </button>
                         </div>
                     </div>,
-                    portalRef.current,
+                    portalEl,
                 )}
         </div>
     );

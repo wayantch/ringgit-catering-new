@@ -186,7 +186,7 @@ export default function Riwayat({ riwayat, filters }: Props) {
                                         />
 
                                         <div className="flex h-full flex-col gap-4 p-4 pl-5">
-                                            <div className="flex items-start justify-between gap-3 ">
+                                            <div className="flex items-start justify-between gap-3">
                                                 <div className="min-w-0">
                                                     <p className="font-mono text-sm font-semibold text-primary">
                                                         {order.order_number}
@@ -196,7 +196,7 @@ export default function Riwayat({ riwayat, filters }: Props) {
                                                     </h3>
                                                 </div>
 
-                                                <div className="text-right ">
+                                                <div className="text-right">
                                                     <span
                                                         className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusChipClass}`}
                                                     >

@@ -60,8 +60,8 @@ const SUB_TYPE_STYLE: Record<string, string> = {
 
 function fmt(n: number | null | undefined) {
     if (n === null || n === undefined) {
-return '—';
-}
+        return '—';
+    }
 
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',

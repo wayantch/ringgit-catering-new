@@ -17,8 +17,8 @@ const fmt = (n: number | null) =>
 export default function InfoPesananCard({ order }: Props) {
     const displayTime = (type: string, time: string | null) => {
         if (!time) {
-return '—';
-}
+            return '—';
+        }
 
         const t = time.substring(0, 5);
 
@@ -29,8 +29,8 @@ return '—';
 
     const formatDate = (d: string | null) => {
         if (!d) {
-return '—';
-}
+            return '—';
+        }
 
         return new Date(d).toLocaleDateString('id-ID', {
             weekday: 'long',

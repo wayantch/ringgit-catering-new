@@ -1,13 +1,13 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head, router, usePage } from '@inertiajs/react';
-import { ClipboardList, ListFilter } from 'lucide-react';
+import { ListFilter } from 'lucide-react';
+import { useState } from 'react';
 import PaginationControls from '@/Components/PaginationControls';
 import EmptyState from '@/Components/Produksi/EmptyState';
+import KonfirmasiModal from '@/Components/Produksi/KonfirmasiModal';
 import PesananCard from '@/Components/Produksi/PesananCard';
 import ProduksiLayout from '@/Layouts/ProduksiLayout';
-import KonfirmasiModal from '@/Components/Produksi/KonfirmasiModal';
 import pesananRoutes from '@/routes/produksi/pesanan';
-import { useState } from 'react';
 
 interface PesananItem {
     id: number;
@@ -35,7 +35,7 @@ interface Props extends PageProps {
 export default function Pesanan({ pesanan, filter_status }: Props) {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [showBatchModal, setShowBatchModal] = useState(false);
-    const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+    const [, setIsProcessingBatch] = useState(false);
     const { props } = usePage();
     const user = props.auth?.user || { name: 'Produksi' };
 
@@ -86,6 +86,7 @@ export default function Pesanan({ pesanan, filter_status }: Props) {
 
     const handleBatchProcess = async () => {
         setIsProcessingBatch(true);
+
         try {
             await Promise.all(
                 selectedIds.map((id) =>
@@ -93,7 +94,7 @@ export default function Pesanan({ pesanan, filter_status }: Props) {
                 ),
             );
             clearSelection();
-        } catch (e) {
+        } catch {
             // ignore, KonfirmasiModal handles alerts
         } finally {
             setIsProcessingBatch(false);

@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
 import React from 'react';
-import PesananSourceBadge from '@/Components/Admin/PesananSourceBadge';
 import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
 
 interface OrderSummary {

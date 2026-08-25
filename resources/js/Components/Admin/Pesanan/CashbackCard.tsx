@@ -29,11 +29,7 @@ export default function CashbackCard({
     total_cashback,
     payment_method,
 }: Props) {
-    if (
-        !has_cashback ||
-        total_cashback <= 0 ||
-        payment_method !== 'full'
-    ) {
+    if (!has_cashback || total_cashback <= 0 || payment_method !== 'full') {
         return null;
     }
 
