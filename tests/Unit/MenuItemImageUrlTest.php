@@ -1,9 +1,10 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Models\MenuItem;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 it('builds a public image url when the file exists', function (): void {
     Storage::fake('public');

@@ -16,6 +16,10 @@ test('cart resolve route binding query decodes hashid instead of matching a hash
     $sql = $cart->resolveRouteBindingQuery(Cart::query(), $cart->hashid)
         ->toSql();
 
-    expect($sql)->toContain('"id" = ?')
+    // Strip the driver's identifier quoting so the assertion holds on both
+    // MySQL (`id`) and SQLite ("id").
+    $unquoted = str_replace(['`', '"'], '', $sql);
+
+    expect($unquoted)->toContain('id = ?')
         ->and($sql)->not->toContain('hashid');
 });

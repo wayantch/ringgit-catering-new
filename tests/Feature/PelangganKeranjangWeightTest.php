@@ -17,10 +17,11 @@ it('stores timbang hidup cart quantities as decimals', function (): void {
         ->with('category')
         ->firstOrFail();
 
+    // Timbang hidup is sold as mentah/mateng — see KondisiProduk::TIMBANG_HIDUP
+    // and the options AddToCartSheet offers for this menu type.
     $response = $this->actingAs($user)->post(route('user.keranjang.store'), [
         'menu_item_id' => $menuItem->hashid,
-        'kondisi_produk' => 'adat',
-        'adat_type' => 'batak',
+        'kondisi_produk' => 'mentah',
         'quantity' => 0.5,
         'notes' => 'Detail tambahan',
     ]);
@@ -31,7 +32,7 @@ it('stores timbang hidup cart quantities as decimals', function (): void {
     $cart = Cart::query()->where('user_id', $user->id)->firstOrFail();
 
     expect((float) $cart->quantity)->toBe(0.5);
-    expect($cart->adat_type)->toBe('batak');
+    expect($cart->notes)->toContain('Detail tambahan');
 });
 
 it('accepts mentah condition for timbang hidup cart items', function (): void {

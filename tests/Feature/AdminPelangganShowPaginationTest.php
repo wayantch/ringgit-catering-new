@@ -16,7 +16,7 @@ it('paginates customer order history on the admin customer show page', function 
     foreach (range(1, 12) as $index) {
         Order::create([
             'user_id' => $pelanggan->id,
-            'order_number' => 'ORD-' . uniqid() . '-' . str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+            'order_number' => 'ORD-'.uniqid().'-'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
             'source' => 'pembeli',
             'customer_name' => $pelanggan->name,
             'customer_phone' => $pelanggan->phone,
@@ -36,7 +36,7 @@ it('paginates customer order history on the admin customer show page', function 
 
     $response->assertOk();
     $response->assertInertia(
-        fn($page) => $page
+        fn ($page) => $page
             ->component('Admin/Pelanggan/Show')
             ->where('pelanggan.status', 'aktif')
             ->where('pelanggan.total_orders', 12)

@@ -1,11 +1,12 @@
 <?php
 
-uses(Tests\TestCase::class);
-
 use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
 use App\Models\MenuItemVariant;
 use App\Services\Admin\MenuService;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 it('calculates minimum price from timbang hidup tiers', function (): void {
     $item = MenuItem::make([
@@ -37,7 +38,7 @@ it('calculates minimum price from eceran variants', function (): void {
 });
 
 it('matches weight and resolves pricing from the matching tier', function (): void {
-    $service = new MenuService();
+    $service = new MenuService;
     $item = MenuItem::make([
         'menu_type' => 'timbang_hidup',
     ]);

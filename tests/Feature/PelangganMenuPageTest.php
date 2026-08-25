@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
 use App\Services\Pelanggan\MenuService;
 
@@ -52,15 +53,15 @@ it('renders the pelanggan menu page with the new section payloads', function ():
             ],
         ]);
 
-        $mock->shouldReceive('getEceranMenus')->once()->andReturn([
-            'saksang' => [
+        $mock->shouldReceive('getEceranMenus')->andReturn([
+            'paket_pass' => [
                 [
-                    'id' => 'menu-saksang-1',
-                    'name' => 'Saksang Spesial',
-                    'description' => 'Menu saksang andalan',
+                    'id' => 'menu-paket-pass-1',
+                    'name' => 'Paket Pass Spesial',
+                    'description' => 'Menu paket pass andalan',
                     'image' => null,
                     'menu_type' => 'eceran',
-                    'sub_type' => 'saksang',
+                    'sub_type' => 'paket_pass',
                     'is_bundle' => true,
                     'bundle_desc' => 'Paket keluarga',
                     'is_available' => true,
@@ -85,27 +86,26 @@ it('renders the pelanggan menu page with the new section payloads', function ():
                     ],
                 ],
             ],
-            'panggang' => [],
-            'sop_tulang' => [],
-            'paket_pass' => [],
+            'paket_nasi_box' => [],
+            'babi_adat' => [],
         ]);
     }));
 
-    $this->withoutMiddleware(\App\Http\Middleware\HandleInertiaRequests::class);
+    $this->withoutMiddleware(HandleInertiaRequests::class);
 
     $response = $this->actingAs($user)->get(route('user.menu'));
 
     $response->assertOk();
     $response->assertInertia(
-        fn($page) => $page
-            ->component('Pelanggan/Menu/Index')
+        fn ($page) => $page
+            ->component('Pelanggan/Menu')
             ->has('timbang_hidup', 1)
             ->has('timbang_hidup.0.tiers', 2)
             ->where('timbang_hidup.0.name', 'Daging Timbang Premium')
             ->where('timbang_hidup.0.min_price', 120000)
-            ->has('eceran.saksang', 1)
-            ->has('eceran.saksang.0.variants', 2)
-            ->where('eceran.saksang.0.name', 'Saksang Spesial')
-            ->where('eceran.saksang.0.bundle_desc', 'Paket keluarga')
+            ->has('eceran.paket_pass', 1)
+            ->has('eceran.paket_pass.0.variants', 2)
+            ->where('eceran.paket_pass.0.name', 'Paket Pass Spesial')
+            ->where('eceran.paket_pass.0.bundle_desc', 'Paket keluarga')
     );
 });

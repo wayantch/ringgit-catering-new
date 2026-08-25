@@ -52,7 +52,7 @@ it('marks pelanggan as active when they have logged in within the last month', f
 
     $response->assertOk();
     $response->assertInertia(
-        fn($page) => $page
+        fn ($page) => $page
             ->component('Admin/Pelanggan/Index')
             ->where('stats.aktif_bulan_ini', $baselineActive + 1)
             ->where('stats.tidak_aktif', $baselineInactive + 2)

@@ -50,7 +50,7 @@ test('inertia shared auth user omits hashid serialization', function (): void {
     ], true);
 
     $request = Request::create('/admin/dashboard', 'GET');
-    $request->setUserResolver(fn() => $user);
+    $request->setUserResolver(fn () => $user);
     $request->setLaravelSession(app('session.store'));
 
     $shared = new class extends HandleInertiaRequests
