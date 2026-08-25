@@ -1,3 +1,11 @@
+import Select from '@/Components/UI/Select';
+
+const KODE_OPTIONS = [
+    { value: 'A', label: 'A' },
+    { value: 'B', label: 'B' },
+    { value: 'C', label: 'C' },
+];
+
 export interface TierRow {
     kode: 'A' | 'B' | 'C';
     is_half: boolean;
@@ -88,21 +96,14 @@ function TierGroup({
                         {rows.map(({ row, index }) => (
                             <tr key={`${title}-${index}`} className="align-top">
                                 <td className="px-4 py-3">
-                                    <select
+                                    <Select
+                                        size="sm"
                                         value={row.kode}
-                                        onChange={(event) =>
-                                            onChange(
-                                                index,
-                                                'kode',
-                                                event.target.value,
-                                            )
+                                        onChange={(value) =>
+                                            onChange(index, 'kode', value)
                                         }
-                                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm transition outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
-                                    >
-                                        <option value="A">A</option>
-                                        <option value="B">B</option>
-                                        <option value="C">C</option>
-                                    </select>
+                                        options={KODE_OPTIONS}
+                                    />
                                 </td>
                                 <td className="px-4 py-3">
                                     <div className="grid grid-cols-2 gap-2">

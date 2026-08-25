@@ -2,7 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import MenuForm from '@/Components/Admin/Menu/MenuForm';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertSukses, alertError } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import menu from '@/routes/admin/menu';
 
 type MenuFormItem = NonNullable<Parameters<typeof MenuForm>[0]['item']>;
@@ -60,12 +60,6 @@ export default function Edit({ menu: item }: Props) {
                                 {
                                     forceFormData: true,
                                     onStart: () => setProcessing(true),
-                                    onSuccess: () => {
-                                        alertSukses(
-                                            'Menu berhasil diperbarui',
-                                            'Berhasil',
-                                        );
-                                    },
                                     onError: () => {
                                         alertError(
                                             'Gagal memperbarui menu',

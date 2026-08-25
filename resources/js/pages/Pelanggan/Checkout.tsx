@@ -1,5 +1,5 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import {
     CalendarDays,
     FileText,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { FormEvent, ReactNode } from 'react';
+import Select from '@/Components/UI/Select';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 import { konfirmasi, alertError } from '@/lib/alert';
 import pesanan from '@/routes/user/pesanan';
@@ -58,13 +59,6 @@ interface Props extends PageProps {
     cartItems: CartItemPayload[];
     summary: SummaryPayload;
     loyalty: LoyaltyInfo;
-}
-
-interface SharedProps extends PageProps {
-    flash?: {
-        success?: string | null;
-        error?: string | null;
-    };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -194,7 +188,6 @@ function Section({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function Checkout({ user, cartItems, summary, loyalty }: Props) {
-    const { props } = usePage<SharedProps>();
     const form = useForm({
         order_type: 'takeaway' as 'takeaway' | 'delivery',
         booking_date: toDateInput(new Date()),
@@ -212,7 +205,6 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
     const selectedTime = isDelivery
         ? form.data.delivery_time
         : form.data.pickup_time;
-    const flashError = props.flash?.error;
 
     // Temporary rule: olahan/eceran items can only be booked starting H+1.
     const now = new Date();
@@ -393,12 +385,6 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
                             noValidate
                             className="space-y-4 sm:space-y-5"
                         >
-                            {flashError && (
-                                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                    {flashError}
-                                </div>
-                            )}
-
                             {/* ── Jenis Pesanan ── */}
                             <Section
                                 icon={Truck}
@@ -498,43 +484,22 @@ function Checkout({ user, cartItems, summary, loyalty }: Props) {
 
                                     {/* Jam */}
                                     <div>
-                                        <FieldLabel
-                                            htmlFor={timeField}
-                                            required
-                                        >
-                                            {isDelivery
-                                                ? 'Kirim dari outlet jam'
-                                                : 'Ambil di outlet pukul'}
-                                        </FieldLabel>
-                                        <select
+                                        <Select
                                             id={timeField}
                                             name={timeField}
                                             required
-                                            value={selectedTime}
-                                            onChange={(e) =>
-                                                form.setData(
-                                                    timeField,
-                                                    e.target.value,
-                                                )
+                                            label={
+                                                isDelivery
+                                                    ? 'Kirim dari outlet jam'
+                                                    : 'Ambil di outlet pukul'
                                             }
-                                            className={`${inputCls(
-                                                !!form.errors[timeField],
-                                            )} cursor-pointer appearance-auto`}
-                                        >
-                                            <option value="" disabled>
-                                                Pilih jam
-                                            </option>
-                                            {timeOptions.map((option) => (
-                                                <option
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <FieldError
-                                            message={form.errors[timeField]}
+                                            placeholder="Pilih jam"
+                                            value={selectedTime}
+                                            onChange={(value) =>
+                                                form.setData(timeField, value)
+                                            }
+                                            options={timeOptions}
+                                            error={form.errors[timeField]}
                                         />
                                     </div>
                                 </div>

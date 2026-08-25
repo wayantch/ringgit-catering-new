@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
+import Select from '@/Components/UI/Select';
 import {
     KONDISI_OPTIONS,
     ADAT_OPTIONS,
     requiresAdat,
 } from '@/constants/kondisiProduk';
 import type { KondisiValue, CategoryType } from '@/constants/kondisiProduk';
+
+const ADAT_SELECT_GROUPS = ['Adat Batak', 'Adat Nias', 'Lainnya'].map(
+    (group) => ({
+        group,
+        items: ADAT_OPTIONS.filter((option) => option.group === group).map(
+            (option) => ({ value: option.value, label: option.label }),
+        ),
+    }),
+);
 
 interface Props {
     item: any; // menu item shape
@@ -126,33 +136,12 @@ function ItemPickerSheetContent({
                                 <span className="ml-1 text-red-400">*</span>
                             </label>
                             <div className="relative">
-                                <select
+                                <Select
                                     value={adatType}
-                                    onChange={(e) =>
-                                        setAdatType(e.target.value)
-                                    }
-                                    className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-text transition outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
-                                >
-                                    <option value="">
-                                        Pilih jenis adat...
-                                    </option>
-                                    {['Adat Batak', 'Adat Nias', 'Lainnya'].map(
-                                        (group) => (
-                                            <optgroup key={group} label={group}>
-                                                {ADAT_OPTIONS.filter(
-                                                    (o) => o.group === group,
-                                                ).map((o) => (
-                                                    <option
-                                                        key={o.value}
-                                                        value={o.value}
-                                                    >
-                                                        {o.label}
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        ),
-                                    )}
-                                </select>
+                                    onChange={setAdatType}
+                                    placeholder="Pilih jenis adat..."
+                                    options={ADAT_SELECT_GROUPS}
+                                />
                             </div>
                         </section>
                     )}

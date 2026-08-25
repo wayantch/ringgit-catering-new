@@ -11,7 +11,7 @@ import {
 import React from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertError, alertSukses } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import pengaturan from '@/routes/admin/pengaturan';
 
 interface Props extends PageProps {
@@ -90,12 +90,6 @@ export default function Index({ setting }: Props) {
 
         form.patch(pengaturan.update.url(), {
             preserveScroll: true,
-            onSuccess: () => {
-                alertSukses(
-                    'Pengaturan bisnis berhasil diperbarui.',
-                    'Berhasil',
-                );
-            },
             onError: () => {
                 alertError('Gagal memperbarui pengaturan bisnis.', 'Error');
             },

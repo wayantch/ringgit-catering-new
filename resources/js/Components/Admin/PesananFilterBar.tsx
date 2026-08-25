@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import Select from '@/Components/UI/Select';
 

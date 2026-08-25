@@ -12,6 +12,7 @@ import {
 import React, { useState } from 'react';
 import TierBadge from '@/Components/Admin/Pelanggan/TierBadge';
 import PaginationControls from '@/Components/PaginationControls';
+import TableAction, { TableActions } from '@/Components/UI/TableAction';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 interface Pelanggan {
@@ -354,14 +355,13 @@ export default function Index({
                                             />
                                         </div>
 
-                                        <div className="flex items-center gap-2">
-                                            <Link
+                                        <TableActions>
+                                            <TableAction
+                                                action="view"
                                                 href={`/admin/pelanggan/${p.id}`}
-                                                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                            >
-                                                Detail
-                                            </Link>
-                                        </div>
+                                                label="Lihat pelanggan"
+                                            />
+                                        </TableActions>
                                     </div>
                                 </div>
                             ))
@@ -494,14 +494,13 @@ export default function Index({
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <Link
+                                                    <TableActions>
+                                                        <TableAction
+                                                            action="view"
                                                             href={`/admin/pelanggan/${p.id}`}
-                                                            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                                        >
-                                                            Detail
-                                                        </Link>
-                                                    </div>
+                                                            label="Lihat pelanggan"
+                                                        />
+                                                    </TableActions>
                                                 </td>
                                             </tr>
                                         ))

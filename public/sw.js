@@ -1,4 +1,6 @@
-const CACHE_NAME = 'ringgit-catering-static-v1';
+const CACHE_NAME = 'ringgit-catering-static-v2';
+const OFFLINE_URL = '/offline.html';
+const PRECACHE_URLS = [OFFLINE_URL, '/icons/icon-192.png', '/icons/icon-512.png'];
 const STATIC_ASSET_EXTENSIONS = [
     '.png',
     '.jpg',
@@ -12,7 +14,18 @@ const STATIC_ASSET_EXTENSIONS = [
     '.woff2',
 ];
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        (async () => {
+            const cache = await caches.open(CACHE_NAME);
+
+            // Jangan gagalkan install kalau salah satu aset belum tersedia.
+            await Promise.allSettled(
+                PRECACHE_URLS.map((url) => cache.add(new Request(url, { cache: 'reload' }))),
+            );
+        })(),
+    );
+
     self.skipWaiting();
 });
 
@@ -46,7 +59,28 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Navigasi selalu ambil dari jaringan supaya halaman ber-autentikasi tidak
+    // pernah disajikan basi. Cache hanya dipakai sebagai jaring pengaman offline.
     if (request.mode === 'navigate') {
+        event.respondWith(
+            (async () => {
+                try {
+                    return await fetch(request);
+                } catch {
+                    const cache = await caches.open(CACHE_NAME);
+                    const offlinePage = await cache.match(OFFLINE_URL);
+
+                    return (
+                        offlinePage ??
+                        new Response(
+                            '<h1>Tidak ada koneksi</h1>',
+                            { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+                        )
+                    );
+                }
+            })(),
+        );
+
         return;
     }
 

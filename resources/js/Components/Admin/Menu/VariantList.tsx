@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import TableAction from '@/Components/UI/TableAction';
 
 export interface VariantRow {
     label: string;
@@ -115,15 +116,12 @@ export default function VariantList({
                                     />
                                 </td>
                                 <td className="px-4 py-3">
-                                    <button
-                                        type="button"
+                                    <TableAction
+                                        action="delete"
                                         onClick={() => onRemove(index)}
                                         disabled={variants.length === 1}
-                                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-rose-600 transition hover:border-rose-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                    >
-                                        <Trash2 className="size-4" />
-                                        Hapus
-                                    </button>
+                                        label="Hapus varian"
+                                    />
                                 </td>
                             </tr>
                         ))}

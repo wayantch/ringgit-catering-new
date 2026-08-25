@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { ImageIcon, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImageIcon, Plus } from 'lucide-react';
+import TableAction, { TableActions } from '@/Components/UI/TableAction';
 import menu from '@/routes/admin/menu';
 import AvailabilityToggle from './AvailabilityToggle';
 
@@ -229,21 +230,18 @@ export default function MenuTable({ items, onDeleteClick }: MenuTableProps) {
                                     />
                                 </td>
                                 <td className="px-4 py-4">
-                                    <div className="flex items-center gap-2">
-                                        <Link
+                                    <TableActions>
+                                        <TableAction
+                                            action="edit"
                                             href={menu.edit(item.id)}
-                                            className="rounded-2xl border border-slate-200 bg-white p-2.5 text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                        >
-                                            <Pencil className="size-4" />
-                                        </Link>
-                                        <button
-                                            type="button"
+                                            label="Edit menu"
+                                        />
+                                        <TableAction
+                                            action="delete"
                                             onClick={() => onDeleteClick(item)}
-                                            className="rounded-2xl border border-slate-200 bg-white p-2.5 text-rose-600 transition hover:border-rose-200 hover:bg-rose-50"
-                                        >
-                                            <Trash2 className="size-4" />
-                                        </button>
-                                    </div>
+                                            label="Hapus menu"
+                                        />
+                                    </TableActions>
                                 </td>
                             </tr>
                         ))}

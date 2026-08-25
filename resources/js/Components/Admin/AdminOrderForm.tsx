@@ -1,4 +1,10 @@
 import React from 'react';
+import Select from '@/Components/UI/Select';
+
+const ORDER_TYPE_OPTIONS = [
+    { value: 'takeaway', label: 'Ambil Sendiri' },
+    { value: 'delivery', label: 'Diantar' },
+];
 
 interface MenuItem {
     id: number;
@@ -139,24 +145,19 @@ export default function AdminOrderForm({
                 <hr className="my-4 border-slate-100" />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-800">
-                            Jenis Pesanan{' '}
-                            <span className="text-red-600">*</span>
-                        </label>
-                        <select
+                        <Select
+                            label="Jenis Pesanan"
+                            required
                             value={data.order_type}
-                            onChange={(e) =>
+                            onChange={(value) =>
                                 onChange(
                                     'order_type',
-                                    e.target.value as 'takeaway' | 'delivery',
+                                    value as 'takeaway' | 'delivery',
                                 )
                             }
-                            className="w-full rounded-xl border border-primary/10 px-4 py-2 focus:ring-2 focus:ring-primary focus:outline-none"
-                            required
-                        >
-                            <option value="takeaway">Ambil Sendiri</option>
-                            <option value="delivery">Diantar</option>
-                        </select>
+                            options={ORDER_TYPE_OPTIONS}
+                            error={errors.order_type}
+                        />
                     </div>
                     <div>
                         <label className="mb-1 block text-sm font-medium text-slate-800">

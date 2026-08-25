@@ -1,6 +1,6 @@
 import { useForm, router } from '@inertiajs/react';
 import React, { useState } from 'react';
-import { konfirmasiStatus, alertSukses, alertError } from '@/lib/alert';
+import { konfirmasiStatus, alertError } from '@/lib/alert';
 
 interface Payment {
     id: number;
@@ -46,12 +46,14 @@ export default function PaymentVerifyCard({
                     ? `/admin/pesanan/${orderId}/verify-payment-verification/${payment.id}`
                     : `/admin/pesanan/${orderId}/verify-payment/${payment.id}`;
 
-                router.post(url, {
-                    onSuccess: () =>
-                        alertSukses('Pembayaran berhasil diverifikasi.'),
-                    onError: () =>
-                        alertError('Gagal memverifikasi. Coba lagi.'),
-                });
+                router.post(
+                    url,
+                    {},
+                    {
+                        onError: () =>
+                            alertError('Gagal memverifikasi. Coba lagi.'),
+                    },
+                );
             }
         })();
     };
@@ -64,7 +66,6 @@ export default function PaymentVerifyCard({
             onSuccess: () => {
                 setShowRejectForm(false);
                 rejectForm.reset();
-                alertSukses('Bukti pembayaran ditolak.');
             },
             onError: (errors) => {
                 console.error('Reject error:', errors);

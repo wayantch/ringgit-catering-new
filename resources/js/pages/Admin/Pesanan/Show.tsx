@@ -23,7 +23,6 @@ import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     alertError,
-    alertSukses,
     konfirmasi,
     konfirmasiStatus,
     promptTeks,
@@ -205,7 +204,6 @@ export default function Show({ order }: Props) {
                 body: new URLSearchParams({ status: 'diproses' }),
             })
                 .then(() => {
-                    alertSukses('Pesanan berhasil diproses.');
                     window.location.reload();
                 })
                 .catch(() => {
@@ -263,7 +261,6 @@ export default function Show({ order }: Props) {
                 body: params,
             })
                 .then(() => {
-                    alertSukses('Pesanan berhasil dibatalkan.');
                     window.location.reload();
                 })
                 .catch(() => {
@@ -304,8 +301,6 @@ export default function Show({ order }: Props) {
                 {
                     preserveScroll: true,
                     onSuccess: () => {
-                        alertSukses('Pembayaran berhasil diverifikasi.');
-
                         // Auto-update status to "diproses" jika semua pembayaran sudah verified
                         setTimeout(() => {
                             const updatedPendingVerifications =
@@ -397,9 +392,6 @@ export default function Show({ order }: Props) {
                 },
                 {
                     preserveScroll: true,
-                    onSuccess: () => {
-                        alertSukses('Bukti pembayaran ditolak.');
-                    },
                     onError: () => {
                         alertError(
                             'Gagal menolak bukti pembayaran. Coba lagi.',
@@ -425,7 +417,6 @@ export default function Show({ order }: Props) {
             body: params,
         })
             .then(() => {
-                alertSukses('Status berhasil diubah.');
                 window.location.reload();
             })
             .catch(() => {

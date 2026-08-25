@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { konfirmasi, alertSukses, alertError } from '@/lib/alert';
+import { konfirmasi, alertError } from '@/lib/alert';
 
 interface KonfirmasiModalProps {
     isOpen: boolean;
@@ -43,7 +43,6 @@ export default function KonfirmasiModal({
                 if (result.isConfirmed) {
                     try {
                         await onConfirm();
-                        alertSukses('Tindakan berhasil.');
                     } catch {
                         alertError('Tindakan gagal. Coba lagi.');
                     }

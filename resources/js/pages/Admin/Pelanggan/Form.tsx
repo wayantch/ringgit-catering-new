@@ -3,7 +3,7 @@ import { ArrowLeft, Mail, User, Phone } from 'lucide-react';
 import type { FormEvent } from 'react';
 import React from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertSukses, alertError } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 
 interface Props {
     mode: 'create' | 'edit';
@@ -28,18 +28,12 @@ export default function Form({ mode, pelanggan }: Props) {
 
         if (mode === 'create') {
             post('/admin/pelanggan', {
-                onSuccess: () => {
-                    alertSukses('Pelanggan berhasil ditambahkan', 'Berhasil');
-                },
                 onError: () => {
                     alertError('Gagal menambahkan pelanggan', 'Error');
                 },
             });
         } else if (pelanggan) {
             put(`/admin/pelanggan/${pelanggan.id}`, {
-                onSuccess: () => {
-                    alertSukses('Pelanggan berhasil diperbarui', 'Berhasil');
-                },
                 onError: () => {
                     alertError('Gagal memperbarui pelanggan', 'Error');
                 },

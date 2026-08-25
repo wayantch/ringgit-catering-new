@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
-import { konfirmasiHapus, alertSukses, alertError } from '@/lib/alert';
+import { konfirmasiHapus, alertError } from '@/lib/alert';
 import menu from '@/routes/admin/menu';
 
 interface DeleteConfirmDialogProps {
@@ -38,7 +38,6 @@ export default function DeleteConfirmDialog({
                     router.delete(menu.destroy(menuId), {
                         preserveScroll: true,
                         onSuccess: () => {
-                            alertSukses('Menu berhasil dihapus.');
                             onClose();
                         },
                         onError: () => {

@@ -4,11 +4,11 @@ import {
     CircleHelp,
     History,
     LogOut,
-    SquarePen,
+    Pencil,
 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
-import { alertInfo, alertSukses, alertError } from '@/lib/alert';
+import { alertInfo, alertError } from '@/lib/alert';
 import { logout } from '@/routes';
 import pesanan from '@/routes/user/pesanan';
 import { update as profilUpdate } from '@/routes/user/profil';
@@ -37,7 +37,6 @@ export default function ProfilMenuList({
         form.patch(profilUpdate().url, {
             preserveScroll: true,
             onSuccess: () => {
-                alertSukses('Profil berhasil diperbarui', 'Berhasil');
                 setOpenEdit(false);
             },
             onError: () => {
@@ -60,7 +59,7 @@ export default function ProfilMenuList({
                 >
                     <div className="flex items-center gap-3">
                         <span className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                            <SquarePen className="size-4" />
+                            <Pencil className="size-4" />
                         </span>
                         <div className="text-left">
                             <p className="text-sm font-semibold text-text">

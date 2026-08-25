@@ -1,5 +1,5 @@
 import { CalendarDays, Package, Truck } from 'lucide-react';
-import SelectNative from '@/Components/UI/SelectNative';
+import Select from '@/Components/UI/Select';
 
 const DELIVERY_TIME_OPTIONS = Array.from({ length: 27 }, (_, index) => {
     const totalMinutes = 5 * 60 + index * 30;
@@ -104,47 +104,23 @@ export default function DeliverySection({
                 </label>
 
                 {orderType === 'takeaway' ? (
-                    <label className="block">
-                        <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                            Jam Ambil
-                        </span>
-                        <SelectNative
-                            id="pickup_time"
-                            value={pickupTime}
-                            onChange={(event) =>
-                                onPickupTimeChange(event.target.value)
-                            }
-                            className="w-full"
-                        >
-                            <option value="">Pilih jam ambil</option>
-                            {DELIVERY_TIME_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </SelectNative>
-                    </label>
+                    <Select
+                        id="pickup_time"
+                        label="Jam Ambil"
+                        placeholder="Pilih jam ambil"
+                        value={pickupTime}
+                        onChange={onPickupTimeChange}
+                        options={DELIVERY_TIME_OPTIONS}
+                    />
                 ) : (
-                    <label className="block">
-                        <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                            Jam Kirim
-                        </span>
-                        <SelectNative
-                            id="delivery_time"
-                            value={deliveryTime}
-                            onChange={(event) =>
-                                onDeliveryTimeChange(event.target.value)
-                            }
-                            className="w-full"
-                        >
-                            <option value="">Pilih jam kirim</option>
-                            {DELIVERY_TIME_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </SelectNative>
-                    </label>
+                    <Select
+                        id="delivery_time"
+                        label="Jam Kirim"
+                        placeholder="Pilih jam kirim"
+                        value={deliveryTime}
+                        onChange={onDeliveryTimeChange}
+                        options={DELIVERY_TIME_OPTIONS}
+                    />
                 )}
 
                 {orderType === 'delivery' && (

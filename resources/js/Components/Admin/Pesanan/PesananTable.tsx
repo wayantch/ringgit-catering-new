@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import React from 'react';
 import PesananStatusBadge from '@/Components/Admin/PesananStatusBadge';
+import TableAction, { TableActions } from '@/Components/UI/TableAction';
 
 interface OrderSummary {
     id: string;
@@ -209,12 +210,13 @@ export default function PesananTable({ orders }: { orders: OrderSummary[] }) {
                                         <PesananStatusBadge status={o.status} />
                                     </td>
                                     <td className="p-4 align-top">
-                                        <Link
-                                            href={`/admin/pesanan/${o.id}`}
-                                            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                                        >
-                                            Detail
-                                        </Link>
+                                        <TableActions>
+                                            <TableAction
+                                                action="view"
+                                                href={`/admin/pesanan/${o.id}`}
+                                                label="Lihat pesanan"
+                                            />
+                                        </TableActions>
                                     </td>
                                 </tr>
                             ))

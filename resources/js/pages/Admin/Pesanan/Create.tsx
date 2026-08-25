@@ -16,7 +16,7 @@ import type { MenuPickerCardItem } from '@/Components/Admin/Pesanan/Kasir/MenuPi
 import type { OrderItemRowData } from '@/Components/Admin/Pesanan/Kasir/OrderItemRow';
 import OrderSummaryPanel from '@/Components/Admin/Pesanan/Kasir/OrderSummaryPanel';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertError, alertSukses } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import admin from '@/routes/admin';
 
 interface Props {
@@ -389,9 +389,6 @@ export default function Create({ menuItems, customers }: Props) {
 
         router.post(admin.pesanan.store(), payload, {
             preserveScroll: true,
-            onSuccess: () => {
-                alertSukses('Pesanan berhasil dibuat', 'Berhasil');
-            },
             onError: (errors) => {
                 alertError('Gagal membuat pesanan', 'Error');
                 setFormErrors(errors as FormErrorMap);

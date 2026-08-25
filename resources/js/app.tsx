@@ -1,4 +1,4 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import type { ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import { tampilFlash } from '@/lib/alert';
@@ -8,6 +8,16 @@ const appName =
         ? import.meta.env.VITE_APP_NAME
         : 'Ringgit Catering';
 const pages = import.meta.glob<ResolvedComponent>('./pages/**/*.tsx');
+
+type FlashBag = Parameters<typeof tampilFlash>[0];
+
+function showFlash(flash: unknown): void {
+    if (!flash || typeof flash !== 'object') {
+        return;
+    }
+
+    tampilFlash(flash as FlashBag);
+}
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -33,21 +43,16 @@ createInertiaApp({
     },
     setup({ el, App, props }) {
         const root = createRoot(el);
-        const initialFlash = props.initialPage?.props?.flash as
-            | Record<string, unknown>
-            | undefined;
 
-        // Pass shared flash to global alert handler on initial load
-        if (initialFlash) {
-            tampilFlash(initialFlash);
+        // Flash is shared through props by HandleInertiaRequests. Inertia only
+        // fires its own "flash" event for Inertia::flash(), so the initial load
+        // is handled here and every later visit through the "success" event —
+        // which does not fire on the initial load, so nothing shows twice.
+        showFlash(props.initialPage?.props?.flash);
 
-            // remove global flash if present
-            try {
-                delete (window as any).__inertia_flash;
-            } catch {
-                void 0;
-            }
-        }
+        router.on('success', (event) => {
+            showFlash(event.detail.page.props.flash);
+        });
 
         root.render(<App {...props} />);
     },

@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
 import AdminOrderForm from '@/Components/Admin/AdminOrderForm';
 import ItemPickerSheet from '@/Components/Admin/ItemPickerSheet';
@@ -98,8 +98,13 @@ export default function Edit({ order, menuItems }: Props) {
         setShowItemPicker(false);
     };
 
-    const handleSubmit = (data: any) => {
-        router.patch(`/admin/pesanan/${order.id}`, data, {
+    const handleRemoveItem = (index: number) => {
+        setSelectedItems((current) => current.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        form.patch(`/admin/pesanan/${order.id}`, {
             preserveScroll: true,
         });
     };
@@ -126,20 +131,13 @@ export default function Edit({ order, menuItems }: Props) {
                 {/* Form */}
                 <AdminOrderForm
                     menuItems={menuItems}
+                    data={form.data}
+                    errors={form.errors}
+                    onChange={(key, value) =>
+                        form.setData(key as keyof typeof form.data, value)
+                    }
                     onAddItemClick={() => setShowItemPicker(true)}
-                    initialData={{
-                        customer_name: form.data.customer_name,
-                        customer_phone: form.data.customer_phone,
-                        customer_email: form.data.customer_email,
-                        order_type: form.data.order_type,
-                        booking_date: form.data.booking_date,
-                        pickup_time: form.data.pickup_time,
-                        delivery_time: form.data.delivery_time,
-                        delivery_address: form.data.delivery_address,
-                        notes: form.data.notes,
-                        dp_percentage: form.data.dp_percentage,
-                        items: selectedItems,
-                    }}
+                    onRemoveItem={handleRemoveItem}
                     onSubmit={handleSubmit}
                     isLoading={form.processing}
                 />

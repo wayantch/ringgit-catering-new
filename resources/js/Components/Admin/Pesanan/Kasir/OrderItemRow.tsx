@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import TableAction from '@/Components/UI/TableAction';
 
 export interface OrderItemRowData {
     tempId: string;
@@ -162,13 +162,11 @@ export default function OrderItemRow({
                                 </div>
                             </div>
 
-                            <button
-                                type="button"
+                            <TableAction
+                                action="delete"
                                 onClick={() => onStartRemove(item.tempId)}
-                                className="rounded-full border border-red-200 bg-red-50 p-2 text-red-600 transition hover:bg-red-100"
-                            >
-                                <Trash2 className="size-4" />
-                            </button>
+                                label="Hapus item"
+                            />
                         </div>
 
                         {item.menu_category_type === 'timbang_hidup' && (

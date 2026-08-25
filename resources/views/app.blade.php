@@ -7,7 +7,17 @@
 
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+
+    {{-- PWA --}}
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7a8f6b">
+    <meta name="application-name" content="Ringgit Catering">
+    <meta name="mobile-web-app-capable" content="yes">
+    {{-- iOS belum mendukung manifest sepenuhnya, jadi tetap butuh meta sendiri --}}
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Ringgit">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     @fonts
 

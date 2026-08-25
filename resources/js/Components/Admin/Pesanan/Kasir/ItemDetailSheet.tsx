@@ -1,6 +1,7 @@
 import { Check, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import TierPicker from '@/Components/Pelanggan/TierPicker';
+import Select from '@/Components/UI/Select';
 import { KONDISI_OPTIONS } from '@/constants/kondisiProduk';
 import type { CategoryType, KondisiValue } from '@/constants/kondisiProduk';
 import type { MenuPickerCardItem } from './MenuPickerCard';
@@ -57,6 +58,11 @@ const NIAS_PART_LABELS: Record<NiasPart, string> = {
 };
 
 const SACRIFICE_PERCENTS = [0, 25, 50, 75, 100] as const;
+
+const SACRIFICE_PERCENT_OPTIONS = SACRIFICE_PERCENTS.map((percent) => ({
+    value: String(percent),
+    label: `${percent}%`,
+}));
 
 interface Props {
     isOpen: boolean;
@@ -928,21 +934,18 @@ export default function ItemDetailSheet({
                                                 <div className="space-y-4">
                                                     <div className="grid gap-3 sm:grid-cols-2">
                                                         <div>
-                                                            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                                Saksang %
-                                                            </label>
-                                                            <select
-                                                                value={
-                                                                    saksangPercent
-                                                                }
+                                                            <Select
+                                                                label="Saksang %"
+                                                                size="sm"
+                                                                value={String(
+                                                                    saksangPercent,
+                                                                )}
                                                                 onChange={(
-                                                                    event,
+                                                                    value,
                                                                 ) => {
                                                                     const percent =
                                                                         Number(
-                                                                            event
-                                                                                .target
-                                                                                .value,
+                                                                            value,
                                                                         );
 
                                                                     setSaksangPercent(
@@ -969,46 +972,25 @@ export default function ItemDetailSheet({
                                                                         );
                                                                     }
                                                                 }}
-                                                                className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                            >
-                                                                {SACRIFICE_PERCENTS.map(
-                                                                    (
-                                                                        percent,
-                                                                    ) => (
-                                                                        <option
-                                                                            key={
-                                                                                percent
-                                                                            }
-                                                                            value={
-                                                                                percent
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                percent
-                                                                            }
-                                                                            %
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
+                                                                options={
+                                                                    SACRIFICE_PERCENT_OPTIONS
+                                                                }
+                                                            />
                                                         </div>
 
                                                         <div>
-                                                            <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                                Panggang %
-                                                            </label>
-                                                            <select
-                                                                value={
-                                                                    panggangPercent
-                                                                }
+                                                            <Select
+                                                                label="Panggang %"
+                                                                size="sm"
+                                                                value={String(
+                                                                    panggangPercent,
+                                                                )}
                                                                 onChange={(
-                                                                    event,
+                                                                    value,
                                                                 ) => {
                                                                     const percent =
                                                                         Number(
-                                                                            event
-                                                                                .target
-                                                                                .value,
+                                                                            value,
                                                                         );
 
                                                                     setPanggangPercent(
@@ -1022,8 +1004,8 @@ export default function ItemDetailSheet({
                                                                     );
 
                                                                     if (
-                                                                        saksangPercent +
-                                                                            percent >
+                                                                        percent +
+                                                                            saksangPercent >
                                                                         100
                                                                     ) {
                                                                         setSaksangPercent(
@@ -1035,28 +1017,10 @@ export default function ItemDetailSheet({
                                                                         );
                                                                     }
                                                                 }}
-                                                                className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-3 py-3 text-sm transition outline-none focus:border-primary/30"
-                                                            >
-                                                                {SACRIFICE_PERCENTS.map(
-                                                                    (
-                                                                        percent,
-                                                                    ) => (
-                                                                        <option
-                                                                            key={
-                                                                                percent
-                                                                            }
-                                                                            value={
-                                                                                percent
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                percent
-                                                                            }
-                                                                            %
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
+                                                                options={
+                                                                    SACRIFICE_PERCENT_OPTIONS
+                                                                }
+                                                            />
                                                         </div>
                                                     </div>
 

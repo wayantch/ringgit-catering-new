@@ -4,7 +4,7 @@ import { KeyRound, Phone, Shield, User } from 'lucide-react';
 import React from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { alertError, alertSukses } from '@/lib/alert';
+import { alertError } from '@/lib/alert';
 import profile from '@/routes/admin/profil';
 
 interface Props extends PageProps {
@@ -78,9 +78,6 @@ export default function Index({ user }: Props) {
 
         profileForm.patch(profile.update.url(), {
             preserveScroll: true,
-            onSuccess: () => {
-                alertSukses('Profil admin berhasil diperbarui.', 'Berhasil');
-            },
             onError: () => {
                 alertError('Gagal memperbarui profil admin.', 'Error');
             },
@@ -98,7 +95,6 @@ export default function Index({ user }: Props) {
                     'password',
                     'password_confirmation',
                 );
-                alertSukses('Password admin berhasil diperbarui.', 'Berhasil');
             },
             onError: () => {
                 alertError('Gagal memperbarui password admin.', 'Error');

@@ -230,7 +230,7 @@ function Index({ timbang_hidup, eceran }: Props) {
                         <div className="space-y-4">
                             <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
                                 <MenuSearchBar
-                                    initialValue={query}
+                                    value={query}
                                     onDebouncedChange={setQuery}
                                 />
 
@@ -283,9 +283,9 @@ function Index({ timbang_hidup, eceran }: Props) {
                             filteredSections.map((section) => (
                                 <div
                                     key={section.id}
-                                    ref={(el) =>
-                                        (sectionRefs.current[section.id] = el)
-                                    }
+                                    ref={(el) => {
+                                        sectionRefs.current[section.id] = el;
+                                    }}
                                     className="scroll-mt-28"
                                 >
                                     <MenuSection
