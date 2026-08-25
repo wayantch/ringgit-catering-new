@@ -18,8 +18,33 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     strategy:
+      # Report every PHP version instead of cancelling the siblings on the
+      # first failure.
+      fail-fast: false
       matrix:
         php-version: ['8.3', '8.4', '8.5']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: ringgit-catering-db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: ringgit-catering-db
+      DB_USERNAME: root
+      DB_PASSWORD: ''
 
     steps:
       - name: Checkout code
@@ -29,6 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          extensions: bcmath, gmp, pdo_mysql
           tools: composer:v2
           coverage: xdebug
 
@@ -51,6 +77,11 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+
+      # The suite runs against MySQL (see phpunit.xml) and only some tests use
+      # RefreshDatabase, so the schema has to exist before Pest starts.
+      - name: Run Migrations
+        run: php artisan migrate --force
 
       - name: Tests
         run: ./vendor/bin/pest

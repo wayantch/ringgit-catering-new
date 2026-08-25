@@ -14,9 +14,6 @@ on:
       - master
       - workos
 
-permissions:
-  contents: write
-
 jobs:
   quality:
     runs-on: ubuntu-latest
@@ -27,23 +24,22 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          extensions: bcmath, gmp
 
       - name: Install Dependencies
         run: |
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
           npm install
 
-      - name: Run Pint
-        run: composer lint
+      # These verify instead of rewriting. The rewriting variants (composer lint,
+      # npm run format, npm run lint) belong on a developer machine: on CI they
+      # changed files nobody committed, so the job could only ever fail on what
+      # they could not fix by themselves.
+      - name: Check PHP Code Style
+        run: composer lint:check
 
-      - name: Format Frontend
-        run: npm run format
+      - name: Check Frontend Formatting
+        run: npm run format:check
 
       - name: Lint Frontend
-        run: npm run lint
-
-      # - name: Commit Changes
-      #   uses: stefanzweifel/git-auto-commit-action@v7
-      #   with:
-      #     commit_message: fix code style
-      #     commit_options: '--no-verify'
+        run: npm run lint:check
