@@ -1,5 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import React from 'react';
+import { Skeleton, SkeletonRegion } from '@/Components/UI/Skeleton';
+import { useIsRefetching } from '@/hooks/useIsRefetching';
 import PrintAreaDapur from '../../../Components/Admin/Print/PrintAreaDapur';
 import PrintAreaOwner from '../../../Components/Admin/Print/PrintAreaOwner';
 import PrintFilterBar from '../../../Components/Admin/Print/PrintFilterBar';
@@ -49,6 +51,7 @@ interface Props {
 
 export default function Index({ printData, filters }: Props) {
     const hasResults = printData.groups.length > 0;
+    const isRefetching = useIsRefetching();
 
     const applyFilter = (params: PrintFilters) => {
         router.get('/admin/print', params, {
@@ -198,7 +201,31 @@ export default function Index({ printData, filters }: Props) {
                     </div>
                 </section>
 
-                {!hasFilter ? (
+                {isRefetching ? (
+                    <SkeletonRegion
+                        label="Menyiapkan preview print"
+                        className="space-y-6"
+                    >
+                        {Array.from({ length: 2 }).map((_, index) => (
+                            <div
+                                key={index}
+                                className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+                            >
+                                <Skeleton className="h-4 w-40" />
+                                <div className="mt-4 space-y-3">
+                                    {Array.from({ length: 6 }).map(
+                                        (_, rowIndex) => (
+                                            <Skeleton
+                                                key={rowIndex}
+                                                className="h-4 w-full"
+                                            />
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </SkeletonRegion>
+                ) : !hasFilter ? (
                     <div className="print-help rounded-3xl border border-dashed border-slate-300 bg-white/70 p-10 text-center text-sm text-slate-500 shadow-sm">
                         Pilih tanggal spesifik atau range tanggal untuk memulai
                         preview print.

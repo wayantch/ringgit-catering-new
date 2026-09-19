@@ -4,63 +4,34 @@ interface MenuSectionProps {
     id: string;
     title: string;
     description: string;
-    eyebrow: string;
-    badge: string;
     count: number;
-    tone?: 'amber' | 'rose' | 'emerald' | 'slate';
     children: ReactNode;
 }
-
-const toneStyles: Record<NonNullable<MenuSectionProps['tone']>, string> = {
-    amber: 'border-amber-200 bg-amber-50 text-amber-700',
-    rose: 'border-rose-200 bg-rose-50 text-rose-700',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    slate: 'border-slate-200 bg-slate-50 text-slate-700',
-};
 
 export default function MenuSection({
     id,
     title,
     description,
-    eyebrow,
-    badge,
     count,
-    tone = 'slate',
     children,
 }: MenuSectionProps) {
     return (
-        <section id={id} className="space-y-3 pt-2">
-            <div className="flex flex-col gap-3 rounded-[28px] border border-white/70 bg-white/90 px-4 py-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:flex-row sm:items-start sm:justify-between sm:px-5">
-                <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
-                            {eyebrow}
-                        </p>
-                        <span
-                            className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${toneStyles[tone]}`}
-                        >
-                            {badge}
-                        </span>
-                    </div>
-                    <div>
-                        <h2 className="text-base font-semibold text-text sm:text-lg">
-                            {title}
-                        </h2>
-                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                            {description}
-                        </p>
-                    </div>
+        <section id={id} className="space-y-4">
+            <div className="flex items-baseline justify-between gap-3 border-b border-slate-200 pb-3">
+                <div className="min-w-0">
+                    <h2 className="text-base font-semibold tracking-tight text-text">
+                        {title}
+                    </h2>
+                    <p className="mt-0.5 truncate text-sm text-slate-500">
+                        {description}
+                    </p>
                 </div>
-
-                <div className="flex items-center gap-2 self-start rounded-full bg-[#fbfaf6] px-3 py-2 text-xs font-medium text-slate-500 ring-1 ring-black/5">
-                    <span
-                        className={`h-2.5 w-2.5 rounded-full ${tone === 'amber' ? 'bg-amber-500' : tone === 'rose' ? 'bg-rose-500' : tone === 'emerald' ? 'bg-emerald-500' : 'bg-slate-400'}`}
-                    />
+                <span className="shrink-0 text-sm text-slate-400">
                     {count} item
-                </div>
+                </span>
             </div>
 
-            <div>{children}</div>
+            {children}
         </section>
     );
 }

@@ -1,13 +1,15 @@
+import { Check } from 'lucide-react';
+
 interface TierPickerOption {
     id: string;
     title: string;
     description: string;
     price: string;
     cashback?: string;
-    meta?: string;
 }
 
 interface TierPickerProps {
+    step?: number;
     label: string;
     helperText?: string;
     options: TierPickerOption[];
@@ -16,6 +18,7 @@ interface TierPickerProps {
 }
 
 export default function TierPicker({
+    step,
     label,
     helperText,
     options,
@@ -23,16 +26,21 @@ export default function TierPicker({
     onChange,
 }: TierPickerProps) {
     return (
-        <div className="space-y-3">
-            <div>
-                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                    {label}
-                </p>
-                {helperText && (
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                        {helperText}
-                    </p>
+        <section className="py-4 first:pt-0 last:pb-0">
+            <div className="mb-2.5 flex items-baseline gap-2">
+                {step !== undefined && (
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                        {step}
+                    </span>
                 )}
+                <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-text">{label}</h4>
+                    {helperText && (
+                        <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                            {helperText}
+                        </p>
+                    )}
+                </div>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
@@ -43,54 +51,41 @@ export default function TierPicker({
                         <button
                             key={option.id}
                             type="button"
+                            aria-pressed={active}
                             onClick={() => onChange(option.id)}
-                            className={`rounded-2xl border p-4 text-left transition-all duration-150 ${
+                            className={`rounded-xl border p-3 text-left transition ${
                                 active
-                                    ? 'border-primary bg-primary/5 shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
-                                    : 'border-slate-200 bg-white hover:border-primary/30 hover:bg-secondary/40'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-slate-200 hover:border-primary/40'
                             }`}
                         >
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p
-                                        className={`text-sm font-semibold ${active ? 'text-primary' : 'text-text'}`}
-                                    >
-                                        {option.title}
-                                    </p>
-                                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                                        {option.description}
-                                    </p>
-                                </div>
-
-                                {option.meta && (
-                                    <span
-                                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${active ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500'}`}
-                                    >
-                                        {option.meta}
-                                    </span>
+                            <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-semibold text-text">
+                                    {option.title}
+                                </p>
+                                {active && (
+                                    <Check className="size-4 shrink-0 text-primary" />
                                 )}
                             </div>
 
-                            <div className="mt-4 flex items-center justify-between gap-3 text-xs font-medium">
-                                {option.cashback ? (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
-                                        {option.cashback}
-                                    </span>
-                                ) : (
-                                    <span className="text-slate-400">
-                                        Pilih opsi
-                                    </span>
-                                )}
-                                <span
-                                    className={`text-sm font-semibold ${active ? 'text-primary' : 'text-text'}`}
-                                >
+                            <p className="mt-0.5 text-xs text-slate-500">
+                                {option.description}
+                            </p>
+
+                            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span className="text-sm font-semibold text-text">
                                     {option.price}
                                 </span>
+                                {option.cashback && (
+                                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                                        {option.cashback}
+                                    </span>
+                                )}
                             </div>
                         </button>
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 }

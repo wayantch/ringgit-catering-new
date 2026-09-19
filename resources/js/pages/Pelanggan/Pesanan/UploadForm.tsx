@@ -3,6 +3,8 @@ import { Head, useForm } from '@inertiajs/react';
 import { Upload, Copy, Check } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
 import { useState } from 'react';
+import PageContainer from '@/Components/Pelanggan/PageContainer';
+import PageHeader from '@/Components/Pelanggan/PageHeader';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 
 interface Order {
@@ -83,434 +85,369 @@ function UploadForm({ order }: Props) {
         <>
             <Head title={`Upload Bukti - ${order.order_number}`} />
 
-            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
-                <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
-                    <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 opacity-40"
-                        style={{
-                            background:
-                                'radial-gradient(circle at 15% 25%, rgba(255,255,255,0.22), transparent 45%), radial-gradient(circle at 85% 10%, rgba(255,255,255,0.16), transparent 40%)',
-                        }}
-                    />
-                    <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
-                        <div className="flex items-center justify-between gap-6">
-                            <div className="max-w-2xl space-y-4">
-                                <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
-                                    Ringgit Catering
-                                </span>
-                                <p className="text-sm font-medium text-white/75 sm:text-base">
-                                    {order.order_number}
-                                </p>
-                                <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                                    Upload bukti pembayaran.
-                                </h1>
-                                <p className="max-w-2xl text-sm leading-6 text-white/74 sm:text-base">
-                                    Pilih jenis pembayaran lalu upload bukti
-                                    dalam tampilan yang lebih rapi.
-                                </p>
+            <PageContainer className="max-w-2xl space-y-5 lg:space-y-6">
+                <PageHeader
+                    title="Upload bukti pembayaran"
+                    description={order.order_number}
+                />
 
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                        Pilih metode
-                                    </span>
-                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                        Upload bukti
-                                    </span>
-                                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                        Verifikasi admin
-                                    </span>
+                <div className="space-y-5">
+                    {/* Payment Info Card */}
+                    <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
+                        <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
+                            Ringkasan
+                        </p>
+                        <h2 className="mt-1 text-lg font-semibold text-text">
+                            Ringkasan Pembayaran
+                        </h2>
+                        <div className="mt-4 space-y-3 rounded-3xl bg-[#fbfaf6] p-4 ring-1 ring-black/5">
+                            {/* If user hasn't selected a payment type yet, prompt them */}
+                            {form.data.payment_type === '' && (
+                                <div className="text-sm leading-6 text-slate-600">
+                                    Pilih jenis pembayaran untuk melihat rincian
+                                    DP atau pelunasan.
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="shrink-0">
-                                <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
-                                    <Upload className="h-5 w-5 text-white" />
+                            {/* DP details only shown when DP is selected */}
+                            {form.data.payment_type === 'dp' && (
+                                <>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-sm text-slate-600">
+                                            DP (Uang Muka) — 25%
+                                        </span>
+                                        <span className="font-semibold text-primary">
+                                            {formatCurrency(order.dp_amount)}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                        <span>Kode Unik DP</span>
+                                        <span className="font-medium text-text">
+                                            +{' '}
+                                            {order.dp_unique_code ||
+                                                order.unique_code}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2">
+                                        <span className="text-sm text-slate-600">
+                                            Sisa Pembayaran (Pelunasan)
+                                        </span>
+                                        <span className="font-medium text-primary">
+                                            {formatCurrency(
+                                                order.remaining_amount,
+                                            )}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Pelunasan/full payment shows only total */}
+                            {form.data.payment_type === 'pelunasan' && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                        <span>Total keseluruhan item</span>
+                                        <span className="font-medium text-text">
+                                            {formatCurrency(order.subtotal)}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                        <span>Kode Unik</span>
+                                        <span className="font-medium text-text">
+                                            + {order.unique_code ?? 0}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                                        <span>DP</span>
+                                        <span className="font-medium text-text">
+                                            {formatCurrency(order.dp_amount)}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold text-primary">
+                                        <span>Total</span>
+                                        <span className="text-lg">
+                                            {formatCurrency(fullPaymentAmount)}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* If no selection show total as reference */}
+                            {form.data.payment_type === '' && (
+                                <div className="border-t border-black/5 pt-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="font-semibold text-primary">
+                                            Total
+                                        </span>
+                                        <span className="text-xl font-bold text-primary">
+                                            {formatCurrency(order.total_amount)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </header>
 
-                {/* Content */}
-                <div className="relative -mt-6 sm:-mt-8">
-                    <div className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-10 sm:px-8">
-                        {/* Payment Info Card */}
-                        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
+                    {/* Upload Form */}
+                    <form
+                        onSubmit={submit}
+                        className="space-y-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6"
+                    >
+                        <div className="space-y-1">
                             <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                Ringkasan
+                                Form
                             </p>
-                            <h2 className="mt-1 text-lg font-semibold text-text">
-                                Ringkasan Pembayaran
+                            <h2 className="text-lg font-semibold text-text">
+                                Pilih jenis pembayaran & upload bukti
                             </h2>
-                            <div className="mt-4 space-y-3 rounded-3xl bg-[#fbfaf6] p-4 ring-1 ring-black/5">
-                                {/* If user hasn't selected a payment type yet, prompt them */}
-                                {form.data.payment_type === '' && (
-                                    <div className="text-sm leading-6 text-slate-600">
-                                        Pilih jenis pembayaran untuk melihat
-                                        rincian DP atau pelunasan.
-                                    </div>
-                                )}
-
-                                {/* DP details only shown when DP is selected */}
-                                {form.data.payment_type === 'dp' && (
-                                    <>
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="text-sm text-slate-600">
-                                                DP (Uang Muka) — 25%
-                                            </span>
-                                            <span className="font-semibold text-primary">
-                                                {formatCurrency(
-                                                    order.dp_amount,
-                                                )}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-                                            <span>Kode Unik DP</span>
-                                            <span className="font-medium text-text">
-                                                +{' '}
-                                                {order.dp_unique_code ||
-                                                    order.unique_code}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2">
-                                            <span className="text-sm text-slate-600">
-                                                Sisa Pembayaran (Pelunasan)
-                                            </span>
-                                            <span className="font-medium text-primary">
-                                                {formatCurrency(
-                                                    order.remaining_amount,
-                                                )}
-                                            </span>
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* Pelunasan/full payment shows only total */}
-                                {form.data.payment_type === 'pelunasan' && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-                                            <span>Total keseluruhan item</span>
-                                            <span className="font-medium text-text">
-                                                {formatCurrency(order.subtotal)}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-                                            <span>Kode Unik</span>
-                                            <span className="font-medium text-text">
-                                                + {order.unique_code ?? 0}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-                                            <span>DP</span>
-                                            <span className="font-medium text-text">
-                                                {formatCurrency(
-                                                    order.dp_amount,
-                                                )}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-3 border-t border-black/5 pt-2 font-semibold text-primary">
-                                            <span>Total</span>
-                                            <span className="text-lg">
-                                                {formatCurrency(
-                                                    fullPaymentAmount,
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* If no selection show total as reference */}
-                                {form.data.payment_type === '' && (
-                                    <div className="border-t border-black/5 pt-2">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="font-semibold text-primary">
-                                                Total
-                                            </span>
-                                            <span className="text-xl font-bold text-primary">
-                                                {formatCurrency(
-                                                    order.total_amount,
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
-                        {/* Upload Form */}
-                        <form
-                            onSubmit={submit}
-                            className="space-y-4 rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:p-6"
-                        >
-                            <div className="space-y-1">
-                                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                    Form
+                        {/* Payment Type Selection */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-slate-600">
+                                Jenis Pembayaran
+                            </label>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <button
+                                    type="button"
+                                    disabled={isCancelled}
+                                    onClick={() =>
+                                        form.setData(
+                                            'payment_type',
+                                            'pelunasan',
+                                        )
+                                    }
+                                    aria-pressed={
+                                        form.data.payment_type === 'pelunasan'
+                                    }
+                                    className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
+                                        form.data.payment_type === 'pelunasan'
+                                            ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
+                                            : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
+                                    }`}
+                                >
+                                    <p
+                                        className={`text-sm font-semibold ${form.data.payment_type === 'pelunasan' ? 'text-white' : 'text-text'}`}
+                                    >
+                                        Pembayaran Penuh
+                                    </p>
+                                    <p
+                                        className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'pelunasan' ? 'text-white/80' : 'text-slate-500'}`}
+                                    >
+                                        Upload bukti untuk pelunasan penuh.
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={isCancelled}
+                                    onClick={() =>
+                                        form.setData('payment_type', 'dp')
+                                    }
+                                    aria-pressed={
+                                        form.data.payment_type === 'dp'
+                                    }
+                                    className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
+                                        form.data.payment_type === 'dp'
+                                            ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
+                                            : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
+                                    }`}
+                                >
+                                    <p
+                                        className={`text-sm font-semibold ${form.data.payment_type === 'dp' ? 'text-white' : 'text-text'}`}
+                                    >
+                                        DP (Uang Muka)
+                                    </p>
+                                    <p
+                                        className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'dp' ? 'text-white/80' : 'text-slate-500'}`}
+                                    >
+                                        Upload bukti untuk pembayaran DP.
+                                    </p>
+                                </button>
+                            </div>
+                            {form.errors.payment_type && (
+                                <p className="text-xs text-red-500">
+                                    {form.errors.payment_type}
                                 </p>
-                                <h2 className="text-lg font-semibold text-text">
-                                    Pilih jenis pembayaran & upload bukti
-                                </h2>
-                            </div>
+                            )}
+                        </div>
 
-                            {/* Payment Type Selection */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-600">
-                                    Jenis Pembayaran
-                                </label>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {/* File Upload */}
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-slate-600">
+                                Foto/Gambar Bukti Transfer
+                            </label>
+
+                            <div className="rounded-3xl border border-primary/10 bg-primary/5 p-4 ring-1 ring-primary/10">
+                                <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
+                                    Rekening Tujuan
+                                </p>
+                                <p className="mt-2 text-sm font-semibold text-text">
+                                    BCA a/n WAYAN RENDI PRAYOGA
+                                </p>
+                                <div className="mt-1 flex items-center gap-3">
+                                    <p className="text-lg font-bold tracking-[0.12em] text-primary">
+                                        023-1196-209
+                                    </p>
                                     <button
                                         type="button"
-                                        disabled={isCancelled}
-                                        onClick={() =>
-                                            form.setData(
-                                                'payment_type',
-                                                'pelunasan',
-                                            )
-                                        }
-                                        aria-pressed={
-                                            form.data.payment_type ===
-                                            'pelunasan'
-                                        }
-                                        className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
-                                            form.data.payment_type ===
-                                            'pelunasan'
-                                                ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
-                                                : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
-                                        }`}
-                                    >
-                                        <p
-                                            className={`text-sm font-semibold ${form.data.payment_type === 'pelunasan' ? 'text-white' : 'text-text'}`}
-                                        >
-                                            Pembayaran Penuh
-                                        </p>
-                                        <p
-                                            className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'pelunasan' ? 'text-white/80' : 'text-slate-500'}`}
-                                        >
-                                            Upload bukti untuk pelunasan penuh.
-                                        </p>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        disabled={isCancelled}
-                                        onClick={() =>
-                                            form.setData('payment_type', 'dp')
-                                        }
-                                        aria-pressed={
-                                            form.data.payment_type === 'dp'
-                                        }
-                                        className={`rounded-3xl border px-4 py-4 text-left transition-all duration-150 ${
-                                            form.data.payment_type === 'dp'
-                                                ? 'border-primary bg-primary text-white shadow-[0_10px_24px_-16px_rgba(122,143,107,0.65)]'
-                                                : 'border-black/5 bg-[#fbfaf6] hover:border-primary/30 hover:bg-secondary/40'
-                                        }`}
-                                    >
-                                        <p
-                                            className={`text-sm font-semibold ${form.data.payment_type === 'dp' ? 'text-white' : 'text-text'}`}
-                                        >
-                                            DP (Uang Muka)
-                                        </p>
-                                        <p
-                                            className={`mt-1 text-xs leading-5 ${form.data.payment_type === 'dp' ? 'text-white/80' : 'text-slate-500'}`}
-                                        >
-                                            Upload bukti untuk pembayaran DP.
-                                        </p>
-                                    </button>
-                                </div>
-                                {form.errors.payment_type && (
-                                    <p className="text-xs text-red-500">
-                                        {form.errors.payment_type}
-                                    </p>
-                                )}
-                            </div>
+                                        aria-label="Salin nomor rekening"
+                                        onClick={() => {
+                                            const text = '023-1196-209';
 
-                            {/* File Upload */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-600">
-                                    Foto/Gambar Bukti Transfer
-                                </label>
-
-                                <div className="rounded-3xl border border-primary/10 bg-primary/5 p-4 ring-1 ring-primary/10">
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-primary uppercase">
-                                        Rekening Tujuan
-                                    </p>
-                                    <p className="mt-2 text-sm font-semibold text-text">
-                                        BCA a/n WAYAN RENDI PRAYOGA
-                                    </p>
-                                    <div className="mt-1 flex items-center gap-3">
-                                        <p className="text-lg font-bold tracking-[0.12em] text-primary">
-                                            023-1196-209
-                                        </p>
-                                        <button
-                                            type="button"
-                                            aria-label="Salin nomor rekening"
-                                            onClick={() => {
-                                                const text = '023-1196-209';
-
-                                                try {
-                                                    navigator.clipboard
-                                                        .writeText(text)
-                                                        .then(() => {
-                                                            setCopied(true);
-                                                            setTimeout(
-                                                                () =>
-                                                                    setCopied(
-                                                                        false,
-                                                                    ),
-                                                                2000,
-                                                            );
-                                                        });
-                                                } catch {
-                                                    const el =
-                                                        document.createElement(
-                                                            'textarea',
+                                            try {
+                                                navigator.clipboard
+                                                    .writeText(text)
+                                                    .then(() => {
+                                                        setCopied(true);
+                                                        setTimeout(
+                                                            () =>
+                                                                setCopied(
+                                                                    false,
+                                                                ),
+                                                            2000,
                                                         );
-                                                    el.value = text;
-                                                    document.body.appendChild(
-                                                        el,
+                                                    });
+                                            } catch {
+                                                const el =
+                                                    document.createElement(
+                                                        'textarea',
                                                     );
+                                                el.value = text;
+                                                document.body.appendChild(el);
 
-                                                    el.select();
-                                                    document.execCommand(
-                                                        'copy',
-                                                    );
-                                                    document.body.removeChild(
-                                                        el,
-                                                    );
-                                                    setCopied(true);
-                                                    setTimeout(
-                                                        () => setCopied(false),
-                                                        2000,
-                                                    );
-                                                }
-                                            }}
-                                            className={`inline-flex items-center justify-center rounded-lg border p-2 ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'}`}
-                                        >
-                                            {copied ? (
-                                                <Check className="h-4 w-4" />
-                                            ) : (
-                                                <Copy className="h-4 w-4" />
-                                            )}
-                                        </button>
-                                    </div>
-                                    <p className="mt-2 text-xs leading-5 text-slate-500">
-                                        Mohon transfer sesuai nominal tagihan
-                                        lalu upload bukti pembayaran di bawah
-                                        ini.
-                                    </p>
-                                </div>
-
-                                <div className="rounded-3xl border border-dashed border-primary/20 bg-[#fbfaf6] p-5 sm:p-6">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        disabled={isCancelled}
-                                        onChange={(event) => {
-                                            const file =
-                                                event.target.files?.[0];
-                                            form.setData(
-                                                'proof_image',
-                                                file ?? null,
-                                            );
-
-                                            if (file) {
-                                                const reader = new FileReader();
-                                                reader.onload = (ev) => {
-                                                    setPreviewUrl(
-                                                        ev.target
-                                                            ?.result as string,
-                                                    );
-                                                };
-                                                reader.readAsDataURL(file);
+                                                el.select();
+                                                document.execCommand('copy');
+                                                document.body.removeChild(el);
+                                                setCopied(true);
+                                                setTimeout(
+                                                    () => setCopied(false),
+                                                    2000,
+                                                );
                                             }
                                         }}
-                                        className="hidden"
-                                        id="proof-file"
-                                    />
-                                    <label
-                                        htmlFor="proof-file"
-                                        className="flex cursor-pointer flex-col items-center justify-center gap-2 text-center"
+                                        className={`inline-flex items-center justify-center rounded-lg border p-2 ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-600' : 'border-primary/20 bg-primary/5 text-primary hover:bg-primary/10'}`}
                                     >
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-[28px] bg-primary/10 ring-1 ring-primary/10">
-                                            <Upload className="h-6 w-6 text-primary" />
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-sm font-medium text-text">
-                                                Klik untuk upload atau drag file
-                                                ke sini
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                Format: JPG, PNG (max 2MB)
-                                            </p>
-                                        </div>
-                                    </label>
+                                        {copied ? (
+                                            <Check className="h-4 w-4" />
+                                        ) : (
+                                            <Copy className="h-4 w-4" />
+                                        )}
+                                    </button>
                                 </div>
-                                {form.errors.proof_image && (
-                                    <p className="text-xs text-red-500">
-                                        {form.errors.proof_image}
-                                    </p>
-                                )}
+                                <p className="mt-2 text-xs leading-5 text-slate-500">
+                                    Mohon transfer sesuai nominal tagihan lalu
+                                    upload bukti pembayaran di bawah ini.
+                                </p>
                             </div>
 
-                            {/* Preview */}
-                            {previewUrl && (
-                                <div className="space-y-2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
-                                    <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
-                                        Preview:
-                                    </p>
-                                    <img
-                                        src={previewUrl}
-                                        alt="Preview bukti pembayaran"
-                                        className="h-40 w-full rounded-2xl object-contain"
-                                    />
-                                </div>
-                            )}
+                            <div className="rounded-3xl border border-dashed border-primary/20 bg-[#fbfaf6] p-5 sm:p-6">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    disabled={isCancelled}
+                                    onChange={(event) => {
+                                        const file = event.target.files?.[0];
+                                        form.setData(
+                                            'proof_image',
+                                            file ?? null,
+                                        );
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={
-                                    form.processing ||
-                                    isCancelled ||
-                                    !form.data.proof_image ||
-                                    !form.data.payment_type
-                                }
-                                className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {form.processing
-                                    ? 'Mengunggah...'
-                                    : isCancelled
-                                      ? 'Pesanan Dibatalkan'
-                                      : form.data.payment_type === 'dp'
-                                        ? 'Upload Bukti DP'
-                                        : form.data.payment_type === 'pelunasan'
-                                          ? 'Upload Bukti Pelunasan'
-                                          : 'Pilih Jenis Pembayaran'}
-                            </button>
-                        </form>
-
-                        {/* Info Box */}
-                        <div className="rounded-3xl border border-primary/10 bg-secondary/40 p-4 shadow-sm ring-1 ring-black/5">
-                            <p className="text-sm leading-6 text-slate-600">
-                                <span className="font-semibold">Info:</span>{' '}
-                                Setelah upload, bukti pembayaran Anda akan
-                                diverifikasi oleh admin. Pesanan baru bisa
-                                dilihat setelah bukti diverifikasi.
-                            </p>
-                            {order.order_status === 'dibatalkan' && (
-                                <p className="mt-2 text-sm font-medium text-red-600">
-                                    Pesanan ini sudah dibatalkan sehingga bukti
-                                    pembayaran tidak dapat diupload lagi.
+                                        if (file) {
+                                            const reader = new FileReader();
+                                            reader.onload = (ev) => {
+                                                setPreviewUrl(
+                                                    ev.target?.result as string,
+                                                );
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                    className="hidden"
+                                    id="proof-file"
+                                />
+                                <label
+                                    htmlFor="proof-file"
+                                    className="flex cursor-pointer flex-col items-center justify-center gap-2 text-center"
+                                >
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-[28px] bg-primary/10 ring-1 ring-primary/10">
+                                        <Upload className="h-6 w-6 text-primary" />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm font-medium text-text">
+                                            Klik untuk upload atau drag file ke
+                                            sini
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            Format: JPG, PNG (max 2MB)
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                            {form.errors.proof_image && (
+                                <p className="text-xs text-red-500">
+                                    {form.errors.proof_image}
                                 </p>
                             )}
                         </div>
+
+                        {/* Preview */}
+                        {previewUrl && (
+                            <div className="space-y-2 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
+                                    Preview:
+                                </p>
+                                <img
+                                    src={previewUrl}
+                                    alt="Preview bukti pembayaran"
+                                    className="h-40 w-full rounded-2xl object-contain"
+                                />
+                            </div>
+                        )}
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={
+                                form.processing ||
+                                isCancelled ||
+                                !form.data.proof_image ||
+                                !form.data.payment_type
+                            }
+                            className="w-full rounded-full bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(122,143,107,0.45)] transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {form.processing
+                                ? 'Mengunggah...'
+                                : isCancelled
+                                  ? 'Pesanan Dibatalkan'
+                                  : form.data.payment_type === 'dp'
+                                    ? 'Upload Bukti DP'
+                                    : form.data.payment_type === 'pelunasan'
+                                      ? 'Upload Bukti Pelunasan'
+                                      : 'Pilih Jenis Pembayaran'}
+                        </button>
+                    </form>
+
+                    {/* Info Box */}
+                    <div className="rounded-3xl border border-primary/10 bg-secondary/40 p-4 shadow-sm ring-1 ring-black/5">
+                        <p className="text-sm leading-6 text-slate-600">
+                            <span className="font-semibold">Info:</span> Setelah
+                            upload, bukti pembayaran Anda akan diverifikasi oleh
+                            admin. Pesanan baru bisa dilihat setelah bukti
+                            diverifikasi.
+                        </p>
+                        {order.order_status === 'dibatalkan' && (
+                            <p className="mt-2 text-sm font-medium text-red-600">
+                                Pesanan ini sudah dibatalkan sehingga bukti
+                                pembayaran tidak dapat diupload lagi.
+                            </p>
+                        )}
                     </div>
                 </div>
-            </div>
+            </PageContainer>
         </>
     );
 }

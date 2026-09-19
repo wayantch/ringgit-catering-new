@@ -1,13 +1,13 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     CalendarDays,
     CheckCircle2,
+    ChevronLeft,
     ChevronRight,
     Clock,
     Gift,
     MapPin,
-    PackageCheck,
     ShoppingBag,
     Truck,
     Upload,
@@ -16,8 +16,11 @@ import {
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import OrderTimelineUser from '@/Components/Pelanggan/Ordertimelineuser';
+import PageContainer from '@/Components/Pelanggan/PageContainer';
+import PageHeader from '@/Components/Pelanggan/PageHeader';
 import UploadBuktiSheet from '@/Components/Pelanggan/UploadBuktiSheet';
 import PelangganLayout from '@/Layouts/PelangganLayout';
+import pesanan from '@/routes/user/pesanan';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -428,494 +431,421 @@ function Detail({ order }: Props) {
         <>
             <Head title={`Pesanan ${order.order_number}`} />
 
-            <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.7)]">
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 opacity-40"
-                    style={{
-                        background:
-                            'radial-gradient(circle at 15% 25%, rgba(255,255,255,0.22), transparent 45%), radial-gradient(circle at 85% 10%, rgba(255,255,255,0.16), transparent 40%)',
-                    }}
-                />
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full opacity-10"
-                    style={{ background: 'rgba(255,255,255,0.5)' }}
-                />
+            <PageContainer className="space-y-5 lg:space-y-6">
+                <div className="space-y-4">
+                    <Link
+                        href={pesanan.index()}
+                        className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-primary"
+                    >
+                        <ChevronLeft className="size-4" />
+                        Pesanan saya
+                    </Link>
 
-                <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-12 sm:px-8 sm:pt-10 sm:pb-14">
-                    <div className="flex items-center justify-between gap-6">
-                        <div className="max-w-2xl space-y-4">
-                            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/85 uppercase backdrop-blur-sm">
-                                Ringgit Catering
+                    <PageHeader
+                        title={order.order_number}
+                        description={`${isPickup ? 'Pickup' : 'Delivery'} · ${formatDate(order.booking_date)}`}
+                        actions={
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+                                <TypeIcon className="size-4 text-primary" />
+                                {isPickup ? 'Pickup' : 'Delivery'}
                             </span>
-                            <p className="font-mono text-xs font-semibold tracking-widest text-white/70">
-                                {order.order_number}
-                            </p>
-                            <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                                Detail pesanan.
-                            </h1>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white">
-                                    <TypeIcon className="h-3 w-3" />
-                                    {isPickup ? 'Pickup' : 'Delivery'}
-                                </span>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold text-white">
-                                    <CalendarDays className="h-3 w-3" />
-                                    {formatDate(order.booking_date)}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2 pt-1">
-                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                    Timeline
-                                </span>
-                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                    Detail item
-                                </span>
-                                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85 backdrop-blur-sm">
-                                    Status pembayaran
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="shrink-0">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-[28px] border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-16 sm:w-16">
-                                <PackageCheck className="h-5 w-5 text-white" />
-                            </div>
-                        </div>
-                    </div>
+                        }
+                    />
                 </div>
-            </header>
 
-            {/* ── Content ── */}
-            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
-                <div className="relative -mt-6 sm:-mt-8">
-                    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-8 sm:px-8">
-                        {/* Timeline */}
-                        <OrderTimelineUser
-                            status={order.order_status}
-                            bookingDate={order.booking_date}
-                        />
+                <div className="space-y-4">
+                    {/* Timeline */}
+                    <OrderTimelineUser
+                        status={order.order_status}
+                        bookingDate={order.booking_date}
+                    />
 
-                        {/* Grid: info + item + pembayaran */}
-                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px] lg:items-start">
-                            {/* ── Kiri ── */}
-                            <div className="space-y-4">
-                                {/* Info pesanan */}
-                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
-                                    <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
-                                        Info Pesanan
-                                    </h2>
-                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {/* Grid: info + item + pembayaran */}
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_340px] lg:items-start">
+                        {/* ── Kiri ── */}
+                        <div className="space-y-4">
+                            {/* Info pesanan */}
+                            <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
+                                    Info Pesanan
+                                </h2>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <InfoRow
+                                        icon={CalendarDays}
+                                        label="Tanggal Booking"
+                                        value={formatDate(order.booking_date)}
+                                    />
+                                    <InfoRow
+                                        icon={Clock}
+                                        label={bookingTimeLabel}
+                                        value={order.booking_time}
+                                    />
+                                    <InfoRow
+                                        icon={TypeIcon}
+                                        label="Jenis Pengiriman"
+                                        value={isPickup ? 'Pickup' : 'Delivery'}
+                                    />
+                                    {!isPickup && order.delivery_address && (
                                         <InfoRow
-                                            icon={CalendarDays}
-                                            label="Tanggal Booking"
-                                            value={formatDate(
-                                                order.booking_date,
-                                            )}
+                                            icon={MapPin}
+                                            label="Alamat Pengiriman"
+                                            value={order.delivery_address}
                                         />
-                                        <InfoRow
-                                            icon={Clock}
-                                            label={bookingTimeLabel}
-                                            value={order.booking_time}
-                                        />
-                                        <InfoRow
-                                            icon={TypeIcon}
-                                            label="Jenis Pengiriman"
-                                            value={
-                                                isPickup ? 'Pickup' : 'Delivery'
-                                            }
-                                        />
-                                        {!isPickup &&
-                                            order.delivery_address && (
-                                                <InfoRow
-                                                    icon={MapPin}
-                                                    label="Alamat Pengiriman"
-                                                    value={
-                                                        order.delivery_address
-                                                    }
-                                                />
-                                            )}
+                                    )}
+                                </div>
+                            </section>
+
+                            {/* Item pesanan */}
+                            <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-text">
+                                            Item Pesanan
+                                        </h2>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            Detail item sesuai pesanan
+                                            pelanggan.
+                                        </p>
                                     </div>
-                                </section>
+                                    <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">
+                                        {order.items.length} item
+                                    </span>
+                                </div>
 
-                                {/* Item pesanan */}
-                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
-                                        <div>
-                                            <h2 className="text-sm font-semibold text-text">
-                                                Item Pesanan
-                                            </h2>
-                                            <p className="mt-1 text-xs text-slate-500">
-                                                Detail item sesuai pesanan
-                                                pelanggan.
-                                            </p>
-                                        </div>
-                                        <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary">
-                                            {order.items.length} item
-                                        </span>
-                                    </div>
+                                <div className="space-y-3">
+                                    {order.items.map((item) =>
+                                        (() => {
+                                            const parsedNotes =
+                                                parseAdatNotes(item);
 
-                                    <div className="space-y-3">
-                                        {order.items.map((item) =>
-                                            (() => {
-                                                const parsedNotes =
-                                                    parseAdatNotes(item);
-
-                                                return (
-                                                    <article
-                                                        key={item.id}
-                                                        className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 shadow-sm ring-1 ring-black/5"
-                                                    >
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <div className="min-w-0 flex-1">
-                                                                <p className="truncate text-sm font-semibold text-text">
-                                                                    {
-                                                                        item.menu_item
-                                                                    }
-                                                                </p>
-                                                                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
-                                                                    {shouldShowKondisiLabel(
-                                                                        item,
-                                                                    ) && (
-                                                                        <span
-                                                                            className={`rounded-full px-2 py-1 ${item.kondisi_produk === 'mateng' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
-                                                                        >
-                                                                            {item.kondisi_produk ===
-                                                                            'mateng'
-                                                                                ? 'Mateng'
-                                                                                : 'Mentah'}
-                                                                        </span>
-                                                                    )}
-                                                                    {parsedNotes.adatLabel && (
-                                                                        <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-500">
-                                                                            {
-                                                                                parsedNotes.adatLabel
-                                                                            }
-                                                                        </span>
-                                                                    )}
-                                                                    <span className="rounded-full bg-white px-2 py-1 text-slate-500 ring-1 ring-black/5">
-                                                                        {
-                                                                            item.quantity
-                                                                        }{' '}
-                                                                        ×{' '}
-                                                                        {fmt(
-                                                                            item.unit_price,
-                                                                        )}
+                                            return (
+                                                <article
+                                                    key={item.id}
+                                                    className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 shadow-sm ring-1 ring-black/5"
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-sm font-semibold text-text">
+                                                                {item.menu_item}
+                                                            </p>
+                                                            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+                                                                {shouldShowKondisiLabel(
+                                                                    item,
+                                                                ) && (
+                                                                    <span
+                                                                        className={`rounded-full px-2 py-1 ${item.kondisi_produk === 'mateng' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
+                                                                    >
+                                                                        {item.kondisi_produk ===
+                                                                        'mateng'
+                                                                            ? 'Mateng'
+                                                                            : 'Mentah'}
                                                                     </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="shrink-0 text-right">
-                                                                <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                                                    Subtotal
-                                                                </p>
-                                                                <p className="mt-1 text-sm font-bold text-primary">
+                                                                )}
+                                                                {parsedNotes.adatLabel && (
+                                                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-slate-500">
+                                                                        {
+                                                                            parsedNotes.adatLabel
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                <span className="rounded-full bg-white px-2 py-1 text-slate-500 ring-1 ring-black/5">
+                                                                    {
+                                                                        item.quantity
+                                                                    }{' '}
+                                                                    ×{' '}
                                                                     {fmt(
-                                                                        item.subtotal,
+                                                                        item.unit_price,
                                                                     )}
-                                                                </p>
+                                                                </span>
                                                             </div>
                                                         </div>
+                                                        <div className="shrink-0 text-right">
+                                                            <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                                                Subtotal
+                                                            </p>
+                                                            <p className="mt-1 text-sm font-bold text-primary">
+                                                                {fmt(
+                                                                    item.subtotal,
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
 
-                                                        {(parsedNotes.detailLabel ||
-                                                            parsedNotes.sisaDaging ||
-                                                            parsedNotes.catatan ||
-                                                            parsedNotes.rawNotes) && (
-                                                            <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-500">
-                                                                {parsedNotes.detailLabel && (
+                                                    {(parsedNotes.detailLabel ||
+                                                        parsedNotes.sisaDaging ||
+                                                        parsedNotes.catatan ||
+                                                        parsedNotes.rawNotes) && (
+                                                        <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-500">
+                                                            {parsedNotes.detailLabel && (
+                                                                <p>
+                                                                    <span className="font-semibold text-slate-600">
+                                                                        Detail
+                                                                        adat:
+                                                                    </span>{' '}
+                                                                    {
+                                                                        parsedNotes.detailLabel
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            {parsedNotes.sisaDaging && (
+                                                                <p>
+                                                                    <span className="font-semibold text-slate-600">
+                                                                        Sisa
+                                                                        daging:
+                                                                    </span>{' '}
+                                                                    {
+                                                                        parsedNotes.sisaDaging
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            {parsedNotes.catatan && (
+                                                                <p>
+                                                                    <span className="font-semibold text-slate-600">
+                                                                        Catatan:
+                                                                    </span>{' '}
+                                                                    {
+                                                                        parsedNotes.catatan
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                            {!parsedNotes.detailLabel &&
+                                                                !parsedNotes.sisaDaging &&
+                                                                !parsedNotes.catatan &&
+                                                                parsedNotes.rawNotes && (
                                                                     <p>
-                                                                        <span className="font-semibold text-slate-600">
-                                                                            Detail
-                                                                            adat:
-                                                                        </span>{' '}
                                                                         {
-                                                                            parsedNotes.detailLabel
+                                                                            parsedNotes.rawNotes
                                                                         }
                                                                     </p>
                                                                 )}
-                                                                {parsedNotes.sisaDaging && (
-                                                                    <p>
-                                                                        <span className="font-semibold text-slate-600">
-                                                                            Sisa
-                                                                            daging:
-                                                                        </span>{' '}
-                                                                        {
-                                                                            parsedNotes.sisaDaging
-                                                                        }
-                                                                    </p>
-                                                                )}
-                                                                {parsedNotes.catatan && (
-                                                                    <p>
-                                                                        <span className="font-semibold text-slate-600">
-                                                                            Catatan:
-                                                                        </span>{' '}
-                                                                        {
-                                                                            parsedNotes.catatan
-                                                                        }
-                                                                    </p>
-                                                                )}
-                                                                {!parsedNotes.detailLabel &&
-                                                                    !parsedNotes.sisaDaging &&
-                                                                    !parsedNotes.catatan &&
-                                                                    parsedNotes.rawNotes && (
-                                                                        <p>
-                                                                            {
-                                                                                parsedNotes.rawNotes
-                                                                            }
-                                                                        </p>
-                                                                    )}
-                                                            </div>
-                                                        )}
-                                                    </article>
-                                                );
-                                            })(),
-                                        )}
-                                    </div>
+                                                        </div>
+                                                    )}
+                                                </article>
+                                            );
+                                        })(),
+                                    )}
+                                </div>
 
-                                    <div className="mt-4 rounded-[24px] bg-primary/5 px-4 py-3 ring-1 ring-primary/10">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <p className="text-sm font-semibold text-slate-600">
-                                                Total Pesanan
+                                <div className="mt-4 rounded-[24px] bg-primary/5 px-4 py-3 ring-1 ring-primary/10">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="text-sm font-semibold text-slate-600">
+                                            Total Pesanan
+                                        </p>
+                                        <div className="text-right">
+                                            <p className="text-base font-bold text-primary">
+                                                {fmt(displayTotalAmount)}
                                             </p>
-                                            <div className="text-right">
+                                            {shouldShowCashback && (
+                                                <p className="text-[11px] text-slate-500 line-through">
+                                                    {fmt(order.total_amount)}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Catatan Tambahan */}
+                            {order.notes && (
+                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                    <h2 className="mb-3 text-sm font-semibold text-text">
+                                        Catatan Tambahan
+                                    </h2>
+                                    <div className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 ring-1 ring-black/5">
+                                        <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
+                                            {order.notes}
+                                        </p>
+                                    </div>
+                                </section>
+                            )}
+                        </div>
+
+                        {/* ── Kanan: Pembayaran (sticky di desktop) ── */}
+                        <div className="lg:sticky lg:top-4">
+                            <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
+                                <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
+                                    Pembayaran
+                                </h2>
+                                {isAdminFullPaid ? (
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div>
+                                                    <p className="text-xs font-medium text-emerald-600">
+                                                        Status Pembayaran
+                                                    </p>
+                                                    <p className="mt-0.5 text-base font-bold text-emerald-700">
+                                                        Sudah Dibayar
+                                                    </p>
+                                                </div>
+                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-2xl bg-primary/5 px-4 py-3">
+                                            <p className="text-xs text-slate-500">
+                                                Pesanan ini dibeli langsung di
+                                                kasir dan pembayaran sudah
+                                                diselesaikan.
+                                            </p>
+                                        </div>
+
+                                        {/* Grand total */}
+                                        <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-medium text-slate-500">
+                                                    Total Pembayaran
+                                                </p>
                                                 <p className="text-base font-bold text-primary">
                                                     {fmt(displayTotalAmount)}
                                                 </p>
-                                                {shouldShowCashback && (
-                                                    <p className="text-[11px] text-slate-500 line-through">
-                                                        {fmt(
-                                                            order.total_amount,
-                                                        )}
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
+
+                                        {shouldShowCashback && (
+                                            <CashbackInfo
+                                                cashbackBreakdown={
+                                                    cashbackBreakdown
+                                                }
+                                                totalCashback={totalCashback}
+                                            />
+                                        )}
                                     </div>
-                                </section>
-
-                                {/* Catatan Tambahan */}
-                                {order.notes && (
-                                    <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
-                                        <h2 className="mb-3 text-sm font-semibold text-text">
-                                            Catatan Tambahan
-                                        </h2>
-                                        <div className="rounded-[24px] border border-black/5 bg-[#fbfaf6] p-4 ring-1 ring-black/5">
-                                            <p className="text-sm leading-6 whitespace-pre-wrap text-slate-600">
-                                                {order.notes}
-                                            </p>
-                                        </div>
-                                    </section>
-                                )}
-                            </div>
-
-                            {/* ── Kanan: Pembayaran (sticky di desktop) ── */}
-                            <div className="lg:sticky lg:top-4">
-                                <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
-                                    <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
-                                        Pembayaran
-                                    </h2>
-                                    {isAdminFullPaid ? (
-                                        <div className="space-y-3">
-                                            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <div>
-                                                        <p className="text-xs font-medium text-emerald-600">
-                                                            Status Pembayaran
-                                                        </p>
-                                                        <p className="mt-0.5 text-base font-bold text-emerald-700">
-                                                            Sudah Dibayar
-                                                        </p>
-                                                    </div>
-                                                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                ) : isAdminWithDP ? (
+                                    <div className="space-y-3">
+                                        <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-xs font-medium text-green-600">
+                                                        DP Sudah Dibayar
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-bold text-green-700">
+                                                        {fmt(order.dp_amount)}
+                                                    </p>
+                                                    <p className="mt-2 text-xs text-green-600">
+                                                        Pembayaran DP sudah
+                                                        diselesaikan di kasir
+                                                    </p>
                                                 </div>
+                                                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                                             </div>
+                                        </div>
 
-                                            <div className="rounded-2xl bg-primary/5 px-4 py-3">
-                                                <p className="text-xs text-slate-500">
-                                                    Pesanan ini dibeli langsung
-                                                    di kasir dan pembayaran
-                                                    sudah diselesaikan.
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-px flex-1 bg-slate-100" />
+                                            <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                                            <div className="h-px flex-1 bg-slate-100" />
+                                        </div>
+
+                                        <PaymentRow
+                                            label="Pelunasan"
+                                            amount={
+                                                shouldShowCashback
+                                                    ? displayTotalAmount
+                                                    : order.remaining_amount
+                                            }
+                                            verification={pelunasanVerification}
+                                            canUpload={
+                                                order.order_status !==
+                                                'dibatalkan'
+                                            }
+                                            onUpload={() =>
+                                                setSheetType('pelunasan')
+                                            }
+                                        />
+
+                                        {/* Grand total */}
+                                        <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-medium text-slate-500">
+                                                    Total Keseluruhan
+                                                </p>
+                                                <p className="text-base font-bold text-primary">
+                                                    {fmt(displayTotalAmount)}
                                                 </p>
                                             </div>
-
-                                            {/* Grand total */}
-                                            <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs font-medium text-slate-500">
-                                                        Total Pembayaran
-                                                    </p>
-                                                    <p className="text-base font-bold text-primary">
-                                                        {fmt(
-                                                            displayTotalAmount,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {shouldShowCashback && (
-                                                <CashbackInfo
-                                                    cashbackBreakdown={
-                                                        cashbackBreakdown
-                                                    }
-                                                    totalCashback={
-                                                        totalCashback
-                                                    }
-                                                />
-                                            )}
                                         </div>
-                                    ) : isAdminWithDP ? (
-                                        <div className="space-y-3">
-                                            <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div>
-                                                        <p className="text-xs font-medium text-green-600">
-                                                            DP Sudah Dibayar
-                                                        </p>
-                                                        <p className="mt-1 text-sm font-bold text-green-700">
-                                                            {fmt(
-                                                                order.dp_amount,
-                                                            )}
-                                                        </p>
-                                                        <p className="mt-2 text-xs text-green-600">
-                                                            Pembayaran DP sudah
-                                                            diselesaikan di
-                                                            kasir
-                                                        </p>
-                                                    </div>
-                                                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                                                </div>
-                                            </div>
 
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-px flex-1 bg-slate-100" />
-                                                <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-                                                <div className="h-px flex-1 bg-slate-100" />
-                                            </div>
-
-                                            <PaymentRow
-                                                label="Pelunasan"
-                                                amount={
-                                                    shouldShowCashback
-                                                        ? displayTotalAmount
-                                                        : order.remaining_amount
+                                        {shouldShowCashback && (
+                                            <CashbackInfo
+                                                cashbackBreakdown={
+                                                    cashbackBreakdown
                                                 }
-                                                verification={
-                                                    pelunasanVerification
-                                                }
-                                                canUpload={
-                                                    order.order_status !==
-                                                    'dibatalkan'
-                                                }
-                                                onUpload={() =>
-                                                    setSheetType('pelunasan')
-                                                }
+                                                totalCashback={totalCashback}
                                             />
-
-                                            {/* Grand total */}
-                                            <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs font-medium text-slate-500">
-                                                        Total Keseluruhan
-                                                    </p>
-                                                    <p className="text-base font-bold text-primary">
-                                                        {fmt(
-                                                            displayTotalAmount,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {shouldShowCashback && (
-                                                <CashbackInfo
-                                                    cashbackBreakdown={
-                                                        cashbackBreakdown
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {!isPelunasanOnlyFlow && (
+                                            <>
+                                                <PaymentRow
+                                                    label="DP"
+                                                    amount={order.dp_amount}
+                                                    verification={
+                                                        dpVerification
                                                     }
-                                                    totalCashback={
-                                                        totalCashback
+                                                    canUpload={
+                                                        order.order_status !==
+                                                        'dibatalkan'
+                                                    }
+                                                    onUpload={() =>
+                                                        setSheetType('dp')
                                                     }
                                                 />
-                                            )}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                    <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                                                    <div className="h-px flex-1 bg-slate-100" />
+                                                </div>
+                                            </>
+                                        )}
+                                        <PaymentRow
+                                            label="Pelunasan"
+                                            amount={
+                                                shouldShowCashback
+                                                    ? displayTotalAmount
+                                                    : order.remaining_amount
+                                            }
+                                            verification={pelunasanVerification}
+                                            canUpload={
+                                                !isCancelled &&
+                                                (isPelunasanOnlyFlow
+                                                    ? true
+                                                    : dpStatus === 'verified')
+                                            }
+                                            onUpload={() =>
+                                                setSheetType('pelunasan')
+                                            }
+                                        />
+
+                                        {/* Grand total */}
+                                        <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs font-medium text-slate-500">
+                                                    Total Keseluruhan
+                                                </p>
+                                                <p className="text-base font-bold text-primary">
+                                                    {fmt(displayTotalAmount)}
+                                                </p>
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {!isPelunasanOnlyFlow && (
-                                                <>
-                                                    <PaymentRow
-                                                        label="DP"
-                                                        amount={order.dp_amount}
-                                                        verification={
-                                                            dpVerification
-                                                        }
-                                                        canUpload={
-                                                            order.order_status !==
-                                                            'dibatalkan'
-                                                        }
-                                                        onUpload={() =>
-                                                            setSheetType('dp')
-                                                        }
-                                                    />
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="h-px flex-1 bg-slate-100" />
-                                                        <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-                                                        <div className="h-px flex-1 bg-slate-100" />
-                                                    </div>
-                                                </>
-                                            )}
-                                            <PaymentRow
-                                                label="Pelunasan"
-                                                amount={
-                                                    shouldShowCashback
-                                                        ? displayTotalAmount
-                                                        : order.remaining_amount
+
+                                        {shouldShowCashback && (
+                                            <CashbackInfo
+                                                cashbackBreakdown={
+                                                    cashbackBreakdown
                                                 }
-                                                verification={
-                                                    pelunasanVerification
-                                                }
-                                                canUpload={
-                                                    !isCancelled &&
-                                                    (isPelunasanOnlyFlow
-                                                        ? true
-                                                        : dpStatus ===
-                                                          'verified')
-                                                }
-                                                onUpload={() =>
-                                                    setSheetType('pelunasan')
-                                                }
+                                                totalCashback={totalCashback}
                                             />
-
-                                            {/* Grand total */}
-                                            <div className="mt-4 rounded-2xl bg-primary/5 px-4 py-3">
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs font-medium text-slate-500">
-                                                        Total Keseluruhan
-                                                    </p>
-                                                    <p className="text-base font-bold text-primary">
-                                                        {fmt(
-                                                            displayTotalAmount,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {shouldShowCashback && (
-                                                <CashbackInfo
-                                                    cashbackBreakdown={
-                                                        cashbackBreakdown
-                                                    }
-                                                    totalCashback={
-                                                        totalCashback
-                                                    }
-                                                />
-                                            )}
-                                        </div>
-                                    )}
-                                </section>
-                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </section>
                         </div>
                     </div>
                 </div>
-            </div>
+            </PageContainer>
 
             <UploadBuktiSheet
                 key={`${sheetType ?? 'closed'}-${isCancelled ? 'cancelled' : 'active'}`}

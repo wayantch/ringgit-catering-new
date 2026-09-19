@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\PesananController;
 use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
 use App\Models\Order;
@@ -8,8 +7,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentVerification;
 use App\Models\User;
-use App\Services\Admin\KasirService;
-use App\Services\Admin\PesananService;
+use App\Services\Admin\PesananPresenter;
 
 it('formats admin order detail payload with hashids and item quantities', function (): void {
     $admin = User::make(['id' => 21, 'name' => 'Admin']);
@@ -86,16 +84,7 @@ it('formats admin order detail payload with hashids and item quantities', functi
     $order->setRelation('createdBy', $admin);
     $order->setRelation('user', $customer);
 
-    $controller = new PesananController(
-        app(PesananService::class),
-        app(KasirService::class),
-    );
-
-    $reflection = new ReflectionClass($controller);
-    $method = $reflection->getMethod('formatOrderForFrontend');
-    $method->setAccessible(true);
-
-    $formatted = $method->invoke($controller, $order);
+    $formatted = app(PesananPresenter::class)->orderDetail($order);
 
     expect($formatted['id'])->toBe($order->hashid)
         ->and($formatted['items'])->toHaveCount(1)
@@ -152,16 +141,7 @@ it('keeps pembeli orders marked as dp when only the dp verification is approved'
         }),
     ]));
 
-    $controller = new PesananController(
-        app(PesananService::class),
-        app(KasirService::class),
-    );
-
-    $reflection = new ReflectionClass($controller);
-    $method = $reflection->getMethod('formatOrderForFrontend');
-    $method->setAccessible(true);
-
-    $formatted = $method->invoke($controller, $order);
+    $formatted = app(PesananPresenter::class)->orderDetail($order);
 
     expect($formatted['payment_method'])->toBe('dp')
         ->and($formatted['payments'])->toHaveCount(2);
@@ -227,16 +207,7 @@ it('applies cashback to admin detail total only for full payment orders', functi
     $order->setRelation('payments', collect());
     $order->setRelation('paymentVerifications', collect());
 
-    $controller = new PesananController(
-        app(PesananService::class),
-        app(KasirService::class),
-    );
-
-    $reflection = new ReflectionClass($controller);
-    $method = $reflection->getMethod('formatOrderForFrontend');
-    $method->setAccessible(true);
-
-    $formatted = $method->invoke($controller, $order);
+    $formatted = app(PesananPresenter::class)->orderDetail($order);
 
     expect($formatted['payment_method'])->toBe('full')
         ->and($formatted['has_cashback'])->toBeTrue()

@@ -4,7 +4,9 @@ import { useState } from 'react';
 import DeleteConfirmDialog from '@/Components/Admin/Menu/DeleteConfirmDialog';
 import MenuFilterBar from '@/Components/Admin/Menu/MenuFilterBar';
 import MenuTable from '@/Components/Admin/Menu/MenuTable';
+import { TableSkeleton } from '@/Components/Admin/Skeletons';
 import PaginationControls from '@/Components/PaginationControls';
+import { useIsRefetching } from '@/hooks/useIsRefetching';
 import AdminLayout from '@/Layouts/AdminLayout';
 import menu from '@/routes/admin/menu';
 
@@ -49,6 +51,7 @@ interface Props {
 export default function Index({ items, filters }: Props) {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedMenu, setSelectedMenu] = useState<MenuItem | null>(null);
+    const isRefetching = useIsRefetching();
 
     const handlePageChange = (newPage: number) => {
         router.get(
@@ -110,13 +113,20 @@ export default function Index({ items, filters }: Props) {
 
                     <MenuFilterBar filters={filters} />
 
-                    <MenuTable
-                        items={items.data}
-                        onDeleteClick={(selected) => {
-                            setSelectedMenu(selected);
-                            setDialogOpen(true);
-                        }}
-                    />
+                    {isRefetching ? (
+                        <TableSkeleton
+                            rows={Math.max(items.data.length, 4)}
+                            columns={5}
+                        />
+                    ) : (
+                        <MenuTable
+                            items={items.data}
+                            onDeleteClick={(selected) => {
+                                setSelectedMenu(selected);
+                                setDialogOpen(true);
+                            }}
+                        />
+                    )}
 
                     <PaginationControls
                         currentPage={items.current_page}

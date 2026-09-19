@@ -11,6 +11,7 @@ use App\Services\LoyaltyService;
 use App\Services\Pelanggan\PesananService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 uses(TestCase::class);
@@ -115,14 +116,18 @@ it('uses cashback-adjusted total for full payment proof uploads', function (): v
         'role' => 'pembeli',
     ]);
 
-    $category = MenuCategory::create([
-        'name' => 'Timbang Hidup',
-        'type' => 'timbang_hidup',
-        'slug' => 'timbang-hidup',
-        'description' => null,
-        'sort_order' => 1,
-        'is_active' => true,
-    ]);
+    // The suite runs without RefreshDatabase, so the slug must not collide
+    // with rows left behind by an earlier run.
+    $category = MenuCategory::query()->firstOrCreate(
+        ['type' => 'timbang_hidup'],
+        [
+            'name' => 'Timbang Hidup',
+            'slug' => 'timbang-hidup-'.Str::lower(Str::random(8)),
+            'description' => null,
+            'sort_order' => 1,
+            'is_active' => true,
+        ],
+    );
 
     $menuItem = MenuItem::create([
         'category_id' => $category->id,

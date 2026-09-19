@@ -7,7 +7,6 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentVerification;
 use App\Models\User;
-use Carbon\Carbon;
 use InvalidArgumentException;
 
 class PesananService
@@ -116,75 +115,6 @@ class PesananService
                 : (float) $order->total_amount,
             'payment_method' => $paymentMethod,
         ];
-    }
-
-    public function createManualOrder(array $data, User $admin): Order
-    {
-        $items = $data['items'] ?? [];
-        if (empty($items)) {
-            throw new InvalidArgumentException('Order must have at least one item');
-        }
-
-        $dpPercentage = $data['dp_percentage'] ?? 25;
-        $bookingTime = $data['order_type'] === 'delivery'
-            ? ($data['delivery_time'] ?? null)
-            : ($data['pickup_time'] ?? null);
-
-        if ($bookingTime === null || $bookingTime === '') {
-            throw new InvalidArgumentException('Booking time is required');
-        }
-
-        $totals = $this->calculateTotals($items, $dpPercentage);
-
-        if ($totals['is_price_pending']) {
-            throw new InvalidArgumentException('All items must have prices before creating order');
-        }
-
-        $order = Order::create([
-            'user_id' => $data['user_id'] ?? null,
-            'order_number' => $this->generateOrderNumber(),
-            'created_by' => $admin->id,
-            'source' => 'admin',
-            'customer_name' => $data['customer_name'],
-            'customer_phone' => $data['customer_phone'],
-            'customer_email' => $data['customer_email'] ?? null,
-            'order_type' => $data['order_type'],
-            'booking_date' => $data['booking_date'],
-            'booking_time' => $bookingTime,
-            'pickup_time' => $data['pickup_time'] ?? null,
-            'delivery_time' => $data['delivery_time'] ?? null,
-            'delivery_address' => $data['delivery_address'] ?? null,
-            'order_status' => 'baru',
-            'notes' => $data['notes'] ?? null,
-            'is_price_pending' => $totals['is_price_pending'],
-            'subtotal' => $totals['subtotal'],
-            'unique_code' => $this->generateUniqueCode(),
-            'total_amount' => $totals['total_amount'],
-            'dp_percentage' => $dpPercentage,
-            'dp_unique_code' => $this->generateUniqueCode(),
-            'dp_amount' => $totals['dp_amount'],
-            'remaining_amount' => $totals['remaining_amount'],
-            'editable_until' => Carbon::parse($data['booking_date'])->subDays(3),
-        ]);
-
-        // Create order items with snapshots
-        foreach ($items as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'menu_item_id' => $item['menu_item_id'] ?? null,
-                'menu_name' => $item['menu_name'],
-                'menu_category_type' => $item['menu_category_type'],
-                'menu_unit' => $item['menu_unit'],
-                'kondisi_produk' => $item['kondisi_produk'],
-                'adat_type' => $item['adat_type'] ?? null,
-                'quantity' => (float) $item['qty'],
-                'unit_price' => isset($item['unit_price']) ? (float) $item['unit_price'] : null,
-                'subtotal' => isset($item['unit_price']) ? (float) $item['unit_price'] * (float) $item['qty'] : null,
-                'notes' => $item['notes'] ?? null,
-            ]);
-        }
-
-        return $this->getOrderDetail($order);
     }
 
     public function updateManualOrder(Order $order, array $data, User $admin): Order
@@ -485,34 +415,5 @@ class PesananService
         }
 
         return (float) $order->dp_amount > 0 ? 'dp' : 'full';
-    }
-
-    private function generateOrderNumber(): string
-    {
-        $date = now()->format('Ymd');
-        $lastOrder = Order::where('order_number', 'like', "{$date}%")
-            ->latest('order_number')
-            ->first();
-
-        $sequence = 1;
-        if ($lastOrder) {
-            $lastSequence = (int) substr($lastOrder->order_number, -4);
-            $sequence = $lastSequence + 1;
-        }
-
-        return $date.str_pad($sequence, 4, '0', STR_PAD_LEFT);
-    }
-
-    private function generateUniqueCode(): int
-    {
-        do {
-            $code = rand(100, 999);
-        } while (
-            Order::where('unique_code', $code)->exists() ||
-            Order::where('dp_unique_code', $code)->exists() ||
-            Payment::where('unique_code', $code)->exists()
-        );
-
-        return $code;
     }
 }

@@ -70,8 +70,6 @@ it('includes completed orders in the print data for a selected date', function (
         'notes' => null,
         'loyalty_redemption_id' => null,
         'loyalty_discount' => null,
-        'production_stage' => 'diproses',
-        'is_urgent' => false,
         'production_completed_at' => null,
         'created_at' => now(),
         'updated_at' => now(),

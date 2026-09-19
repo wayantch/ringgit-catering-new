@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Running behind the ngrok tunnel: trust its forwarded headers so the
+        // app builds https URLs instead of http ones.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'role' => CheckRole::class,
         ]);

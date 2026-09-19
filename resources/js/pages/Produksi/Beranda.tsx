@@ -1,5 +1,5 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head, Link, router } from '@inertiajs/react';
+import { Deferred, Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CheckCircle2,
@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import EmptyState from '@/Components/Produksi/EmptyState';
 import PesananCard from '@/Components/Produksi/PesananCard';
 import StatCard from '@/Components/Produksi/StatCard';
+import { Skeleton, SkeletonRegion } from '@/Components/UI/Skeleton';
 import ProduksiLayout from '@/Layouts/ProduksiLayout';
 import pesanan from '@/routes/produksi/pesanan';
 
@@ -30,19 +31,35 @@ interface PesananAktif {
     status: 'baru' | 'diproses';
 }
 
+interface Stats {
+    pesanan_diproses: number;
+    selesai_hari_ini: number;
+    menunggu_besok: number;
+}
+
 interface Props extends PageProps {
     user: { name: string };
-    stats: {
-        pesanan_diproses: number;
-        selesai_hari_ini: number;
-        menunggu_besok: number;
-    };
-    pesanan_aktif: PesananAktif[];
+    /** Deferred: absent until the follow-up request lands. */
+    stats?: Stats;
+    /** Deferred: absent until the follow-up request lands. */
+    pesanan_aktif?: PesananAktif[];
 }
+
+const EMPTY_STATS: Stats = {
+    pesanan_diproses: 0,
+    selesai_hari_ini: 0,
+    menunggu_besok: 0,
+};
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function Beranda({ user, stats, pesanan_aktif }: Props) {
+export default function Beranda({
+    user,
+    stats: deferredStats,
+    pesanan_aktif: deferredPesananAktif,
+}: Props) {
+    const stats = deferredStats ?? EMPTY_STATS;
+    const pesanan_aktif = deferredPesananAktif ?? [];
     const todayDate = new Date().toLocaleDateString('id-ID', {
         weekday: 'long',
         day: 'numeric',
@@ -175,26 +192,47 @@ export default function Beranda({ user, stats, pesanan_aktif }: Props) {
             <div className="relative -mt-6">
                 <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-8 sm:px-8">
                     {/* ── Stat Grid 3 kolom ── */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <StatCard
-                            icon={ClipboardList}
-                            label="Diproses"
-                            value={stats.pesanan_diproses}
-                            valueColor="text-primary"
-                        />
-                        <StatCard
-                            icon={CheckCircle2}
-                            label="Selesai"
-                            value={stats.selesai_hari_ini}
-                            valueColor="text-emerald-600"
-                        />
-                        <StatCard
-                            icon={Clock}
-                            label="Besok"
-                            value={stats.menunggu_besok}
-                            valueColor="text-amber-600"
-                        />
-                    </div>
+                    <Deferred
+                        data="stats"
+                        fallback={
+                            <SkeletonRegion
+                                label="Memuat statistik"
+                                className="grid grid-cols-3 gap-3"
+                            >
+                                {Array.from({ length: 3 }).map((_, index) => (
+                                    <div
+                                        key={index}
+                                        className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100"
+                                    >
+                                        <Skeleton className="size-8 rounded-xl" />
+                                        <Skeleton className="mt-3 h-3 w-16" />
+                                        <Skeleton className="mt-2 h-6 w-10" />
+                                    </div>
+                                ))}
+                            </SkeletonRegion>
+                        }
+                    >
+                        <div className="grid grid-cols-3 gap-3">
+                            <StatCard
+                                icon={ClipboardList}
+                                label="Diproses"
+                                value={stats.pesanan_diproses}
+                                valueColor="text-primary"
+                            />
+                            <StatCard
+                                icon={CheckCircle2}
+                                label="Selesai"
+                                value={stats.selesai_hari_ini}
+                                valueColor="text-emerald-600"
+                            />
+                            <StatCard
+                                icon={Clock}
+                                label="Besok"
+                                value={stats.menunggu_besok}
+                                valueColor="text-amber-600"
+                            />
+                        </div>
+                    </Deferred>
 
                     {/* ── Status ringkasan ── */}
                     {totalAktif > 0 && (

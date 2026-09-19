@@ -10,12 +10,14 @@ class MenuController
 {
     public function __invoke(MenuService $service): Response
     {
+        $eceran = $service->getEceranMenus();
+
         return Inertia::render('Pelanggan/Menu', [
             'timbang_hidup' => $service->getTimbangHidupMenus(),
             'eceran' => [
-                'paket_pass' => $service->getEceranMenus()['paket_pass'] ?? [],
-                'paket_nasi_box' => $service->getEceranMenus()['paket_nasi_box'] ?? [],
-                'babi_adat' => $service->getEceranMenus()['babi_adat'] ?? [],
+                'paket_pass' => $eceran['paket_pass'] ?? [],
+                'paket_nasi_box' => $eceran['paket_nasi_box'] ?? [],
+                'babi_adat' => $eceran['babi_adat'] ?? [],
             ],
         ]);
     }

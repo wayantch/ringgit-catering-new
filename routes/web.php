@@ -86,7 +86,6 @@ Route::middleware(['auth', 'role:produksi'])
         Route::prefix('pesanan')->name('pesanan.')->group(function (): void {
             Route::get('/', [ProduksiPesananController::class, 'index'])->name('index');
             Route::get('/{order}', [ProduksiPesananController::class, 'show'])->name('detail');
-            Route::patch('/{order}/proses', [ProduksiPesananController::class, 'proses'])->name('proses');
             Route::patch('/{order}/selesai', [ProduksiPesananController::class, 'selesai'])->name('selesai');
         });
 

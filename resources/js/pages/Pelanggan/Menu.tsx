@@ -1,12 +1,15 @@
 import type { PageProps } from '@inertiajs/core';
-import { Head } from '@inertiajs/react';
-import { Sparkles, UtensilsCrossed } from 'lucide-react';
+import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useMemo, useRef, useState } from 'react';
 import AddToCartSheet from '@/Components/Pelanggan/AddToCartSheet';
 import MenuItemCard from '@/Components/Pelanggan/MenuItemCard';
 import MenuSearchBar from '@/Components/Pelanggan/MenuSearchBar';
 import MenuSection from '@/Components/Pelanggan/MenuSection';
+import PageContainer from '@/Components/Pelanggan/PageContainer';
+import PageHeader from '@/Components/Pelanggan/PageHeader';
+import { MenuGridSkeleton } from '@/Components/Pelanggan/Skeletons';
+import { useIsRefetching } from '@/hooks/useIsRefetching';
 import PelangganLayout from '@/Layouts/PelangganLayout';
 import { cn } from '@/lib/utils';
 
@@ -62,7 +65,14 @@ interface Props extends PageProps {
     };
 }
 
-const SECTIONS = [
+type SectionKey = 'timbang_hidup' | EceranSubType;
+
+const SECTIONS: Array<{
+    key: SectionKey;
+    title: string;
+    emoji: string;
+    description: string;
+}> = [
     {
         key: 'timbang_hidup',
         title: 'Timbang Hidup',
@@ -105,46 +115,14 @@ function toSearchableText(item: MenuItem): string {
         .toLowerCase();
 }
 
-function MenuPageHeader({ totalItems }: { totalItems: number }) {
-    return (
-        <header className="relative overflow-hidden bg-[linear-gradient(135deg,#5f7465_0%,#88a07d_52%,#dfd3be_100%)] text-white">
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-40"
-            />
-            <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-10 sm:px-8 sm:pt-10 sm:pb-12">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="max-w-2xl">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/80 uppercase backdrop-blur-sm">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            Ringgit Catering
-                        </span>
-                        <p className="mt-3 text-sm font-medium text-white/75 sm:text-base">
-                            {totalItems} menu aktif siap dipilih
-                        </p>
-                        <h1 className="mt-1 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
-                            Pilih menu, lihat detail, lalu lanjutkan pesanan.
-                        </h1>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-white/72 sm:text-base">
-                            Jelajah semua section dalam satu halaman, gunakan
-                            pencarian cepat, dan buka detail pesanan tanpa
-                            kehilangan konteks.
-                        </p>
-                    </div>
-
-                    <div className="shrink-0">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/15 shadow-lg shadow-black/10 backdrop-blur-md sm:h-14 sm:w-14">
-                            <UtensilsCrossed className="h-5 w-5 text-white" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
-}
-
 function Index({ timbang_hidup, eceran }: Props) {
-    const [query, setQuery] = useState('');
+    const { url } = usePage();
+    const isRefetching = useIsRefetching();
+    // TopNavbar sends its search here as ?q=, so seed the client-side filter
+    // from the URL on first render.
+    const [query, setQuery] = useState(
+        () => new URLSearchParams(url.split('?')[1] ?? '').get('q') ?? '',
+    );
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
     const [selectedSectionId, setSelectedSectionId] =
         useState<string>('timbang_hidup');
@@ -152,10 +130,10 @@ function Index({ timbang_hidup, eceran }: Props) {
 
     const allSections = useMemo(() => {
         return SECTIONS.map((section) => {
-            const items =
+            const items: MenuItem[] =
                 section.key === 'timbang_hidup'
                     ? timbang_hidup
-                    : ((eceran as any)[section.key] ?? []);
+                    : (eceran[section.key] ?? []);
 
             return {
                 id: section.key,
@@ -222,98 +200,95 @@ function Index({ timbang_hidup, eceran }: Props) {
         <>
             <Head title="Menu" />
 
-            <MenuPageHeader totalItems={totalItems} />
+            <PageContainer className="space-y-5 lg:space-y-6">
+                <PageHeader
+                    title="Menu"
+                    description={totalItems + ' menu tersedia'}
+                />
 
-            <div className="relative -mt-6 sm:-mt-8">
-                <div className="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-8">
-                    <div className="rounded-[28px] border border-black/5 bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] sm:p-5">
-                        <div className="space-y-4">
-                            <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
-                                <MenuSearchBar
-                                    value={query}
-                                    onDebouncedChange={setQuery}
-                                />
-
-                                <div className="flex items-center gap-2 text-xs text-slate-500">
-                                    <span className="inline-flex items-center rounded-full bg-secondary px-3 py-2 font-medium text-slate-600">
-                                        {totalItems} hasil
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-                                {filteredSections.map((section) => {
-                                    const isActive =
-                                        activeSectionId === section.id;
-
-                                    return (
-                                        <button
-                                            key={section.id}
-                                            type="button"
-                                            onClick={() =>
-                                                scrollToSection(section.id)
-                                            }
-                                            className={cn(
-                                                'inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all',
-                                                isActive
-                                                    ? 'border-primary bg-primary text-white shadow-sm shadow-primary/20'
-                                                    : 'border-black/5 bg-[#fbfaf6] text-slate-500 hover:border-primary/20 hover:text-primary',
-                                            )}
-                                        >
-                                            {section.title}
-                                            <span
-                                                className={cn(
-                                                    'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
-                                                    isActive
-                                                        ? 'bg-white/15 text-white'
-                                                        : 'bg-black/5 text-slate-500',
-                                                )}
-                                            >
-                                                {section.items.length}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                <div className="sticky top-0 z-20 -mx-4 space-y-3 bg-bg/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:top-30 lg:-mx-8 lg:px-8">
+                    <div className="lg:max-w-md">
+                        <MenuSearchBar
+                            value={query}
+                            onDebouncedChange={setQuery}
+                        />
                     </div>
 
-                    <div className="mt-5 space-y-5">
-                        {filteredSections.length > 0 ? (
-                            filteredSections.map((section) => (
-                                <div
+                    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+                        {filteredSections.map((section) => {
+                            const isActive = activeSectionId === section.id;
+
+                            return (
+                                <button
                                     key={section.id}
-                                    ref={(el) => {
-                                        sectionRefs.current[section.id] = el;
-                                    }}
-                                    className="scroll-mt-28"
+                                    type="button"
+                                    onClick={() => scrollToSection(section.id)}
+                                    className={cn(
+                                        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition',
+                                        isActive
+                                            ? 'border-primary bg-primary font-semibold text-white'
+                                            : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-primary',
+                                    )}
                                 >
-                                    <MenuSection
-                                        id={section.id}
-                                        title={section.title}
-                                        description={section.description}
-                                        eyebrow="Eceran"
-                                        badge=""
-                                        count={section.items.length}
+                                    {section.title}
+                                    <span
+                                        className={cn(
+                                            'text-xs',
+                                            isActive
+                                                ? 'text-white/70'
+                                                : 'text-slate-400',
+                                        )}
                                     >
-                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                            {section.items.map((item) => (
-                                                <MenuItemCard
-                                                    key={item.id}
-                                                    item={item}
-                                                    onSelect={setSelectedItemId}
-                                                />
-                                            ))}
-                                        </div>
-                                    </MenuSection>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="p-6">Tidak ada menu.</div>
-                        )}
+                                        {section.items.length}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
-            </div>
+
+                {isRefetching ? (
+                    <MenuGridSkeleton />
+                ) : filteredSections.length > 0 ? (
+                    <div className="space-y-8">
+                        {filteredSections.map((section) => (
+                            <div
+                                key={section.id}
+                                ref={(el) => {
+                                    sectionRefs.current[section.id] = el;
+                                }}
+                                className="scroll-mt-40"
+                            >
+                                <MenuSection
+                                    id={section.id}
+                                    title={section.title}
+                                    description={section.description}
+                                    count={section.items.length}
+                                >
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5">
+                                        {section.items.map((item) => (
+                                            <MenuItemCard
+                                                key={item.id}
+                                                item={item}
+                                                onSelect={setSelectedItemId}
+                                            />
+                                        ))}
+                                    </div>
+                                </MenuSection>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+                        <p className="text-sm font-medium text-text">
+                            Menu tidak ditemukan
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">
+                            Coba kata kunci lain.
+                        </p>
+                    </div>
+                )}
+            </PageContainer>
 
             <AddToCartSheet
                 isOpen={selectedItem !== null}

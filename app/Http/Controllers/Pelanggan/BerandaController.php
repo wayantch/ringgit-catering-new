@@ -14,7 +14,6 @@ class BerandaController
         $user = $request->user();
 
         return Inertia::render('Pelanggan/Beranda/Index', [
-            'featuredMenus' => $service->getFeaturedMenus(),
             'recentOrders' => $service->getRecentOrders($user),
             'user' => $user,
         ]);

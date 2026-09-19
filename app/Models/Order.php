@@ -38,8 +38,6 @@ class Order extends Model
         'loyalty_redemption_id',
         'loyalty_discount',
         'editable_until',
-        'production_stage',
-        'is_urgent',
         'production_completed_at',
     ];
 
@@ -52,7 +50,6 @@ class Order extends Model
         'booking_date' => 'date',
         'editable_until' => 'date',
         'is_price_pending' => 'boolean',
-        'is_urgent' => 'boolean',
         'production_completed_at' => 'datetime',
     ];
 

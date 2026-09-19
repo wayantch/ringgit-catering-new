@@ -4,6 +4,8 @@ namespace App\Services\Admin;
 
 use App\Enums\KondisiProduk as KondisiProdukRules;
 use App\Models\MenuItem;
+use App\Models\MenuItemPriceTier;
+use App\Models\MenuItemVariant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -15,6 +17,134 @@ use InvalidArgumentException;
 
 class KasirService
 {
+    /**
+     * Data needed to render the kasir order form.
+     *
+     * @return array{menuItems: array<int, array<string, mixed>>, customers: array<int, array<string, mixed>>}
+     */
+    public function getFormData(): array
+    {
+        return [
+            'menuItems' => $this->getMenuPickerItems(),
+            'customers' => $this->getCustomerOptions(),
+        ];
+    }
+
+    /**
+     * Full menu payload for the kasir picker, including tiers and variants.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getMenuPickerItems(): array
+    {
+        return MenuItem::query()
+            ->with(['category:id,name,type', 'tiers', 'variants'])
+            ->where('is_available', true)
+            ->orderBy('sort_order')
+            ->get([
+                'id',
+                'category_id',
+                'name',
+                'image',
+                'menu_type',
+                'sub_type',
+                'base_price',
+                'babi_mentah_price',
+                'babi_matang_price',
+                'bundle_desc',
+                'free_ongkir_km',
+                'unit',
+                'is_available',
+            ])
+            ->map(static function (MenuItem $menuItem): array {
+                return [
+                    'id' => $menuItem->hashid,
+                    'name' => $menuItem->name,
+                    'image' => $menuItem->image,
+                    'menu_type' => $menuItem->menu_type,
+                    'sub_type' => $menuItem->sub_type,
+                    'base_price' => $menuItem->base_price !== null ? (float) $menuItem->base_price : null,
+                    'babi_mentah_price' => $menuItem->babi_mentah_price !== null ? (float) $menuItem->babi_mentah_price : null,
+                    'babi_matang_price' => $menuItem->babi_matang_price !== null ? (float) $menuItem->babi_matang_price : null,
+                    'bundle_desc' => $menuItem->bundle_desc,
+                    'free_ongkir_km' => $menuItem->free_ongkir_km,
+                    'unit' => $menuItem->unit,
+                    'is_available' => (bool) $menuItem->is_available,
+                    'category' => [
+                        'id' => $menuItem->category?->hashid,
+                        'name' => $menuItem->category?->name,
+                        'type' => $menuItem->category?->type,
+                    ],
+                    'tiers' => $menuItem->tiers->map(static function (MenuItemPriceTier $tier): array {
+                        return [
+                            'id' => (string) $tier->id,
+                            'kode' => $tier->kode,
+                            'is_half' => (bool) $tier->is_half,
+                            'berat_min' => (float) $tier->berat_min,
+                            'berat_max' => $tier->berat_max !== null ? (float) $tier->berat_max : null,
+                            'harga_mentah' => (float) $tier->harga_mentah,
+                            'harga_matang' => (float) $tier->harga_matang,
+                            'cashback' => (float) $tier->cashback,
+                        ];
+                    })->values(),
+                    'variants' => $menuItem->variants->map(static function (MenuItemVariant $variant): array {
+                        return [
+                            'id' => (string) $variant->id,
+                            'label' => $variant->label,
+                            'harga' => (float) $variant->harga,
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Slim menu payload for the order edit form.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getMenuOptions(): array
+    {
+        return MenuItem::query()
+            ->with('category:id,type')
+            ->where('is_available', true)
+            ->get(['id', 'category_id', 'name', 'unit', 'base_price'])
+            ->map(static function (MenuItem $menuItem): array {
+                return [
+                    'id' => $menuItem->hashid,
+                    'name' => $menuItem->name,
+                    'category_type' => $menuItem->category?->type,
+                    'unit' => $menuItem->unit,
+                    'base_price' => $menuItem->base_price !== null ? (float) $menuItem->base_price : null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Registered buyers selectable as the order customer.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCustomerOptions(): array
+    {
+        return User::query()
+            ->where('role', 'pembeli')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone'])
+            ->map(static fn (User $user): array => [
+                'id' => $user->hashid,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function createManualOrder(array $data, User $admin): Order
     {
         return DB::transaction(function () use ($data, $admin): Order {

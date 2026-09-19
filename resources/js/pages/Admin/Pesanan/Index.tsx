@@ -11,7 +11,9 @@ import {
 import React, { useEffect } from 'react';
 import PesananTable from '@/Components/Admin/Pesanan/PesananTable';
 import PesananFilterBar from '@/Components/Admin/PesananFilterBar';
+import { TableSkeleton } from '@/Components/Admin/Skeletons';
 import PaginationControls from '@/Components/PaginationControls';
+import { useIsRefetching } from '@/hooks/useIsRefetching';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 interface Props extends PageProps {
@@ -73,6 +75,7 @@ export default function Index({ orders, filters }: Props) {
 
     const activeFilterCount = Object.values(filters).filter(Boolean).length;
     const visibleOrders = orders.data.length;
+    const isRefetching = useIsRefetching();
 
     return (
         <AdminLayout>
@@ -161,9 +164,16 @@ export default function Index({ orders, filters }: Props) {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
-                    <PesananTable orders={orders.data} />
-                </div>
+                {isRefetching ? (
+                    <TableSkeleton
+                        rows={Math.max(visibleOrders, 4)}
+                        columns={6}
+                    />
+                ) : (
+                    <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5">
+                        <PesananTable orders={orders.data} />
+                    </div>
+                )}
 
                 {/* Pagination */}
                 <PaginationControls

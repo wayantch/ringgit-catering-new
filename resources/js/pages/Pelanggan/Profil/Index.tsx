@@ -1,6 +1,8 @@
 import type { PageProps } from '@inertiajs/core';
 import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import PageContainer from '@/Components/Pelanggan/PageContainer';
+import PageHeader from '@/Components/Pelanggan/PageHeader';
 import ProfilHeader from '@/Components/Pelanggan/ProfilHeader';
 import ProfilMenuList from '@/Components/Pelanggan/ProfilMenuList';
 import PelangganLayout from '@/Layouts/PelangganLayout';
@@ -29,18 +31,23 @@ function Index({ user, stats }: Props) {
     return (
         <>
             <Head title="Profil" />
-            <div className="bg-[radial-gradient(circle_at_top,rgba(122,143,107,0.08),transparent_28%),linear-gradient(180deg,#fbfaf6_0%,#ffffff_30%,#f8f7f2_100%)] text-text">
-                <div>
+
+            <PageContainer className="space-y-5 lg:space-y-6">
+                <PageHeader
+                    title="Profil"
+                    description="Atur data akun dan lihat ringkasan aktivitasmu."
+                />
+
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
                     <ProfilHeader user={user} stats={stats} />
-                    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-10 sm:px-8 sm:pb-12">
-                        <ProfilMenuList
-                            currentName={user.name}
-                            currentPhone={user.phone ?? ''}
-                            currentAddress={user.address ?? ''}
-                        />
-                    </div>
+
+                    <ProfilMenuList
+                        currentName={user.name}
+                        currentPhone={user.phone ?? ''}
+                        currentAddress={user.address ?? ''}
+                    />
                 </div>
-            </div>
+            </PageContainer>
         </>
     );
 }

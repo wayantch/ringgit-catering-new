@@ -8,6 +8,12 @@ use InvalidArgumentException;
 
 class PesananService
 {
+    /** Count used by the production nav badge; kept cheap so it loads eagerly. */
+    public function countDiproses(): int
+    {
+        return Order::where('order_status', 'diproses')->count();
+    }
+
     public function getBerandaData(): array
     {
         $today = now()->toDateString();
@@ -128,17 +134,6 @@ class PesananService
                 'notes' => $item->notes,
             ])->toArray(),
         ];
-    }
-
-    public function markAsProses(Order $order): void
-    {
-        if ($order->order_status !== 'baru') {
-            throw new InvalidArgumentException('Hanya pesanan dengan status baru yang bisa diproses.');
-        }
-
-        $order->update([
-            'order_status' => 'diproses',
-        ]);
     }
 
     public function markAsSelesai(Order $order): void

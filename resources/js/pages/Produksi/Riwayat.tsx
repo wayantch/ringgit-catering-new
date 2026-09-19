@@ -4,6 +4,8 @@ import { History } from 'lucide-react';
 import { useState } from 'react';
 import PaginationControls from '@/Components/PaginationControls';
 import Select from '@/Components/UI/Select';
+import { Skeleton, SkeletonRegion } from '@/Components/UI/Skeleton';
+import { useIsRefetching } from '@/hooks/useIsRefetching';
 import ProduksiLayout from '@/Layouts/ProduksiLayout';
 
 interface RiwayatItem {
@@ -55,6 +57,7 @@ interface Props extends PageProps {
 }
 
 export default function Riwayat({ riwayat, filters }: Props) {
+    const isRefetching = useIsRefetching();
     const [search, setSearch] = useState(filters.search ?? '');
     const [bookingDate, setBookingDate] = useState(filters.booking_date ?? '');
     const [statusFilter, setStatusFilter] = useState(filters.status ?? 'semua');
@@ -154,7 +157,27 @@ export default function Riwayat({ riwayat, filters }: Props) {
 
                 {/* Table -> Modern responsive cards */}
                 <div className="mt-5 rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
-                    {riwayat.data.length === 0 ? (
+                    {isRefetching ? (
+                        <SkeletonRegion
+                            label="Memuat riwayat"
+                            className="divide-y divide-slate-100"
+                        >
+                            {Array.from({
+                                length: Math.max(riwayat.data.length, 4),
+                            }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-3 p-4"
+                                >
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-40" />
+                                        <Skeleton className="h-3 w-28" />
+                                    </div>
+                                    <Skeleton className="h-5 w-20 rounded-full" />
+                                </div>
+                            ))}
+                        </SkeletonRegion>
+                    ) : riwayat.data.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
                             <History
                                 size={48}

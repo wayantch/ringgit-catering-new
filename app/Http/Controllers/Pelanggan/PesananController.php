@@ -32,12 +32,8 @@ class PesananController extends Controller
 
     public function store(StoreCheckoutRequest $request, PesananService $service): SymfonyResponse|RedirectResponse
     {
-        $validated = $request->validated();
-        $validated['booking_time'] = $validated['pickup_time']
-            ?? $validated['delivery_time'];
-
         try {
-            $draft = $service->buildCheckoutDraft($request->user(), $validated);
+            $draft = $service->buildCheckoutDraft($request->user(), $request->validated());
 
             $request->session()->put('checkout_draft', $draft);
             $request->session()->flash('success', 'Checkout tersimpan. Silakan upload bukti pembayaran.');

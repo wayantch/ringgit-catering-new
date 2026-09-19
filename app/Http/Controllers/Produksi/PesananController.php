@@ -35,17 +35,6 @@ class PesananController extends Controller
         ]);
     }
 
-    public function proses(Order $order): RedirectResponse
-    {
-        try {
-            $this->service->markAsProses($order);
-        } catch (\InvalidArgumentException $exception) {
-            return back()->with('error', $exception->getMessage());
-        }
-
-        return back()->with('success', 'Pesanan dimulai proses.');
-    }
-
     public function selesai(Order $order): RedirectResponse
     {
         try {

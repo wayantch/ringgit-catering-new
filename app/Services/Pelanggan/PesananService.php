@@ -29,6 +29,8 @@ class PesananService
      */
     public function buildCheckoutDraft(User $user, array $data): array
     {
+        $data['booking_time'] ??= $this->resolveBookingTime($data);
+
         ['cartItems' => $cartItems, 'cartSummary' => $cartSummary] = $this->getCheckoutCartData($user, $data);
         $cashbackBreakdown = $this->buildCashbackBreakdownFromCartItems($cartItems);
         $cashbackTotal = array_reduce(

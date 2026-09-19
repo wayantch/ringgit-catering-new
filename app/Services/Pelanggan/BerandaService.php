@@ -2,26 +2,12 @@
 
 namespace App\Services\Pelanggan;
 
-use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection as SupportCollection;
 
 class BerandaService
 {
-    /**
-     * Get featured menu items (6 items max, available only)
-     */
-    public function getFeaturedMenus(): EloquentCollection
-    {
-        return MenuItem::where('is_available', true)
-            ->limit(6)
-            ->orderBy('sort_order')
-            ->with('category')
-            ->get();
-    }
-
     /**
      * Get 5 most recent orders for user.
      */

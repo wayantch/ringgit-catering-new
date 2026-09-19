@@ -1,4 +1,4 @@
-import { Head, usePage, Link } from '@inertiajs/react';
+import { Deferred, Head, usePage, Link } from '@inertiajs/react';
 import {
     ArrowRight,
     BadgeCheck,
@@ -16,6 +16,10 @@ import {
     XCircle,
     Printer,
 } from 'lucide-react';
+import {
+    DashboardListsSkeleton,
+    DashboardSummarySkeleton,
+} from '@/Components/Admin/Skeletons';
 import AdminLayout from '@/Layouts/AdminLayout';
 import admin from '@/routes/admin';
 
@@ -558,293 +562,314 @@ export default function Dashboard() {
                     </div>
 
                     {/* ── Bento Grid ─────────────────────────────────────────── */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {/* 1. Total Pendapatan Hari Ini — accent card */}
-                        <div className="sm:col-span-2 lg:col-span-1">
+                    <Deferred
+                        data={[
+                            'stats',
+                            'weekly_revenue',
+                            'order_status_distribution',
+                            'completion_rate',
+                        ]}
+                        fallback={<DashboardSummarySkeleton />}
+                    >
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {/* 1. Total Pendapatan Hari Ini — accent card */}
+                            <div className="sm:col-span-2 lg:col-span-1">
+                                <StatCard
+                                    icon={TrendingUp}
+                                    label="Pendapatan Hari Ini"
+                                    value={fmt(s.revenue_today)}
+                                    change={revenueChange.pct}
+                                    changeType={revenueChange.type}
+                                    sub={`vs kemarin ${fmt(s.revenue_yesterday)}`}
+                                    spark={weekly.map((d) => d.value)}
+                                    accent
+                                />
+                            </div>
+
+                            {/* 2. Pesanan Hari Ini */}
                             <StatCard
-                                icon={TrendingUp}
-                                label="Pendapatan Hari Ini"
-                                value={fmt(s.revenue_today)}
-                                change={revenueChange.pct}
-                                changeType={revenueChange.type}
-                                sub={`vs kemarin ${fmt(s.revenue_yesterday)}`}
+                                icon={ShoppingBag}
+                                label="Pesanan Hari Ini"
+                                value={String(s.orders_today)}
+                                change={ordersChange.pct}
+                                changeType={ordersChange.type}
+                                sub={`${s.orders_today_new} pesanan baru`}
                                 spark={weekly.map((d) => d.value)}
-                                accent
+                            />
+
+                            {/* 3. Total Pelanggan */}
+                            <StatCard
+                                icon={Users}
+                                label="Total Pelanggan"
+                                value={String(s.total_customers)}
+                                sub={`${s.customers_this_week} bergabung minggu ini`}
+                                spark={weekly.map((d) => d.value)}
+                            />
+
+                            {/* 4. Menu Aktif */}
+                            <StatCard
+                                icon={UtensilsCrossed}
+                                label="Menu Aktif"
+                                value={String(s.active_menus)}
+                                sub={
+                                    s.low_stock_menus > 0
+                                        ? `${s.low_stock_menus} menu stok menipis`
+                                        : 'Semua stok aman'
+                                }
+                                spark={weekly.map((d) => d.value)}
                             />
                         </div>
 
-                        {/* 2. Pesanan Hari Ini */}
-                        <StatCard
-                            icon={ShoppingBag}
-                            label="Pesanan Hari Ini"
-                            value={String(s.orders_today)}
-                            change={ordersChange.pct}
-                            changeType={ordersChange.type}
-                            sub={`${s.orders_today_new} pesanan baru`}
-                            spark={weekly.map((d) => d.value)}
-                        />
-
-                        {/* 3. Total Pelanggan */}
-                        <StatCard
-                            icon={Users}
-                            label="Total Pelanggan"
-                            value={String(s.total_customers)}
-                            sub={`${s.customers_this_week} bergabung minggu ini`}
-                            spark={weekly.map((d) => d.value)}
-                        />
-
-                        {/* 4. Menu Aktif */}
-                        <StatCard
-                            icon={UtensilsCrossed}
-                            label="Menu Aktif"
-                            value={String(s.active_menus)}
-                            sub={
-                                s.low_stock_menus > 0
-                                    ? `${s.low_stock_menus} menu stok menipis`
-                                    : 'Semua stok aman'
-                            }
-                            spark={weekly.map((d) => d.value)}
-                        />
-                    </div>
-
-                    {/* ── Row 2: Bar Chart + Donut ── */}
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                        {/* Revenue 7 Hari */}
-                        <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)] lg:col-span-2">
-                            <div className="mb-5 flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-text">
-                                        Pendapatan 7 Hari
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-slate-400">
-                                        Senin – Minggu ini
-                                    </p>
-                                </div>
-                                <span className="rounded-xl bg-secondary px-3 py-1.5 text-xs font-semibold text-primary">
-                                    {fmt(
-                                        weekly.reduce(
-                                            (acc, d) => acc + d.value,
-                                            0,
-                                        ),
-                                    )}
-                                </span>
-                            </div>
-                            <BarChart data={weekly} />
-                        </div>
-
-                        {/* Status Pesanan Donut */}
-                        <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)]">
-                            <p className="mb-1 text-sm font-semibold text-text">
-                                Status Pesanan
-                            </p>
-                            <p className="mb-4 text-xs text-slate-400">
-                                Total aktif hari ini
-                            </p>
-                            <DonutChart segments={segments} />
-
-                            <div className="mt-4 rounded-xl bg-secondary p-3">
-                                <p className="text-[11px] text-slate-400">
-                                    Tingkat penyelesaian
-                                </p>
-                                <div className="mt-1.5 flex items-center gap-2">
-                                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
-                                        <div
-                                            className="h-full rounded-full bg-primary transition-all duration-700"
-                                            style={{
-                                                width: `${completion_rate}%`,
-                                            }}
-                                        />
+                        {/* ── Row 2: Bar Chart + Donut ── */}
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                            {/* Revenue 7 Hari */}
+                            <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)] lg:col-span-2">
+                                <div className="mb-5 flex items-start justify-between">
+                                    <div>
+                                        <p className="text-sm font-semibold text-text">
+                                            Pendapatan 7 Hari
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-slate-400">
+                                            Senin – Minggu ini
+                                        </p>
                                     </div>
-                                    <span className="text-xs font-semibold text-primary">
-                                        {completion_rate}%
+                                    <span className="rounded-xl bg-secondary px-3 py-1.5 text-xs font-semibold text-primary">
+                                        {fmt(
+                                            weekly.reduce(
+                                                (acc, d) => acc + d.value,
+                                                0,
+                                            ),
+                                        )}
                                     </span>
                                 </div>
+                                <BarChart data={weekly} />
+                            </div>
+
+                            {/* Status Pesanan Donut */}
+                            <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)]">
+                                <p className="mb-1 text-sm font-semibold text-text">
+                                    Status Pesanan
+                                </p>
+                                <p className="mb-4 text-xs text-slate-400">
+                                    Total aktif hari ini
+                                </p>
+                                <DonutChart segments={segments} />
+
+                                <div className="mt-4 rounded-xl bg-secondary p-3">
+                                    <p className="text-[11px] text-slate-400">
+                                        Tingkat penyelesaian
+                                    </p>
+                                    <div className="mt-1.5 flex items-center gap-2">
+                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+                                            <div
+                                                className="h-full rounded-full bg-primary transition-all duration-700"
+                                                style={{
+                                                    width: `${completion_rate}%`,
+                                                }}
+                                            />
+                                        </div>
+                                        <span className="text-xs font-semibold text-primary">
+                                            {completion_rate}%
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Deferred>
 
                     {/* ── Row 3: Tabel + Top Menu ── */}
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                        {/* Recent Orders Table */}
-                        <div className="group overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)] lg:col-span-2">
-                            <div className="flex items-center justify-between border-b border-slate-100/80 px-6 py-4">
-                                <div>
-                                    <p className="text-sm font-semibold text-text">
-                                        Pesanan Terbaru
-                                    </p>
-                                    <p className="text-xs text-slate-400">
-                                        5 pesanan terakhir
-                                    </p>
-                                </div>
-                                <Link
-                                    href={admin.pesanan.index.url()}
-                                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                                >
-                                    Lihat semua →
-                                </Link>
-                            </div>
-
-                            {recentSafe.length > 0 ? (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full min-w-120">
-                                        <thead>
-                                            <tr className="border-b border-slate-100 bg-slate-50/60">
-                                                {[
-                                                    'ID',
-                                                    'Pelanggan',
-                                                    'Menu',
-                                                    'Total',
-                                                    'Status',
-                                                ].map((h) => (
-                                                    <th
-                                                        key={h}
-                                                        className="px-5 py-3 text-left text-[11px] font-semibold tracking-wider text-slate-400 uppercase"
-                                                    >
-                                                        {h}
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-50">
-                                            {recentSafe.map((order) => (
-                                                <tr
-                                                    key={order.id}
-                                                    className="transition-colors hover:bg-secondary/40"
-                                                >
-                                                    <td className="px-5 py-3.5 font-mono text-xs font-semibold text-primary">
-                                                        {order.order_number}
-                                                    </td>
-                                                    <td className="px-5 py-3.5 text-sm font-medium text-text">
-                                                        {order.customer_name}
-                                                    </td>
-                                                    <td className="px-5 py-3.5 text-xs text-slate-500">
-                                                        {order.menu_summary}
-                                                    </td>
-                                                    <td className="px-5 py-3.5 text-sm font-semibold text-text">
-                                                        {order.is_price_pending ? (
-                                                            <span className="inline-flex items-center rounded-full bg-accent-2/10 px-2 py-1 text-xs font-semibold text-accent">
-                                                                Harga menyusul
-                                                            </span>
-                                                        ) : (
-                                                            fmt(
-                                                                order.total_amount,
-                                                            )
-                                                        )}
-                                                    </td>
-                                                    <td className="px-5 py-3.5">
-                                                        <StatusBadge
-                                                            status={
-                                                                order.status
-                                                            }
-                                                        />
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="flex min-h-56 flex-col items-center justify-center px-6 py-10 text-center">
-                                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary">
-                                        <ShoppingBag className="h-5 w-5" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-text">
-                                        Belum ada pesanan terbaru
-                                    </p>
-                                    <p className="mt-1 max-w-sm text-sm text-slate-500">
-                                        Begitu ada pesanan masuk, daftar ini
-                                        akan tampil otomatis di sini.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Top Menu */}
-                        <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)]">
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="text-sm font-semibold text-text">
-                                        Menu Terlaris
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-slate-400">
-                                        Berdasarkan jumlah pesanan
-                                    </p>
-                                </div>
-                                <div className="rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-primary">
-                                    <CalendarDays className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
-                                    Minggu ini
-                                </div>
-                            </div>
-
-                            <div className="mt-5 space-y-4">
-                                {topMenusSafe.length > 0 ? (
-                                    topMenusSafe.map((item, i) => (
-                                        <div key={i}>
-                                            <div className="mb-1.5 flex items-center justify-between gap-3">
-                                                <div className="flex min-w-0 items-center gap-2.5">
-                                                    <span
-                                                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${i === 0 ? 'bg-primary text-white' : 'bg-secondary text-slate-500'}`}
-                                                    >
-                                                        {i + 1}
-                                                    </span>
-                                                    <span className="truncate text-xs leading-tight font-medium text-text">
-                                                        {item.name}
-                                                    </span>
-                                                </div>
-                                                <span className="text-xs font-semibold text-primary">
-                                                    {item.orders}x
-                                                </span>
-                                            </div>
-                                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-700"
-                                                    style={{
-                                                        width: `${item.pct}%`,
-                                                        background:
-                                                            i === 0
-                                                                ? 'var(--color-primary)'
-                                                                : 'color-mix(in srgb, var(--color-primary) 45%, transparent)',
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-5 text-center">
+                    <Deferred
+                        data={['recent_orders', 'top_menus']}
+                        fallback={<DashboardListsSkeleton />}
+                    >
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                            {/* Recent Orders Table */}
+                            <div className="group overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)] lg:col-span-2">
+                                <div className="flex items-center justify-between border-b border-slate-100/80 px-6 py-4">
+                                    <div>
                                         <p className="text-sm font-semibold text-text">
-                                            Belum ada data menu terlaris
+                                            Pesanan Terbaru
                                         </p>
-                                        <p className="mt-1 text-sm text-slate-500">
-                                            Data akan muncul setelah pesanan
-                                            mulai tercatat.
+                                        <p className="text-xs text-slate-400">
+                                            5 pesanan terakhir
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href={admin.pesanan.index.url()}
+                                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                                    >
+                                        Lihat semua →
+                                    </Link>
+                                </div>
+
+                                {recentSafe.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full min-w-120">
+                                            <thead>
+                                                <tr className="border-b border-slate-100 bg-slate-50/60">
+                                                    {[
+                                                        'ID',
+                                                        'Pelanggan',
+                                                        'Menu',
+                                                        'Total',
+                                                        'Status',
+                                                    ].map((h) => (
+                                                        <th
+                                                            key={h}
+                                                            className="px-5 py-3 text-left text-[11px] font-semibold tracking-wider text-slate-400 uppercase"
+                                                        >
+                                                            {h}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {recentSafe.map((order) => (
+                                                    <tr
+                                                        key={order.id}
+                                                        className="transition-colors hover:bg-secondary/40"
+                                                    >
+                                                        <td className="px-5 py-3.5 font-mono text-xs font-semibold text-primary">
+                                                            {order.order_number}
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-sm font-medium text-text">
+                                                            {
+                                                                order.customer_name
+                                                            }
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-xs text-slate-500">
+                                                            {order.menu_summary}
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-sm font-semibold text-text">
+                                                            {order.is_price_pending ? (
+                                                                <span className="inline-flex items-center rounded-full bg-accent-2/10 px-2 py-1 text-xs font-semibold text-accent">
+                                                                    Harga
+                                                                    menyusul
+                                                                </span>
+                                                            ) : (
+                                                                fmt(
+                                                                    order.total_amount,
+                                                                )
+                                                            )}
+                                                        </td>
+                                                        <td className="px-5 py-3.5">
+                                                            <StatusBadge
+                                                                status={
+                                                                    order.status
+                                                                }
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="flex min-h-56 flex-col items-center justify-center px-6 py-10 text-center">
+                                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary">
+                                            <ShoppingBag className="h-5 w-5" />
+                                        </div>
+                                        <p className="text-sm font-semibold text-text">
+                                            Belum ada pesanan terbaru
+                                        </p>
+                                        <p className="mt-1 max-w-sm text-sm text-slate-500">
+                                            Begitu ada pesanan masuk, daftar ini
+                                            akan tampil otomatis di sini.
                                         </p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Quick insight */}
-                            <div className="mt-6 rounded-3xl bg-linear-to-br from-primary/10 via-secondary/70 to-white px-4 py-4 ring-1 ring-primary/10">
-                                <p className="text-[11px] font-semibold text-primary">
-                                    <BadgeCheck className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
-                                    Insight
-                                </p>
-                                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-                                    {topMenusSafe && topMenusSafe.length > 0 ? (
-                                        <>
-                                            {topMenusSafe[0].name} mendominasi{' '}
-                                            <strong className="text-text">
-                                                {topMenusSafe[0].orders} pesanan
-                                            </strong>{' '}
-                                            minggu ini. Pertimbangkan tambah
-                                            stok untuk akhir pekan.
-                                        </>
+                            {/* Top Menu */}
+                            <div className="group rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-34px_rgba(15,23,42,0.52)]">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-text">
+                                            Menu Terlaris
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-slate-400">
+                                            Berdasarkan jumlah pesanan
+                                        </p>
+                                    </div>
+                                    <div className="rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold text-primary">
+                                        <CalendarDays className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
+                                        Minggu ini
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 space-y-4">
+                                    {topMenusSafe.length > 0 ? (
+                                        topMenusSafe.map((item, i) => (
+                                            <div key={i}>
+                                                <div className="mb-1.5 flex items-center justify-between gap-3">
+                                                    <div className="flex min-w-0 items-center gap-2.5">
+                                                        <span
+                                                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${i === 0 ? 'bg-primary text-white' : 'bg-secondary text-slate-500'}`}
+                                                        >
+                                                            {i + 1}
+                                                        </span>
+                                                        <span className="truncate text-xs leading-tight font-medium text-text">
+                                                            {item.name}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold text-primary">
+                                                        {item.orders}x
+                                                    </span>
+                                                </div>
+                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                                    <div
+                                                        className="h-full rounded-full transition-all duration-700"
+                                                        style={{
+                                                            width: `${item.pct}%`,
+                                                            background:
+                                                                i === 0
+                                                                    ? 'var(--color-primary)'
+                                                                    : 'color-mix(in srgb, var(--color-primary) 45%, transparent)',
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))
                                     ) : (
-                                        'Tidak ada data menu terlaris.'
+                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-5 text-center">
+                                            <p className="text-sm font-semibold text-text">
+                                                Belum ada data menu terlaris
+                                            </p>
+                                            <p className="mt-1 text-sm text-slate-500">
+                                                Data akan muncul setelah pesanan
+                                                mulai tercatat.
+                                            </p>
+                                        </div>
                                     )}
-                                </p>
+                                </div>
+
+                                {/* Quick insight */}
+                                <div className="mt-6 rounded-3xl bg-linear-to-br from-primary/10 via-secondary/70 to-white px-4 py-4 ring-1 ring-primary/10">
+                                    <p className="text-[11px] font-semibold text-primary">
+                                        <BadgeCheck className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
+                                        Insight
+                                    </p>
+                                    <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                                        {topMenusSafe &&
+                                        topMenusSafe.length > 0 ? (
+                                            <>
+                                                {topMenusSafe[0].name}{' '}
+                                                mendominasi{' '}
+                                                <strong className="text-text">
+                                                    {topMenusSafe[0].orders}{' '}
+                                                    pesanan
+                                                </strong>{' '}
+                                                minggu ini. Pertimbangkan tambah
+                                                stok untuk akhir pekan.
+                                            </>
+                                        ) : (
+                                            'Tidak ada data menu terlaris.'
+                                        )}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Deferred>
                 </div>
             </AdminLayout>
         </>

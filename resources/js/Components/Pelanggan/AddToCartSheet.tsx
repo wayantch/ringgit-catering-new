@@ -1,10 +1,12 @@
 import { router } from '@inertiajs/react';
-import { Check, Minus, Plus, ShoppingCart, X } from 'lucide-react';
+import { Check, Minus, Plus, ShoppingCart, X, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import Select from '@/Components/UI/Select';
 import { KONDISI_OPTIONS } from '@/constants/kondisiProduk';
 import type { CategoryType, KondisiValue } from '@/constants/kondisiProduk';
 import { alertError } from '@/lib/alert';
+import { checkout } from '@/routes/user';
 import keranjang from '@/routes/user/keranjang';
 import TierPicker from './TierPicker';
 
@@ -60,6 +62,7 @@ interface AddToCartSheetProps {
     initialQuantity?: number | null;
 }
 
+type SubmitAction = 'cart' | 'checkout';
 type TimbangAdatFlow = 'batak' | 'nias' | 'tanpa_adat' | '';
 type BatakPart =
     | 'batak_lengkap'
@@ -93,6 +96,22 @@ const SACRIFICE_PERCENT_OPTIONS = SACRIFICE_PERCENTS.map((percent) => ({
     value: String(percent),
     label: `${percent}%`,
 }));
+
+function resolveImageSrc(image: string | null): string | null {
+    if (!image) {
+        return null;
+    }
+
+    if (
+        image.startsWith('http://') ||
+        image.startsWith('https://') ||
+        image.startsWith('/')
+    ) {
+        return image;
+    }
+
+    return `/storage/${image}`;
+}
 
 function formatCurrency(value: number | null): string {
     if (value === null) {
@@ -239,13 +258,53 @@ function buildSummaryLines(params: {
     return lines.join('\n');
 }
 
+/**
+ * One labelled group of controls. Flat by design: the sheet body separates
+ * fields with hairlines instead of stacking cards inside cards.
+ */
+function Field({
+    step,
+    label,
+    hint,
+    children,
+}: {
+    step?: number;
+    label: string;
+    hint?: string;
+    children: ReactNode;
+}) {
+    return (
+        <section className="py-4 first:pt-0 last:pb-0">
+            <div className="mb-2.5 flex items-baseline gap-2">
+                {step !== undefined && (
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                        {step}
+                    </span>
+                )}
+                <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-text">{label}</h4>
+                    {hint && (
+                        <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                            {hint}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {children}
+        </section>
+    );
+}
+
 function OptionChips({
+    step,
     label,
     helperText,
     options,
     value,
     onChange,
 }: {
+    step?: number;
     label: string;
     helperText?: string;
     options: Array<{ value: string; label: string }>;
@@ -253,19 +312,8 @@ function OptionChips({
     onChange: (value: string) => void;
 }) {
     return (
-        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-            <div className="mb-3">
-                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                    {label}
-                </p>
-                {helperText && (
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                        {helperText}
-                    </p>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <Field step={step} label={label} hint={helperText}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {options.map((option) => {
                     const active = value === option.value;
 
@@ -274,10 +322,10 @@ function OptionChips({
                             key={option.value}
                             type="button"
                             onClick={() => onChange(option.value)}
-                            className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition-all duration-150 ${
+                            className={`rounded-xl border px-3 py-2.5 text-sm transition ${
                                 active
-                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
-                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                                    ? 'border-primary bg-primary font-semibold text-white'
+                                    : 'border-slate-200 text-slate-600 hover:border-primary/40'
                             }`}
                         >
                             {option.label}
@@ -285,11 +333,12 @@ function OptionChips({
                     );
                 })}
             </div>
-        </section>
+        </Field>
     );
 }
 
 function MultiSelectChips({
+    step,
     label,
     helperText,
     options,
@@ -297,6 +346,7 @@ function MultiSelectChips({
     onToggle,
     disableOthersWhenComplete,
 }: {
+    step?: number;
     label: string;
     helperText?: string;
     options: Array<{ value: string; label: string }>;
@@ -307,19 +357,8 @@ function MultiSelectChips({
     const isComplete = value.includes('batak_lengkap');
 
     return (
-        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-            <div className="mb-3">
-                <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                    {label}
-                </p>
-                {helperText && (
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                        {helperText}
-                    </p>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <Field step={step} label={label} hint={helperText}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {options.map((option) => {
                     const active = value.includes(option.value);
                     const disabled =
@@ -335,50 +374,54 @@ function MultiSelectChips({
                             type="button"
                             disabled={disabled}
                             onClick={() => onToggle(option.value)}
-                            className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
+                            className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition disabled:cursor-not-allowed disabled:opacity-40 ${
                                 active
-                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
-                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                                    ? 'border-primary bg-primary font-semibold text-white'
+                                    : 'border-slate-200 text-slate-600 hover:border-primary/40'
                             }`}
                         >
+                            {active && <Check className="size-3.5" />}
                             {option.label}
                         </button>
                     );
                 })}
             </div>
-        </section>
+        </Field>
     );
 }
 
 function WeightAdjuster({
+    step,
     value,
     minValue,
     maxValue,
     onChange,
 }: {
+    step?: number;
     value: number;
     minValue: number;
     maxValue: number | null;
     onChange: (value: number) => void;
 }) {
     return (
-        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+        <Field
+            step={step}
+            label="Berat pesanan"
+            hint={
+                maxValue !== null
+                    ? `Bisa diatur ${formatKg(minValue)} sampai ${formatKg(maxValue)}.`
+                    : `Minimal ${formatKg(minValue)}.`
+            }
+        >
             <div className="flex items-center justify-between gap-4">
-                <div>
-                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                        Berat pesanan
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-text">
-                        Atur bobot untuk pesanan timbang hidup
-                    </p>
-                </div>
+                <span className="text-sm text-slate-500">Jumlah</span>
 
-                <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
+                <div className="flex items-center rounded-xl border border-slate-200 p-1">
                     <button
                         type="button"
                         onClick={() => onChange(Math.max(minValue, value - 1))}
                         disabled={value <= minValue}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
+                        className="flex size-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
                     >
                         <Minus className="size-4" />
                     </button>
@@ -396,13 +439,13 @@ function WeightAdjuster({
                             )
                         }
                         disabled={maxValue !== null && value >= maxValue}
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
+                        className="flex size-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
                     >
                         <Plus className="size-4" />
                     </button>
                 </div>
             </div>
-        </section>
+        </Field>
     );
 }
 
@@ -431,7 +474,8 @@ export default function AddToCartSheet({
     const [panggangPercent, setPanggangPercent] = useState<number>(75);
     const [remainderText, setRemainderText] = useState<string>('');
     const [legacyNotes, setLegacyNotes] = useState<string>('');
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [submittingAction, setSubmittingAction] =
+        useState<SubmitAction | null>(null);
 
     useEffect(() => {
         if (!isOpen || !item) {
@@ -588,6 +632,29 @@ export default function AddToCartSheet({
         return selectedVariant?.harga ?? item.min_price ?? null;
     }, [item, kondisiProduk, selectedVariant]);
 
+    // Escape closes the overlay, and the page behind it must not scroll while
+    // the sheet or modal is open.
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent): void => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
+
     useEffect(() => {
         if (!item || item.menu_type !== 'timbang_hidup' || !selectedTier) {
             return;
@@ -695,25 +762,123 @@ export default function AddToCartSheet({
             ? Number((selectedTierPrice * quantity).toFixed(2))
             : null;
 
-    const submit = async (): Promise<void> => {
-        if (!item || isSubmitting) {
+    const thumbnailSrc = item ? resolveImageSrc(item.image) : null;
+
+    // Steps are numbered by what is actually on screen, so hidden sections
+    // never leave a gap in the sequence.
+    const stepNumbers = useMemo<Record<string, number>>(() => {
+        if (!item) {
+            return {};
+        }
+
+        const order: string[] = [];
+
+        if (item.menu_type === 'timbang_hidup') {
+            order.push('kondisi');
+
+            if (item.tiers.length > 0) {
+                order.push('tier');
+            }
+
+            if (selectedTier) {
+                order.push('berat');
+
+                if (shouldShowAdatOptions) {
+                    order.push('adat');
+
+                    if (adatFlow === 'batak' || adatFlow === 'nias') {
+                        order.push('adatDetail');
+                    }
+
+                    if (adatFlow) {
+                        order.push('sisa');
+                    }
+                }
+            }
+        }
+
+        if (item.menu_type === 'eceran' && item.sub_type === 'babi_adat') {
+            order.push('kondisiEceran');
+        }
+
+        order.push('catatan');
+
+        return Object.fromEntries(order.map((key, index) => [key, index + 1]));
+    }, [adatFlow, item, selectedTier, shouldShowAdatOptions]);
+
+    const priceLabel =
+        item?.menu_type === 'timbang_hidup' && selectedTier
+            ? 'Estimasi total'
+            : 'Harga';
+
+    const priceValue =
+        item?.menu_type === 'timbang_hidup'
+            ? selectedTier
+                ? formatCurrency(estimatedTierTotal)
+                : null
+            : formatCurrency(displayedEceranPrice);
+
+    /** The one thing the customer still has to do before checking out. */
+    const blockingStep = useMemo<string | null>(() => {
+        if (!item || item.menu_type !== 'timbang_hidup') {
+            return null;
+        }
+
+        if (!selectedTier) {
+            return 'Pilih range berat dulu';
+        }
+
+        if (selectedTier.is_half || isAdatSelectionComplete) {
+            return null;
+        }
+
+        if (!adatFlow) {
+            return 'Pilih adat dulu';
+        }
+
+        if (adatFlow === 'batak' && selectedBatakParts.length === 0) {
+            return 'Pilih detail Batak';
+        }
+
+        if (adatFlow === 'nias' && selectedNiasParts.length === 0) {
+            return 'Pilih wilayah Nias';
+        }
+
+        if (isBatakTotalOverLimit) {
+            return 'Saksang + panggang melebihi 100%';
+        }
+
+        return 'Lengkapi pembagian sisa daging';
+    }, [
+        adatFlow,
+        isAdatSelectionComplete,
+        isBatakTotalOverLimit,
+        item,
+        selectedBatakParts.length,
+        selectedNiasParts.length,
+        selectedTier,
+    ]);
+
+    const isSubmitting = submittingAction !== null;
+
+    const isReadyToSubmit =
+        item !== null &&
+        (item.menu_type !== 'timbang_hidup' ||
+            (selectedTier !== null &&
+                (selectedTier.is_half || isAdatSelectionComplete)));
+
+    /**
+     * Both footer actions store the row the same way. "checkout" then walks
+     * straight on to the checkout page so the cart step can be skipped.
+     */
+    const isDisabled = isSubmitting || !isReadyToSubmit;
+
+    const submit = async (action: SubmitAction): Promise<void> => {
+        if (!item || isSubmitting || !isReadyToSubmit) {
             return;
         }
 
-        if (item.menu_type === 'timbang_hidup' && !selectedTier) {
-            return;
-        }
-
-        if (
-            item.menu_type === 'timbang_hidup' &&
-            selectedTier &&
-            !selectedTier.is_half &&
-            !isAdatSelectionComplete
-        ) {
-            return;
-        }
-
-        setIsSubmitting(true);
+        setSubmittingAction(action);
 
         const computedPortion =
             item.menu_type === 'timbang_hidup' && selectedTier
@@ -742,6 +907,12 @@ export default function AddToCartSheet({
         router.post(keranjang.store(), payload, {
             preserveScroll: true,
             onSuccess: () => {
+                if (action === 'checkout') {
+                    router.visit(checkout());
+
+                    return;
+                }
+
                 onClose();
             },
             onError: (errors) => {
@@ -749,7 +920,7 @@ export default function AddToCartSheet({
                 console.error('Add to cart validation failed', errors);
             },
             onFinish: () => {
-                setIsSubmitting(false);
+                setSubmittingAction(null);
             },
         });
     };
@@ -758,52 +929,70 @@ export default function AddToCartSheet({
         return null;
     }
 
-    const selectedSummaryLabel =
-        item.menu_type === 'timbang_hidup' && !selectedTier
-            ? 'Pilih range dulu'
-            : item.menu_type === 'timbang_hidup'
-              ? kondisiProduk === 'mateng'
-                  ? 'Matang'
-                  : 'Mentah'
-              : 'Pilih kondisi';
-
     return (
-        <div className="fixed inset-0 z-60">
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Atur pesanan ${item.name}`}
+            className="fixed inset-0 z-60 flex items-end justify-center sm:items-center sm:p-6"
+        >
             <button
                 type="button"
                 aria-label="Tutup"
-                className="absolute inset-0 bg-black/40"
+                className="absolute inset-0 bg-slate-900/50 sm:bg-slate-900/40"
                 onClick={onClose}
             />
 
-            <div className="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-2xl rounded-t-[28px] border border-black/5 bg-[#f7f5ef] shadow-[0_-20px_60px_rgba(15,23,42,0.18)]">
-                <div className="flex items-start justify-between gap-4 border-b border-black/5 px-4 py-4 sm:px-6">
-                    <div className="min-w-0">
-                        <p className="text-[11px] font-semibold tracking-[0.22em] text-slate-400 uppercase">
-                            Tambah ke keranjang
-                        </p>
-                        <h3 className="mt-1 truncate text-lg font-semibold text-text sm:text-xl">
-                            {item.name}
-                        </h3>
-                        <p className="mt-1 line-clamp-3 text-xs text-slate-500">
-                            {item.description ||
-                                'Lengkapi detail pesanan sebelum melanjutkan.'}
-                        </p>
+            {/* Mobile: sheet anchored to the bottom edge. From `sm`: a centred
+                dialog. Header and footer stay put; only the body scrolls. */}
+            <div className="relative flex max-h-[92svh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_-20px_60px_rgba(15,23,42,0.18)] sm:max-h-[85svh] sm:max-w-xl sm:rounded-3xl sm:shadow-2xl lg:max-w-2xl">
+                <div className="shrink-0 border-b border-slate-100">
+                    {/* Grab affordance, mobile only. */}
+                    <div className="flex justify-center pt-2.5 sm:hidden">
+                        <span
+                            aria-hidden="true"
+                            className="h-1 w-10 rounded-full bg-slate-300"
+                        />
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-black/5 bg-white text-slate-500 transition hover:text-text"
-                    >
-                        <X className="size-4" />
-                    </button>
+
+                    <div className="flex items-start gap-3 px-4 py-3.5 sm:gap-4 sm:px-6 sm:py-4">
+                        {/* The thumbnail is desktop-only: on mobile the vertical
+                            space is better spent on the options themselves. */}
+                        {thumbnailSrc && (
+                            <img
+                                src={thumbnailSrc}
+                                alt=""
+                                className="hidden size-16 shrink-0 rounded-xl object-cover sm:block"
+                            />
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                            <h3 className="truncate text-base font-semibold text-text sm:text-lg">
+                                {item.name}
+                            </h3>
+                            <p className="mt-0.5 line-clamp-2 text-xs text-slate-500 sm:text-sm">
+                                {item.description ||
+                                    'Lengkapi detail pesanan sebelum melanjutkan.'}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            aria-label="Tutup"
+                            className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-text"
+                        >
+                            <X className="size-4" />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="max-h-[calc(100vh-120px)] space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
+                <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto px-4 sm:px-6">
                     {item.menu_type === 'timbang_hidup' && (
                         <OptionChips
-                            label="Pilih kondisi"
-                            helperText="Pilih kondisi daging sebelum memilih range berat."
+                            step={stepNumbers.kondisi}
+                            label="Kondisi daging"
+                            helperText="Mentah atau sudah dimasak."
                             options={kondisiOptions.map((opt) => ({
                                 value: opt.value,
                                 label: `${opt.emoji} ${opt.label}`,
@@ -818,8 +1007,9 @@ export default function AddToCartSheet({
                     {item.menu_type === 'timbang_hidup' &&
                         item.tiers.length > 0 && (
                             <TierPicker
-                                label="Pilih range berat"
-                                helperText="Pilih range yang tersedia sebelum mengatur berat pesanan."
+                                step={stepNumbers.tier}
+                                label="Range berat"
+                                helperText="Harga mengikuti range yang kamu pilih."
                                 options={item.tiers.map((tier) => ({
                                     id: tier.id,
                                     title: formatTierRange(tier),
@@ -829,10 +1019,6 @@ export default function AddToCartSheet({
                                             ? tier.harga_matang
                                             : tier.harga_mentah,
                                     ),
-                                    meta:
-                                        tier.berat_max !== null
-                                            ? `${formatKg(tier.berat_min)}-${formatKg(tier.berat_max)}`
-                                            : `${formatKg(tier.berat_min)}+`,
                                 }))}
                                 value={selectedTierId}
                                 onChange={setSelectedTierId}
@@ -842,14 +1028,16 @@ export default function AddToCartSheet({
                     {item.menu_type === 'timbang_hidup' &&
                         !selectedTier &&
                         item.tiers.length === 0 && (
-                            <section className="rounded-[28px] border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-500 shadow-sm">
-                                Tier berat belum tersedia dari admin.
-                            </section>
+                            <p className="py-4 text-sm text-slate-500">
+                                Range berat untuk menu ini belum tersedia.
+                                Hubungi kami untuk memesan.
+                            </p>
                         )}
 
                     {item.menu_type === 'timbang_hidup' && selectedTier && (
                         <div className="space-y-3">
                             <WeightAdjuster
+                                step={stepNumbers.berat}
                                 value={quantity}
                                 minValue={
                                     selectedTierQuantityBounds?.min ?? 0.5
@@ -863,73 +1051,20 @@ export default function AddToCartSheet({
                     )}
 
                     {item.menu_type === 'timbang_hidup' && !selectedTier && (
-                        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                            <p className="text-sm font-medium text-text">
-                                Pilih range terlebih dahulu untuk membuka
-                                pengaturan kondisi.
-                            </p>
-                        </section>
+                        <p className="py-4 text-sm text-slate-500">
+                            Pilih range berat dulu untuk membuka pengaturan
+                            berikutnya.
+                        </p>
                     )}
-
-                    <section className="sticky top-0 z-20 rounded-[20px] border border-black/5 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-4">
-                        <div className="grid gap-3 sm:grid-cols-[1.2fr_0.8fr] sm:items-start sm:gap-4">
-                            <div>
-                                <p className="text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase sm:text-[11px] sm:tracking-[0.2em]">
-                                    Ringkasan menu
-                                </p>
-                                {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier && (
-                                        <div className="mt-1 block text-xs text-slate-500">
-                                            Range kg dari admin untuk tier ini:{' '}
-                                            {formatTierRange(selectedTier)}
-                                        </div>
-                                    )}
-                                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {item.menu_type === 'timbang_hidup'
-                                            ? 'Timbang hidup'
-                                            : (item.sub_type?.replace(
-                                                  '_',
-                                                  ' ',
-                                              ) ?? 'Eceran')}
-                                    </span>
-                                    <span className="hidden rounded-full bg-[#fbfaf6] px-3 py-1 font-medium text-text">
-                                        {item.menu_type === 'timbang_hidup'
-                                            ? `${item.tiers.length} Opsi`
-                                            : `${item.variants.length} varian`}
-                                    </span>
-                                    {item.menu_type === 'timbang_hidup' && (
-                                        <span className="hidden rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
-                                            Kondisi {selectedSummaryLabel}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="rounded-2xl bg-[#fbfaf6] p-3 sm:p-4">
-                                <p className="text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase sm:text-[11px] sm:tracking-[0.2em]">
-                                    {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier
-                                        ? 'Estimasi harga'
-                                        : 'Harga mulai'}
-                                </p>
-                                <p className="mt-1 text-base font-semibold text-primary sm:text-lg">
-                                    {item.menu_type === 'timbang_hidup' &&
-                                    selectedTier
-                                        ? formatCurrency(estimatedTierTotal)
-                                        : formatCurrency(displayedEceranPrice)}
-                                </p>
-                            </div>
-                        </div>
-                    </section>
 
                     {item.menu_type === 'timbang_hidup' &&
                         selectedTier &&
                         shouldShowAdatOptions && (
                             <>
                                 <OptionChips
-                                    label="Pilih adat"
-                                    helperText="Pilih adat (mis. Batak, Nias, atau lainnya) setelah memilih range."
+                                    step={stepNumbers.adat}
+                                    label="Adat"
+                                    helperText="Menentukan cara daging dibagi."
                                     options={[
                                         { value: 'batak', label: 'Batak' },
                                         { value: 'nias', label: 'Nias' },
@@ -955,8 +1090,9 @@ export default function AddToCartSheet({
 
                                 {adatFlow === 'batak' && (
                                     <MultiSelectChips
-                                        label="Detail Batak"
-                                        helperText="Pilih satu atau beberapa. Jika Lengkap dipilih, opsi lain akan dinonaktifkan."
+                                        step={stepNumbers.adatDetail}
+                                        label="Bagian Batak"
+                                        helperText="Pilih satu atau beberapa. Memilih Lengkap menonaktifkan sisanya."
                                         options={BATAK_PARTS}
                                         value={selectedBatakParts}
                                         onToggle={(value) =>
@@ -970,8 +1106,9 @@ export default function AddToCartSheet({
 
                                 {adatFlow === 'nias' && (
                                     <OptionChips
-                                        label="Detail Nias"
-                                        helperText="Pilih satu wilayah adat saja."
+                                        step={stepNumbers.adatDetail}
+                                        label="Wilayah Nias"
+                                        helperText="Pilih satu wilayah."
                                         options={NIAS_PARTS}
                                         value={selectedNiasParts[0] ?? null}
                                         onChange={(value) =>
@@ -981,17 +1118,11 @@ export default function AddToCartSheet({
                                 )}
 
                                 {adatFlow && (
-                                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                                        <div className="mb-3">
-                                            <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                                Sisa daging
-                                            </p>
-                                            <p className="mt-1 text-sm font-medium text-text">
-                                                Atur pembagian sisa daging
-                                                setelah adat dipilih
-                                            </p>
-                                        </div>
-
+                                    <Field
+                                        step={stepNumbers.sisa}
+                                        label="Pembagian sisa daging"
+                                        hint="Bagian yang tidak terpakai adat mau diolah jadi apa."
+                                    >
                                         {adatFlow === 'batak' && (
                                             <div className="space-y-4">
                                                 <div className="grid gap-3 sm:grid-cols-2">
@@ -1138,7 +1269,7 @@ export default function AddToCartSheet({
                                                 </div>
                                             </div>
                                         )}
-                                    </section>
+                                    </Field>
                                 )}
                             </>
                         )}
@@ -1146,60 +1277,35 @@ export default function AddToCartSheet({
                     {item.menu_type === 'timbang_hidup' &&
                         selectedTier &&
                         !shouldShowAdatOptions && (
-                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                                <p className="text-sm font-medium text-text">
-                                    Tier {selectedTier.kode} adalah setengah
-                                    ekor, jadi opsi adat tidak ditampilkan.
-                                </p>
-                            </section>
+                            <p className="py-4 text-sm text-slate-500">
+                                Range ini setengah ekor, jadi tidak perlu
+                                memilih adat.
+                            </p>
                         )}
 
                     {/* Eceran subtype info cards */}
                     {item.menu_type === 'eceran' &&
                         item.sub_type === 'paket_pass' && (
-                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                                <div className="mb-2">
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                        Isi Paket
+                            <Field
+                                label="Isi paket"
+                                hint={item.bundle_desc ?? undefined}
+                            >
+                                {item.free_ongkir_km ? (
+                                    <p className="text-sm text-slate-500">
+                                        Gratis ongkir sampai{' '}
+                                        {item.free_ongkir_km} km.
                                     </p>
-                                    <p className="mt-1 text-sm text-slate-600">
-                                        {item.bundle_desc}
-                                    </p>
-                                </div>
-                                <div className="mt-3 flex items-center justify-between gap-4 rounded-2xl bg-[#fbfaf6] p-3 text-sm">
-                                    <div>
-                                        <p className="text-xs text-slate-500">
-                                            Harga
-                                        </p>
-                                        <p className="font-semibold text-primary">
-                                            {formatCurrency(
-                                                item.variants[0]?.harga ??
-                                                    item.min_price,
-                                            )}
-                                        </p>
-                                    </div>
-                                    {item.free_ongkir_km ? (
-                                        <div className="text-sm text-slate-500">
-                                            🚚 Free ongkir {item.free_ongkir_km}{' '}
-                                            km
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </section>
+                                ) : null}
+                            </Field>
                         )}
 
                     {item.menu_type === 'eceran' &&
                         item.sub_type === 'babi_adat' && (
-                            <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                                <div className="mb-3">
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                        Kondisi produk
-                                    </p>
-                                    <p className="mt-1 text-sm font-medium text-text">
-                                        Pilih jenis penjualan untuk menu eceran
-                                    </p>
-                                </div>
-
+                            <Field
+                                step={stepNumbers.kondisiEceran}
+                                label="Kondisi produk"
+                                hint="Pilih jenis penjualan."
+                            >
                                 <div className="grid grid-cols-2 gap-2">
                                     {kondisiOptions.map((opt) => (
                                         <button
@@ -1211,27 +1317,24 @@ export default function AddToCartSheet({
                                                 );
                                                 setAdatType('');
                                             }}
-                                            className={`flex items-center justify-center gap-2 rounded-2xl border-2 py-3 text-sm font-semibold transition-all duration-150 ${
+                                            className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm transition ${
                                                 kondisiProduk === opt.value
-                                                    ? 'border-primary bg-primary text-white shadow-[0_4px_14px_-4px_rgba(122,143,107,0.5)]'
-                                                    : 'border-slate-200 bg-white text-slate-600 hover:border-primary/30 hover:bg-secondary/60'
+                                                    ? 'border-primary bg-primary font-semibold text-white'
+                                                    : 'border-slate-200 text-slate-600 hover:border-primary/40'
                                             }`}
                                         >
-                                            <span>{opt.emoji}</span>
                                             {opt.label}
                                         </button>
                                     ))}
                                 </div>
-                            </section>
+                            </Field>
                         )}
 
-                    <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
-                        <label
-                            htmlFor="notes"
-                            className="mb-2 block text-sm font-semibold text-text"
-                        >
-                            Catatan tambahan
-                        </label>
+                    <Field
+                        step={stepNumbers.catatan}
+                        label="Catatan tambahan"
+                        hint="Opsional."
+                    >
                         <textarea
                             id="notes"
                             name="notes"
@@ -1239,25 +1342,20 @@ export default function AddToCartSheet({
                             onChange={(event) =>
                                 setLegacyNotes(event.target.value)
                             }
-                            rows={3}
-                            className="w-full rounded-2xl border border-black/5 bg-[#fbfaf6] px-4 py-3 text-sm transition outline-none focus:border-primary/30"
+                            rows={2}
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm transition outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                             placeholder="Contoh: potong kecil, kemasan terpisah"
                         />
-                    </section>
+                    </Field>
 
                     {item.menu_type === 'eceran' && (
-                        <section className="rounded-[28px] border border-black/5 bg-white p-4 shadow-sm">
+                        <Field label="Jumlah">
                             <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <p className="text-[11px] font-semibold tracking-[0.2em] text-slate-400 uppercase">
-                                        Qty
-                                    </p>
-                                    <p className="mt-1 text-sm font-medium text-text">
-                                        Atur jumlah pesanan
-                                    </p>
-                                </div>
+                                <span className="text-sm text-slate-500">
+                                    Porsi
+                                </span>
 
-                                <div className="flex items-center rounded-full border border-black/5 bg-[#fbfaf6] p-1 shadow-sm">
+                                <div className="flex items-center rounded-xl border border-slate-200 p-1">
                                     <button
                                         type="button"
                                         onClick={() =>
@@ -1266,7 +1364,7 @@ export default function AddToCartSheet({
                                             )
                                         }
                                         disabled={quantity <= 1}
-                                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-300"
+                                        className="flex size-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
                                     >
                                         <Minus className="size-4" />
                                     </button>
@@ -1278,42 +1376,67 @@ export default function AddToCartSheet({
                                         onClick={() =>
                                             setQuantity((prev) => prev + 1)
                                         }
-                                        className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-white"
+                                        className="flex size-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
                                     >
                                         <Plus className="size-4" />
                                     </button>
                                 </div>
                             </div>
-
-                            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-[#fbfaf6] px-3 py-2 text-xs text-slate-500">
-                                <Check className="h-4 w-4 text-emerald-600" />
-                                Jumlah dapat disesuaikan sebelum menyimpan
-                                pesanan.
-                            </div>
-                        </section>
+                        </Field>
                     )}
+                </div>
 
-                    <div className="sticky bottom-0 -mx-4 border-t border-black/5 bg-[#f7f5ef] px-4 py-4 sm:-mx-6 sm:px-6">
+                <div className="shrink-0 space-y-3 border-t border-slate-100 bg-white px-4 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-4 sm:pb-4">
+                    <div className="flex items-end justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-xs text-slate-500">
+                                {priceLabel}
+                            </p>
+                            <p className="truncate text-lg font-semibold text-text">
+                                {priceValue ?? 'Belum dihitung'}
+                            </p>
+                        </div>
+
+                        {blockingStep && (
+                            <p className="shrink-0 text-right text-xs font-medium text-amber-600">
+                                {blockingStep}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex items-stretch gap-2">
                         <button
                             type="button"
-                            onClick={submit}
-                            disabled={
-                                isSubmitting ||
-                                (item.menu_type === 'timbang_hidup' &&
-                                    !selectedTier) ||
-                                Boolean(
-                                    item.menu_type === 'timbang_hidup' &&
-                                    selectedTier &&
-                                    !selectedTier.is_half &&
-                                    !isAdatSelectionComplete,
-                                )
-                            }
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                            onClick={() => submit('cart')}
+                            disabled={isDisabled}
+                            aria-label="Tambah ke keranjang"
+                            title="Tambah ke keranjang"
+                            className="inline-flex w-14 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-white text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-300"
                         >
-                            <ShoppingCart className="h-4 w-4" />
-                            {isSubmitting
-                                ? 'Menyimpan...'
-                                : 'Tambah ke keranjang'}
+                            {submittingAction === 'cart' ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                            ) : (
+                                <ShoppingCart className="h-5 w-5" />
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => submit('checkout')}
+                            disabled={isDisabled}
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+                        >
+                            {submittingAction === 'checkout' ? (
+                                <>
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                    Memproses...
+                                </>
+                            ) : (
+                                <>
+                                    <Zap className="h-4 w-4" />
+                                    Beli Sekarang
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

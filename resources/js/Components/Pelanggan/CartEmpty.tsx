@@ -4,21 +4,21 @@ import { menu } from '@/routes/user';
 
 export default function CartEmpty() {
     return (
-        <div className="flex flex-col items-center justify-center rounded-[28px] border border-white/70 bg-white/90 px-6 py-14 text-center shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm sm:px-8 sm:py-16">
-            <div className="flex h-20 w-20 items-center justify-center rounded-[28px] bg-primary/10 ring-1 ring-primary/10">
-                <ShoppingCart className="h-10 w-10 text-primary/40" />
-            </div>
-            <h2 className="mt-4 text-lg font-semibold text-text">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+            <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+                <ShoppingCart className="size-6 text-primary" />
+            </span>
+            <p className="mt-4 text-sm font-medium text-text">
                 Keranjang kamu kosong
-            </h2>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                Yuk mulai pilih menu favoritmu.
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+                Pilih menu untuk mulai memesan.
             </p>
             <Link
                 href={menu()}
-                className="mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-600"
+                className="mt-4 inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-600"
             >
-                Lihat Menu
+                Lihat menu
             </Link>
         </div>
     );

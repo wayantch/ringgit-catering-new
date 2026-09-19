@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import {
     BadgeCheck,
     LayoutGrid,
+    Maximize2,
     Sparkles,
     ShoppingBag,
     Users,
@@ -10,11 +11,13 @@ import { useMemo, useState } from 'react';
 import type { CustomerSummary } from '@/Components/Admin/Pesanan/Kasir/CustomerSection';
 import ItemDetailSheet from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
 import type { ItemDetailPayload } from '@/Components/Admin/Pesanan/Kasir/ItemDetailSheet';
+import KasirModeBar from '@/Components/Admin/Pesanan/Kasir/KasirModeBar';
 import MenuPicker from '@/Components/Admin/Pesanan/Kasir/MenuPicker';
 import type { OrderItemSummary } from '@/Components/Admin/Pesanan/Kasir/MenuPicker';
 import type { MenuPickerCardItem } from '@/Components/Admin/Pesanan/Kasir/MenuPickerCard';
 import type { OrderItemRowData } from '@/Components/Admin/Pesanan/Kasir/OrderItemRow';
 import OrderSummaryPanel from '@/Components/Admin/Pesanan/Kasir/OrderSummaryPanel';
+import { useKasirMode } from '@/hooks/useKasirMode';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { alertError } from '@/lib/alert';
 import admin from '@/routes/admin';
@@ -128,6 +131,7 @@ export default function Create({ menuItems, customers }: Props) {
     const [mobileTab, setMobileTab] = useState<MobileTab>('menu');
     const [processing, setProcessing] = useState(false);
     const [formErrors, setFormErrors] = useState<FormErrorMap>({});
+    const kasirMode = useKasirMode();
 
     const calculation = useMemo(() => {
         if (orderItems.some((item) => item.price === null)) {
@@ -403,73 +407,107 @@ export default function Create({ menuItems, customers }: Props) {
         <AdminLayout>
             <Head title="Input Pesanan Kasir" />
 
-            <div className="min-h-screen bg-slate-50/70">
-                <div className="flex w-full flex-col gap-6 p-4">
-                    <section className="relative overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_30px_30px_-48px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
-                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
-                        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                            <div className="max-w-3xl space-y-4">
-                                <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-primary uppercase">
-                                    <Sparkles className="size-3.5" />
-                                    Input Pesanan Kasir
-                                </div>
-                                <div className="space-y-3">
-                                    <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl lg:text-5xl">
-                                        Buat pesanan
-                                    </h1>
-                                    <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-                                        Pilih menu, atur detail pelanggan, lalu
-                                        tinjau ringkasan sebelum pesanan
-                                        dikirim.
-                                    </p>
-                                </div>
-                            </div>
+            <div
+                className={
+                    kasirMode.isActive
+                        ? 'fixed inset-0 z-55 flex flex-col bg-slate-100'
+                        : 'min-h-screen bg-slate-50/70'
+                }
+            >
+                {kasirMode.isActive && (
+                    <KasirModeBar
+                        itemCount={orderItems.length}
+                        total={calculation.total}
+                        isPending={calculation.isPending}
+                        customerTypeLabel={customerTypeLabel}
+                        paymentMethodLabel={paymentMethodLabel}
+                        isFullscreen={kasirMode.isFullscreen}
+                        onExit={kasirMode.exit}
+                    />
+                )}
 
-                            <div className="grid gap-3 sm:grid-cols-3 lg:w-140">
-                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
-                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                        Menu Dipilih
-                                    </p>
-                                    <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
-                                        {orderItems.length}
-                                    </p>
-                                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                                        <ShoppingBag className="size-3.5 text-primary" />
-                                        Item aktif
+                <div
+                    className={
+                        kasirMode.isActive
+                            ? 'flex min-h-0 w-full flex-1 flex-col gap-3 p-3'
+                            : 'flex w-full flex-col gap-6 p-4'
+                    }
+                >
+                    {!kasirMode.isActive && (
+                        <section className="relative overflow-hidden rounded-4xl border border-white/70 bg-linear-to-br from-white via-[#fbfcf8] to-primary/10 p-6 shadow-[0_30px_30px_-48px_rgba(15,23,42,0.55)] sm:p-7 lg:p-8">
+                            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(122,143,107,0.16),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(165,180,252,0.12),transparent_28%)]" />
+                            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="max-w-3xl space-y-4">
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[11px] font-semibold tracking-[0.18em] text-primary uppercase">
+                                        <Sparkles className="size-3.5" />
+                                        Input Pesanan Kasir
                                     </div>
-                                </div>
-                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
-                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                        Mode Pelanggan
-                                    </p>
-                                    <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
-                                        {customerTypeLabel ===
-                                        'Pelanggan terdaftar'
-                                            ? 'Terdaftar'
-                                            : 'Walk-in'}
-                                    </p>
-                                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                                        <Users className="size-3.5 text-primary" />
-                                        {customerTypeLabel}
+                                    <div className="space-y-3">
+                                        <h1 className="text-3xl font-semibold tracking-tight text-text sm:text-4xl lg:text-5xl">
+                                            Buat pesanan
+                                        </h1>
+                                        <p className="max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                                            Pilih menu, atur detail pelanggan,
+                                            lalu tinjau ringkasan sebelum
+                                            pesanan dikirim.
+                                        </p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={kasirMode.enter}
+                                        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-600"
+                                    >
+                                        <Maximize2 className="size-4" />
+                                        Buka Mode Kasir
+                                    </button>
                                 </div>
-                                <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
-                                    <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
-                                        Pembayaran
-                                    </p>
-                                    <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
-                                        {paymentMethodLabel}
-                                    </p>
-                                    <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                                        <BadgeCheck className="size-3.5 text-primary" />
-                                        {paymentMethod === 'full'
-                                            ? 'Bayar lunas'
-                                            : 'Bayar DP'}
+
+                                <div className="grid gap-3 sm:grid-cols-3 lg:w-140">
+                                    <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                        <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Menu Dipilih
+                                        </p>
+                                        <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
+                                            {orderItems.length}
+                                        </p>
+                                        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                                            <ShoppingBag className="size-3.5 text-primary" />
+                                            Item aktif
+                                        </div>
+                                    </div>
+                                    <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                        <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Mode Pelanggan
+                                        </p>
+                                        <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
+                                            {customerTypeLabel ===
+                                            'Pelanggan terdaftar'
+                                                ? 'Terdaftar'
+                                                : 'Walk-in'}
+                                        </p>
+                                        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                                            <Users className="size-3.5 text-primary" />
+                                            {customerTypeLabel}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm backdrop-blur">
+                                        <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
+                                            Pembayaran
+                                        </p>
+                                        <p className="mt-2 text-2xl font-semibold tracking-tight text-text">
+                                            {paymentMethodLabel}
+                                        </p>
+                                        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
+                                            <BadgeCheck className="size-3.5 text-primary" />
+                                            {paymentMethod === 'full'
+                                                ? 'Bayar lunas'
+                                                : 'Bayar DP'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
 
                     <div className="lg:hidden">
                         <div className="flex rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-100">
@@ -492,11 +530,23 @@ export default function Create({ menuItems, customers }: Props) {
                         </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-start">
+                    <div
+                        className={
+                            kasirMode.isActive
+                                ? 'grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_480px]'
+                                : 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-start'
+                        }
+                    >
                         <div
-                            className={`${mobileTab !== 'menu' ? 'hidden lg:block' : ''}`}
+                            className={`${mobileTab !== 'menu' ? 'hidden lg:block' : ''} ${kasirMode.isActive ? 'min-h-0' : ''}`}
                         >
-                            <div className="rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+                            <div
+                                className={
+                                    kasirMode.isActive
+                                        ? 'h-full overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm'
+                                        : 'rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto'
+                                }
+                            >
                                 <MenuPicker
                                     menuItems={menuItems}
                                     orderItems={selectedSummaryItems}
@@ -506,9 +556,15 @@ export default function Create({ menuItems, customers }: Props) {
                         </div>
 
                         <div
-                            className={`${mobileTab !== 'summary' ? 'hidden lg:block' : ''}`}
+                            className={`${mobileTab !== 'summary' ? 'hidden lg:block' : ''} ${kasirMode.isActive ? 'min-h-0' : ''}`}
                         >
-                            <div className="rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+                            <div
+                                className={
+                                    kasirMode.isActive
+                                        ? 'h-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'
+                                        : 'rounded-[28px] border border-white/70 bg-white/90 p-4 shadow-[0_18px_48px_-30px_rgba(15,23,42,0.45)] ring-1 ring-black/5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto'
+                                }
+                            >
                                 <OrderSummaryPanel
                                     customers={customers}
                                     customerType={customerType}
