@@ -8,13 +8,6 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\Services\Pelanggan\PesananService;
 
-beforeEach(function (): void {
-    config()->set('database.default', 'mysql');
-    config()->set('database.connections.mysql.database', 'ringgit-catering-db');
-    config()->set('database.connections.mysql.host', '127.0.0.1');
-    config()->set('database.connections.mysql.port', '3306');
-});
-
 it('stores the menu category snapshot when creating an order from cart items without a category relation', function (): void {
     $customer = User::factory()->create([
         'role' => 'pembeli',

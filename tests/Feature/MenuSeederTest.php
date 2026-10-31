@@ -4,14 +4,6 @@ use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
 use Database\Seeders\MenuSeeder;
-use Illuminate\Support\Facades\Config;
-
-beforeEach(function (): void {
-    Config::set('database.default', 'mysql');
-    Config::set('database.connections.mysql.database', 'ringgit-catering-db');
-    Config::set('database.connections.mysql.host', '127.0.0.1');
-    Config::set('database.connections.mysql.port', '3306');
-});
 
 it('seeds the simplified timbang hidup and eceran menu catalog', function (): void {
     (new MenuSeeder)->run();

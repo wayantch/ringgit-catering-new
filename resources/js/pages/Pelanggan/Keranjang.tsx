@@ -15,6 +15,7 @@ interface Summary {
     has_pending_price?: boolean;
     unique_code: number | string | null;
     total: number | string | null;
+    dp_percentage: number;
     dp_amount?: number | string | null;
     dp_unique_code?: number | string | null;
     remaining?: number | string | null;

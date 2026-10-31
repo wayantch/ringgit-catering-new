@@ -206,7 +206,9 @@ function Index({ timbang_hidup, eceran }: Props) {
                     description={totalItems + ' menu tersedia'}
                 />
 
-                <div className="sticky top-0 z-20 -mx-4 space-y-3 bg-bg/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:top-30 lg:-mx-8 lg:px-8">
+                {/* Offsets clear the sticky headers: MobileHeader (h-14) below
+                    `lg`, TopNavbar above it. */}
+                <div className="liquid-glass-bar liquid-glass-bar-bottom sticky top-14 z-20 -mx-4 space-y-3 px-4 py-3 sm:-mx-6 sm:px-6 lg:top-30 lg:-mx-8 lg:px-8">
                     <div className="lg:max-w-md">
                         <MenuSearchBar
                             value={query}
@@ -257,7 +259,9 @@ function Index({ timbang_hidup, eceran }: Props) {
                                 ref={(el) => {
                                     sectionRefs.current[section.id] = el;
                                 }}
-                                className="scroll-mt-40"
+                                // Clears the header plus the sticky toolbar, which
+                                // is taller on desktop than on mobile.
+                                className="scroll-mt-44 lg:scroll-mt-60"
                             >
                                 <MenuSection
                                     id={section.id}

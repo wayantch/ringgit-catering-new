@@ -5,15 +5,7 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
-
-beforeEach(function (): void {
-    Config::set('database.default', 'mysql');
-    Config::set('database.connections.mysql.database', 'ringgit-catering-db');
-    Config::set('database.connections.mysql.host', '127.0.0.1');
-    Config::set('database.connections.mysql.port', '3306');
-});
 
 it('stores admin pesanan with multiple items', function (): void {
     $admin = User::factory()->admin()->create([

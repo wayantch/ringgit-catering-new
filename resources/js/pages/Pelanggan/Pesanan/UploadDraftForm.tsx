@@ -31,6 +31,7 @@ interface DraftSummary {
     unique_code: number | string | null;
     cashback_total: number | string;
     total_after_cashback: number | string;
+    dp_percentage: number;
     dp_amount: number | string;
     dp_total: number | string;
     dp_unique_code: number | string | null;
@@ -309,7 +310,10 @@ function UploadDraftForm({ draft }: Props) {
                                 ) : (
                                     <>
                                         <div className="flex items-center justify-between gap-3 text-slate-600">
-                                            <span>DP 25%</span>
+                                            <span>
+                                                DP {draft.summary.dp_percentage}
+                                                %
+                                            </span>
                                             <span className="font-medium text-text">
                                                 {formatCurrency(
                                                     draft.summary.dp_amount,

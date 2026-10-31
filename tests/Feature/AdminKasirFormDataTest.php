@@ -7,17 +7,9 @@ use App\Models\MenuItemVariant;
 use App\Models\User;
 use App\Services\Admin\KasirService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 uses(DatabaseTransactions::class);
-
-beforeEach(function (): void {
-    Config::set('database.default', 'mysql');
-    Config::set('database.connections.mysql.database', 'ringgit-catering-db');
-    Config::set('database.connections.mysql.host', '127.0.0.1');
-    Config::set('database.connections.mysql.port', '3306');
-});
 
 it('builds the kasir form data with hashids, tiers and variants', function (): void {
     $category = MenuCategory::query()->firstOrCreate(

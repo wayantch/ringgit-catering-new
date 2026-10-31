@@ -9,7 +9,9 @@ use App\Models\MenuItemVariant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\User;
+use App\Services\OrderCodeGenerator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,16 +19,21 @@ use InvalidArgumentException;
 
 class KasirService
 {
+    public function __construct(
+        private OrderCodeGenerator $orderCodeGenerator,
+    ) {}
+
     /**
      * Data needed to render the kasir order form.
      *
-     * @return array{menuItems: array<int, array<string, mixed>>, customers: array<int, array<string, mixed>>}
+     * @return array{menuItems: array<int, array<string, mixed>>, customers: array<int, array<string, mixed>>, dpPercentage: int}
      */
     public function getFormData(): array
     {
         return [
             'menuItems' => $this->getMenuPickerItems(),
             'customers' => $this->getCustomerOptions(),
+            'dpPercentage' => Setting::current()->dp_percentage,
         ];
     }
 
@@ -147,7 +154,9 @@ class KasirService
 
     public function createManualOrder(array $data, User $admin): Order
     {
-        return DB::transaction(function () use ($data, $admin): Order {
+        $dpPercentage = Setting::current()->dp_percentage;
+
+        return DB::transaction(function () use ($data, $admin, $dpPercentage): Order {
             $items = $data['items'] ?? [];
 
             if ($items === []) {
@@ -220,7 +229,7 @@ class KasirService
 
             $order = Order::create([
                 'user_id' => $customer['user_id'],
-                'order_number' => $this->generateOrderNumber(),
+                'order_number' => $this->orderCodeGenerator->nextOrderNumber('RCS', 4),
                 'created_by' => $admin->id,
                 'source' => 'admin',
                 'customer_name' => $customer['customer_name'],
@@ -238,7 +247,7 @@ class KasirService
                 'subtotal' => $isPricePending ? null : round($subtotal, 2),
                 'unique_code' => null,
                 'total_amount' => 0,
-                'dp_percentage' => 25,
+                'dp_percentage' => $dpPercentage,
                 'dp_unique_code' => null,
                 'dp_amount' => 0,
                 'remaining_amount' => 0,
@@ -262,12 +271,12 @@ class KasirService
             }
 
             if (! $isPricePending) {
-                $uniqueCode = $this->generateUniqueCode();
-                $dpUniqueCode = $this->generateUniqueCode($uniqueCode);
+                $uniqueCode = $this->orderCodeGenerator->uniqueCode();
+                $dpUniqueCode = $this->orderCodeGenerator->uniqueCode([$uniqueCode]);
                 $subtotalValue = round($subtotal, 2);
                 $totalAmount = round($subtotalValue + $uniqueCode, 2);
                 $dpAmount = (string) $data['payment_method'] === 'dp'
-                    ? round(($subtotalValue * 0.25) + $dpUniqueCode, 2)
+                    ? round(($subtotalValue * $dpPercentage / 100) + $dpUniqueCode, 2)
                     : 0;
                 $remainingAmount = (string) $data['payment_method'] === 'dp'
                     ? round($totalAmount - $dpAmount, 2)
@@ -323,7 +332,7 @@ class KasirService
             }
 
             return $order->load(['user', 'createdBy', 'items', 'payments']);
-        });
+        }, 3);
     }
 
     private function resolveCustomerSnapshot(array $data): array
@@ -368,39 +377,6 @@ class KasirService
             'customer_phone' => $data['customer_phone'] ?? null,
             'customer_email' => $customerEmail,
         ];
-    }
-
-    private function generateOrderNumber(): string
-    {
-        $date = now()->format('Ymd');
-        $prefix = "RCS-{$date}-";
-
-        $lastOrder = Order::query()
-            ->where('order_number', 'like', $prefix.'%')
-            ->lockForUpdate()
-            ->orderByDesc('order_number')
-            ->first();
-
-        $sequence = 1;
-        if ($lastOrder !== null) {
-            $sequence = ((int) substr($lastOrder->order_number, -4)) + 1;
-        }
-
-        return $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
-    }
-
-    private function generateUniqueCode(?int $except = null): int
-    {
-        do {
-            $code = random_int(100, 999);
-        } while (
-            $code === $except ||
-            Order::query()->where('unique_code', $code)->exists() ||
-            Order::query()->where('dp_unique_code', $code)->exists() ||
-            Payment::query()->where('unique_code', $code)->exists()
-        );
-
-        return $code;
     }
 
     /**

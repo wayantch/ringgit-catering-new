@@ -188,6 +188,12 @@ class PesananService
         return $this->getOrderDetail($order);
     }
 
+    /**
+     * Verify a kasir payment (`payments` rows are only created by the kasir flow).
+     *
+     * The admin is the one recording the payment here, so a verified DP or
+     * pelunasan moves the order straight to production.
+     */
     public function verifyPayment(Payment $payment, User $admin): Payment
     {
         $order = $payment->order;
@@ -198,24 +204,8 @@ class PesananService
             'verified_at' => now(),
         ]);
 
-        // For pembeli orders: only move to 'diproses' when all payments (dp + pelunasan) are verified
-        if ($order->source === 'pembeli') {
-            $allPaymentsVerified = $order->payments()
-                ->whereIn('type', ['dp', 'pelunasan'])
-                ->where('status', '!=', 'verified')
-                ->doesntExist();
-
-            if ($allPaymentsVerified && $order->order_status === 'baru') {
-                $order->update(['order_status' => 'diproses']);
-            }
-        }
-
-        // For admin-created orders: when admin verifies either DP or a direct pelunasan,
-        // immediately mark order as 'diproses' so production can start.
-        if ($order->source === 'admin' && in_array($payment->type, ['dp', 'pelunasan'], true)) {
-            if ($order->order_status === 'baru') {
-                $order->update(['order_status' => 'diproses']);
-            }
+        if (in_array($payment->type, ['dp', 'pelunasan'], true) && $order->order_status === 'baru') {
+            $order->update(['order_status' => 'diproses']);
         }
 
         return $payment;
@@ -230,14 +220,17 @@ class PesananService
             'rejection_notes' => $rejectionNotes,
         ]);
 
-        // Reset order to baru status if payment is DP
-        if ($payment->type === 'dp' && $payment->order->source === 'pembeli') {
-            $payment->order->update(['order_status' => 'baru']);
-        }
+        $this->applyPaymentRejection($payment->order, $payment->type);
 
         return $payment;
     }
 
+    /**
+     * Verify a transfer proof uploaded by the customer.
+     *
+     * Unlike kasir payments, the order status is left alone: the admin still
+     * checks the order itself and clicks "Lanjut di Proses" (updateStatus).
+     */
     public function verifyPaymentVerification(PaymentVerification $pv, User $admin): PaymentVerification
     {
         $pv->update([
@@ -245,9 +238,6 @@ class PesananService
             'verified_by' => $admin->id,
             'verified_at' => now(),
         ]);
-
-        // Admin akan klik "Lanjut di Proses" untuk ubah status ke diproses
-        // Jangan auto-update status di sini
 
         return $pv;
     }
@@ -260,23 +250,37 @@ class PesananService
             'verified_at' => now(),
         ]);
 
-        $rejectionCount = $pv->order->paymentVerifications()
-            ->where('payment_type', $pv->payment_type)
-            ->where('status', 'rejected')
-            ->count();
-
-        if ($rejectionCount >= 2) {
-            $pv->order->update(['order_status' => 'dibatalkan']);
-
-            return $pv;
-        }
-
-        // Reset order to baru status if payment verification is rejected
-        if ($pv->payment_type === 'dp' && $pv->order->source === 'pembeli') {
-            $pv->order->update(['order_status' => 'baru']);
-        }
+        $this->applyPaymentRejection($pv->order, $pv->payment_type);
 
         return $pv;
+    }
+
+    /**
+     * Order status rules after a rejection, shared by kasir payments and customer uploads:
+     * a second rejection of the same payment type cancels the order, otherwise an order
+     * left without any verified payment goes back to "baru" until a valid one arrives.
+     */
+    private function applyPaymentRejection(Order $order, string $paymentType): void
+    {
+        if (in_array($order->order_status, ['selesai', 'dibatalkan'], true)) {
+            return;
+        }
+
+        $rejectionCount = $order->payments()->where('type', $paymentType)->where('status', 'rejected')->count()
+            + $order->paymentVerifications()->where('payment_type', $paymentType)->where('status', 'rejected')->count();
+
+        if ($rejectionCount >= 2) {
+            $order->update(['order_status' => 'dibatalkan']);
+
+            return;
+        }
+
+        $hasVerifiedPayment = $order->payments()->where('status', 'verified')->exists()
+            || $order->paymentVerifications()->where('status', 'verified')->exists();
+
+        if (! $hasVerifiedPayment) {
+            $order->update(['order_status' => 'baru']);
+        }
     }
 
     public function updateStatus(Order $order, string $newStatus): Order

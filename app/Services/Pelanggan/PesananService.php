@@ -7,8 +7,10 @@ use App\Models\MenuItemPriceTier;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentVerification;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\LoyaltyService;
+use App\Services\OrderCodeGenerator;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
@@ -20,6 +22,8 @@ class PesananService
 {
     public function __construct(
         private LoyaltyService $loyaltyService,
+        private KeranjangService $keranjangService,
+        private OrderCodeGenerator $orderCodeGenerator,
     ) {}
 
     /**
@@ -63,9 +67,8 @@ class PesananService
             throw new \Exception('Draft checkout tidak valid.');
         }
 
-        $keranjangService = new KeranjangService;
-        $currentCartItems = $keranjangService->getCartItems($user);
-        $currentCartSummary = $keranjangService->getCartSummary($user);
+        $currentCartItems = $this->keranjangService->getCartItems($user);
+        $currentCartSummary = $this->keranjangService->getCartSummary($user);
 
         if (
             $currentCartItems->count() !== (int) $draft['cart_count'] ||
@@ -81,6 +84,7 @@ class PesananService
 
         $order->update([
             'subtotal' => $draft['summary']['subtotal'],
+            'dp_percentage' => $draft['summary']['dp_percentage'] ?? Setting::current()->dp_percentage,
             'unique_code' => $draft['summary']['unique_code'],
             'dp_unique_code' => $draft['summary']['dp_unique_code'],
             'total_amount' => $draft['summary']['total'],
@@ -113,14 +117,10 @@ class PesananService
             throw new \Exception('Jam booking wajib diisi.');
         }
 
-        // Generate order number
-        $lastOrder = Order::latest('id')->first();
-        $orderNumber = 'ORD-'.now()->format('Ymd').'-'.str_pad(($lastOrder?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
-
-        $order = DB::transaction(function () use ($user, $data, $cartItems, $cartSummary, $orderNumber, $bookingTime) {
+        $order = DB::transaction(function () use ($user, $data, $cartItems, $cartSummary, $bookingTime) {
             $orderData = [
                 'user_id' => $user->id,
-                'order_number' => $orderNumber,
+                'order_number' => $this->orderCodeGenerator->nextOrderNumber('ORD', 5),
                 'source' => 'pembeli',
                 'customer_name' => $user->name,
                 'customer_phone' => $data['phone'] ?? $user->phone,
@@ -134,6 +134,7 @@ class PesananService
                 'unique_code' => $cartSummary['unique_code'],
                 'dp_unique_code' => $cartSummary['dp_unique_code'],
                 'total_amount' => $cartSummary['total'],
+                'dp_percentage' => $cartSummary['dp_percentage'],
                 'dp_amount' => $cartSummary['dp_total'],
                 'remaining_amount' => $cartSummary['remaining_amount'],
                 'notes' => $data['notes'] ?? null,
@@ -205,11 +206,10 @@ class PesananService
             }
 
             // Clear cart
-            $keranjangService = new KeranjangService;
-            $keranjangService->clearCart($user);
+            $this->keranjangService->clearCart($user);
 
             return $order;
-        });
+        }, 3);
 
         return $order;
     }
@@ -219,8 +219,7 @@ class PesananService
      */
     private function getCheckoutCartData(User $user, array $data): array
     {
-        $keranjangService = new KeranjangService;
-        $cartItems = $keranjangService->getCartItems($user);
+        $cartItems = $this->keranjangService->getCartItems($user);
 
         if ($cartItems->isEmpty()) {
             throw new \Exception('Keranjang kosong');
@@ -240,7 +239,7 @@ class PesananService
 
         return [
             'cartItems' => $cartItems,
-            'cartSummary' => $keranjangService->getCartSummary($user),
+            'cartSummary' => $this->keranjangService->getCartSummary($user),
         ];
     }
 
@@ -317,6 +316,7 @@ class PesananService
             'total_amount' => $order->total_amount,
             'dp_amount' => $order->dp_amount,
             'remaining_amount' => $order->remaining_amount,
+            'dp_percentage' => $order->dp_percentage,
             'unique_code' => $order->unique_code,
             'dp_unique_code' => $order->dp_unique_code,
             'notes' => $order->notes,

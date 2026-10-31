@@ -25,6 +25,7 @@ import admin from '@/routes/admin';
 interface Props {
     menuItems: MenuPickerCardItem[];
     customers: CustomerSummary[];
+    dpPercentage: number;
 }
 
 interface FormErrorMap {
@@ -108,7 +109,7 @@ const resolveItemCashback = (payload: ItemDetailPayload): number | null => {
         : null;
 };
 
-export default function Create({ menuItems, customers }: Props) {
+export default function Create({ menuItems, customers, dpPercentage }: Props) {
     const [customerType, setCustomerType] = useState<CustomerType>('walkin');
     const [selectedCustomer, setSelectedCustomer] =
         useState<CustomerSummary | null>(null);
@@ -141,6 +142,7 @@ export default function Create({ menuItems, customers }: Props) {
                 uniqueCode: 123,
                 cashback: 0,
                 total: 0,
+                dpPercentage,
                 dpUniqueCode: 456,
                 dpAmount: 0,
                 remaining: 0,
@@ -163,7 +165,8 @@ export default function Create({ menuItems, customers }: Props) {
         const total =
             subtotal + uniqueCode - (paymentMethod === 'full' ? cashback : 0);
         const dpUniqueCode = 456;
-        const dpAmount = Math.round(subtotal * 0.25) + dpUniqueCode;
+        const dpAmount =
+            Math.round((subtotal * dpPercentage) / 100) + dpUniqueCode;
         const remaining = subtotal + uniqueCode - dpAmount;
 
         return {
@@ -172,11 +175,12 @@ export default function Create({ menuItems, customers }: Props) {
             uniqueCode,
             cashback,
             total,
+            dpPercentage,
             dpUniqueCode,
             dpAmount,
             remaining,
         };
-    }, [orderItems, paymentMethod]);
+    }, [orderItems, paymentMethod, dpPercentage]);
 
     const selectedSummaryItems = useMemo<OrderItemSummary[]>(() => {
         return orderItems.map((item) => ({

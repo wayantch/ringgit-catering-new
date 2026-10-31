@@ -6,6 +6,7 @@ interface Calculation {
     uniqueCode: number;
     cashback: number;
     total: number;
+    dpPercentage: number;
     dpUniqueCode: number;
     dpAmount: number;
     remaining: number;
@@ -65,7 +66,7 @@ export default function PaymentSection({
                     className={`flex flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition ${paymentMethod === 'dp' ? 'bg-primary text-white' : 'text-text'}`}
                 >
                     <BadgeInfo className="size-3.5" />
-                    DP 25%
+                    DP {calculation.dpPercentage}%
                 </button>
             </div>
 
@@ -114,14 +115,17 @@ export default function PaymentSection({
                         <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
                             <div className="mb-3 flex items-center gap-2 text-primary">
                                 <Sparkles className="size-4" />
-                                <p className="text-sm font-semibold">DP 25%</p>
+                                <p className="text-sm font-semibold">
+                                    DP {calculation.dpPercentage}%
+                                </p>
                             </div>
                             <div className="space-y-2 text-sm text-slate-600">
                                 <div className="flex items-center justify-between gap-3">
                                     <span>Nominal DP</span>
                                     <span className="font-semibold text-text">
                                         {formatCurrency(
-                                            calculation.subtotal * 0.25,
+                                            calculation.dpAmount -
+                                                calculation.dpUniqueCode,
                                         )}
                                     </span>
                                 </div>

@@ -7,15 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\Pelanggan\PesananService;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-
-beforeEach(function (): void {
-    Config::set('database.default', 'mysql');
-    Config::set('database.connections.mysql.database', 'ringgit-catering-db');
-    Config::set('database.connections.mysql.host', '127.0.0.1');
-    Config::set('database.connections.mysql.port', '3306');
-});
 
 it('redirects checkout submission to the upload page with an inertia location response', function (): void {
     $customer = User::factory()->create([

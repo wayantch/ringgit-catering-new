@@ -16,13 +16,6 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
-beforeEach(function (): void {
-    config()->set('database.default', 'mysql');
-    config()->set('database.connections.mysql.database', 'ringgit-catering-db');
-    config()->set('database.connections.mysql.host', '127.0.0.1');
-    config()->set('database.connections.mysql.port', '3306');
-});
-
 it('builds cashback summary for timbang hidup customer orders', function (): void {
     $this->instance(LoyaltyService::class, Mockery::mock(LoyaltyService::class));
 

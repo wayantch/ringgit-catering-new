@@ -9,6 +9,7 @@ interface Summary {
     has_pending_price?: boolean;
     unique_code: number | string | null;
     total: number | string | null;
+    dp_percentage: number;
     dp_amount?: number | string | null;
     dp_unique_code?: number | string | null;
     remaining?: number | string | null;
@@ -62,8 +63,9 @@ export default function OrderSummaryCard({
     const subtotal = subtotalFromItems || toNumber(summary.subtotal);
     const uniqueCode = toNumber(summary.unique_code);
     const total = subtotal + uniqueCode;
-    const dpAmount = Math.round(subtotal * 0.25);
-    const dpUniqueCode = uniqueCode;
+    const dpPercentage = summary.dp_percentage;
+    const dpAmount = Math.round((subtotal * dpPercentage) / 100);
+    const dpUniqueCode = toNumber(summary.dp_unique_code);
     const dpTotal = dpAmount + dpUniqueCode;
     const remaining = Math.max(total - dpTotal, 0);
 
@@ -231,7 +233,7 @@ export default function OrderSummaryCard({
                             }`}
                         >
                             <Gift className="size-3.5" />
-                            DP 25%
+                            DP {dpPercentage}%
                         </button>
                     </div>
 
@@ -308,7 +310,7 @@ export default function OrderSummaryCard({
                     ) : (
                         <>
                             <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-                                <span>DP 25%</span>
+                                <span>DP {dpPercentage}%</span>
                                 <span className="font-medium text-text">
                                     {formatCurrency(dpAmount)}
                                 </span>

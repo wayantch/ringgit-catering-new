@@ -103,7 +103,6 @@ class OtpController extends Controller
         } catch (\Throwable $e) {
             Log::warning('OTP verification failed.', [
                 'email' => $email,
-                'token' => $token,
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
             ]);

@@ -432,7 +432,16 @@ function Detail({ order }: Props) {
             <Head title={`Pesanan ${order.order_number}`} />
 
             <PageContainer className="space-y-5 lg:space-y-6">
-                <div className="space-y-4">
+                <PageHeader
+                    title={order.order_number}
+                    description={`${isPickup ? 'Pickup' : 'Delivery'} · ${formatDate(order.booking_date)}`}
+                    actions={
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-sm text-slate-600 ring-1 ring-white/60">
+                            <TypeIcon className="size-4 text-primary" />
+                            {isPickup ? 'Pickup' : 'Delivery'}
+                        </span>
+                    }
+                >
                     <Link
                         href={pesanan.index()}
                         className="inline-flex items-center gap-1 text-sm text-slate-500 transition hover:text-primary"
@@ -440,18 +449,7 @@ function Detail({ order }: Props) {
                         <ChevronLeft className="size-4" />
                         Pesanan saya
                     </Link>
-
-                    <PageHeader
-                        title={order.order_number}
-                        description={`${isPickup ? 'Pickup' : 'Delivery'} · ${formatDate(order.booking_date)}`}
-                        actions={
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
-                                <TypeIcon className="size-4 text-primary" />
-                                {isPickup ? 'Pickup' : 'Delivery'}
-                            </span>
-                        }
-                    />
-                </div>
+                </PageHeader>
 
                 <div className="space-y-4">
                     {/* Timeline */}
@@ -661,7 +659,7 @@ function Detail({ order }: Props) {
                         </div>
 
                         {/* ── Kanan: Pembayaran (sticky di desktop) ── */}
-                        <div className="lg:sticky lg:top-4">
+                        <div className="lg:sticky lg:top-36">
                             <section className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_18px_48px_-34px_rgba(15,23,42,0.45)] ring-1 ring-black/5 backdrop-blur-sm">
                                 <h2 className="mb-4 text-sm font-semibold tracking-tight text-text">
                                     Pembayaran

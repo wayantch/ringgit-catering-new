@@ -21,6 +21,7 @@ interface Order {
     subtotal: string | number;
     dp_amount: string | number;
     remaining_amount: string | number;
+    dp_percentage: number;
     unique_code: string | number | null;
     dp_unique_code?: string | number | null;
     cashback_eligible?: boolean;
@@ -114,7 +115,8 @@ function UploadForm({ order }: Props) {
                                 <>
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="text-sm text-slate-600">
-                                            DP (Uang Muka) — 25%
+                                            DP (Uang Muka) —{' '}
+                                            {order.dp_percentage}%
                                         </span>
                                         <span className="font-semibold text-primary">
                                             {formatCurrency(order.dp_amount)}

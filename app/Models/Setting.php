@@ -34,7 +34,7 @@ class Setting extends Model
             'bank_name' => '',
             'bank_account_number' => '',
             'bank_account_holder_name' => '',
-            'dp_percentage' => 0,
+            'dp_percentage' => 25,
             'order_edit_limit_days' => 0,
             'otp_expiry_minutes' => 10,
         ];

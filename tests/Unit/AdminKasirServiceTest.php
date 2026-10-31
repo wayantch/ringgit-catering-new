@@ -8,7 +8,7 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 it('allows mentah and mateng for eceran babi adat orders', function (): void {
-    $service = new KasirService;
+    $service = app(KasirService::class);
 
     $menuItem = MenuItem::make([
         'menu_type' => 'eceran',

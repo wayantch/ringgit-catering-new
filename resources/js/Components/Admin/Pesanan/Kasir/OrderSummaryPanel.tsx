@@ -12,6 +12,7 @@ interface Calculation {
     uniqueCode: number;
     cashback: number;
     total: number;
+    dpPercentage: number;
     dpUniqueCode: number;
     dpAmount: number;
     remaining: number;

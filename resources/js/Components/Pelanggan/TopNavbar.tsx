@@ -152,7 +152,7 @@ export default function TopNavbar() {
     };
 
     return (
-        <header className="sticky top-0 z-40 hidden border-b border-slate-200 bg-white lg:block">
+        <header className="liquid-glass-bar liquid-glass-bar-bottom sticky top-0 z-40 hidden lg:block">
             <div className="mx-auto flex w-full max-w-7xl items-center gap-6 px-6 py-3 xl:px-8">
                 <Link
                     href={beranda() as RouteDefinition<'get'>}

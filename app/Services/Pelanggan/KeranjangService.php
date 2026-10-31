@@ -5,12 +5,18 @@ namespace App\Services\Pelanggan;
 use App\Models\Cart;
 use App\Models\MenuItem;
 use App\Models\MenuItemPriceTier;
+use App\Models\Setting;
 use App\Models\User;
+use App\Services\OrderCodeGenerator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class KeranjangService
 {
+    public function __construct(
+        private OrderCodeGenerator $orderCodeGenerator,
+    ) {}
+
     /**
      * Add item to cart
      */
@@ -62,19 +68,22 @@ class KeranjangService
             }
         }
 
-        // Generate unique code (last 3 digits of order number style)
-        $uniqueCode = rand(100, 999);
-        $dpAmount = round($subtotal * 0.25);
-        $dpWithCode = $dpAmount + $uniqueCode;
+        $dpPercentage = Setting::current()->dp_percentage;
+        $uniqueCode = $this->orderCodeGenerator->uniqueCode();
+        $dpUniqueCode = $this->orderCodeGenerator->uniqueCode([$uniqueCode]);
+        $total = $subtotal + $uniqueCode;
+        $dpAmount = round($subtotal * $dpPercentage / 100);
+        $dpTotal = $dpAmount + $dpUniqueCode;
 
         return [
             'subtotal' => $subtotal,
             'unique_code' => $uniqueCode,
-            'total' => $subtotal + $uniqueCode,
+            'total' => $total,
+            'dp_percentage' => $dpPercentage,
             'dp_amount' => $dpAmount,
-            'dp_unique_code' => $uniqueCode,
-            'dp_total' => $dpWithCode,
-            'remaining_amount' => $subtotal - $dpAmount,
+            'dp_unique_code' => $dpUniqueCode,
+            'dp_total' => $dpTotal,
+            'remaining_amount' => max(0, $total - $dpTotal),
         ];
     }
 
